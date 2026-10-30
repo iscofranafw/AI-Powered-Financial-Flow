@@ -1,0 +1,101 @@
+tanggal,deskripsi,nominal,tipe
+2026-01-01,dibyr pesanan kue ulang tahun,548000,pemasukan
+2026-01-03,telur ayam untuk roti,259000,pengeluaran
+2026-01-06,beli tepung,165000,pengeluaran
+2026-01-08,gaji baker,134000,pengeluaran
+2026-01-11,upah penjaga toko,379000,pengeluaran
+2026-01-14,upah penjaga toko,284000,pengeluaran
+2026-01-16,omzet pesanan online,226000,pemasukan
+2026-01-19,upah penjaga toko,243000,pengeluaran
+2026-01-21,upah penjaga toko,251000,pengeluaran
+2026-01-24,biaya promosi instagram,444000,pengeluaran
+2026-01-27,bayar listrik oven,487000,pengeluaran
+2026-01-29,biaya promosi instagram,464000,pengeluaran
+2026-02-01,omzet pesanan online,429000,pemasukan
+2026-02-03,gula pasir,34000,pengeluaran
+2026-02-06,beli dus kue,561000,pengeluaran
+2026-02-09,beli dus kue,308000,pengeluaran
+2026-02-11,biaya promosi instagram,170000,pengeluaran
+2026-02-14,bli tepung,419000,pengeluaran
+2026-02-16,omzet bakery hari ini,494000,pemasukan
+2026-02-19,biaya promosi instagram,426000,pengeluaran
+2026-02-22,biaya promosi instagram,198000,pengeluaran
+2026-02-24,biaya promosi instagram,95000,pengeluaran
+2026-02-27,plastik kemasan roti,333000,pengeluaran
+2026-03-01,plastik kemasan roti,411000,pengeluaran
+2026-03-04,tambahan modal pemilik,2335000,pemasukan
+2026-03-07,beli mentega,500000,pengeluaran
+2026-03-09,beli dus kue,519000,pengeluaran
+2026-03-12,bayar sewa ruko,30000,pengeluaran
+2026-03-14,gaji baker,309000,pengeluaran
+2026-03-17,beli tepung,476000,pengeluaran
+2026-03-20,omzet bakery hari ini,177000,pemasukan
+2026-03-22,bayar sewa ruko,525000,pengeluaran
+2026-03-25,beli tepung,500000,pengeluaran
+2026-03-27,gula pasir,252000,pengeluaran
+2026-03-30,biaya promosi instagram,276000,pengeluaran
+2026-04-02,beli tepung,72000,pengeluaran
+2026-04-04,omzet pesanan online,459000,pemasukan
+2026-04-07,gaji baker,648000,pengeluaran
+2026-04-09,upah penjaga toko,334000,pengeluaran
+2026-04-12,biaya promosi instagram,456000,pengeluaran
+2026-04-15,bayar listrik oven,371000,pengeluaran
+2026-04-17,biaya promosi instagram,545000,pengeluaran
+2026-04-20,omzet bakery hari ini,272000,pemasukan
+2026-04-22,plastik kemasan roti,539000,pengeluaran
+2026-04-25,upah penjaga toko,264000,pengeluaran
+2026-04-28,biaya promosi instagram,518000,pengeluaran
+2026-04-30,gaji baker,634000,pengeluaran
+2026-05-03,gaji baker,363000,pengeluaran
+2026-05-05,omzet bakery hari ini,532000,pemasukan
+2026-05-08,gula pasir,357000,pengeluaran
+2026-05-11,plastik kemasan roti,115000,pengeluaran
+2026-05-13,upah penjaga toko,484000,pengeluaran
+2026-05-16,biaya promosi instagram,600000,pengeluaran
+2026-05-18,gula pasir,610000,pengeluaran
+2026-05-21,omzet bakery hari ini,174000,pemasukan
+2026-05-24,bayar listrik oven,215000,pengeluaran
+2026-05-26,biaya promosi instagram,392000,pengeluaran
+2026-05-29,bayar listrik oven,585000,pengeluaran
+2026-05-31,biaya promosi instagram,557000,pengeluaran
+2026-06-03,bayar listrik oven,361000,pengeluaran
+2026-06-06,tambahan modal pemilik,220000,pemasukan
+2026-06-08,upah penjaga toko,148000,pengeluaran
+2026-06-11,upah penjaga toko,206000,pengeluaran
+2026-06-13,gula pasir,612000,pengeluaran
+2026-06-16,beli dus kue,83000,pengeluaran
+2026-06-19,gaji baker,87000,pengeluaran
+2026-06-21,tambahan modal pemilik,1245000,pemasukan
+2026-06-24,gaji baker,643000,pengeluaran
+2026-06-26,bli mentega,443000,pengeluaran
+2026-06-29,plastik kemasan roti,189000,pengeluaran
+2026-07-02,gaji baker,528000,pengeluaran
+2026-07-04,plastik kemasan roti,499000,pengeluaran
+2026-07-07,tambahan modal pemilik,3125000,pemasukan
+2026-07-09,plastik kemasan roti,85000,pengeluaran
+2026-07-12,bayar sewa ruko,467000,pengeluaran
+2026-07-15,beli dus kue,477000,pengeluaran
+2026-07-17,upah penjaga toko,188000,pengeluaran
+2026-07-20,beli tepung,641000,pengeluaran
+2026-07-22,tambahan modal pemilik,230000,pemasukan
+2026-07-25,upah penjaga toko,490000,pengeluaran
+2026-07-28,biaya promosi instagram,414000,pengeluaran
+2026-07-30,bayar sewa ruko,429000,pengeluaran
+2026-08-02,biaya promosi instagram,185000,pengeluaran
+2026-08-04,upah penjaga toko,506000,pengeluaran
+2026-08-07,omzet pesanan online,547000,pemasukan
+2026-08-10,telur ayam untuk roti,240000,pengeluaran
+2026-08-12,plastik kemasan roti,126000,pengeluaran
+2026-08-15,bayar sewa ruko,346000,pengeluaran
+2026-08-17,bayar sewa ruko,195000,pengeluaran
+2026-08-20,upah penjaga toko,138000,pengeluaran
+2026-08-23,omzet pesanan online,291000,pemasukan
+2026-08-25,plastik kemasan roti,312000,pengeluaran
+2026-08-28,plastik kemasan roti,537000,pengeluaran
+2026-08-30,beli dus kue,508000,pengeluaran
+2026-09-02,biaya promosi instagram,263000,pengeluaran
+2026-09-05,plastik kemasan roti,453000,pengeluaran
+2026-09-07,dibayar pesanan kue ulang tahun,432000,pemasukan
+2026-09-10,bayar sewa ruko,496000,pengeluaran
+2026-09-12,plastik kemasan roti,405000,pengeluaran
+2026-09-15,upah penjaga toko,402000,pengeluaran

@@ -1,0 +1,901 @@
+tanggal,deskripsi,nominal,tipe
+2026-01-01,penjualan grosir 30 dus,113000,pemasukan
+2026-01-01,cetak spanduk promo,523000,pengeluaran
+2026-01-01,beli mie instan,248000,pengeluaran
+2026-01-01,listrik gudang,198000,pengeluaran
+2026-01-02,beli kantong plastik grosir,277000,pengeluaran
+2026-01-02,kulakan kopi sachet,524000,pengeluaran
+2026-01-02,penjualan grosir 30 dus,204000,pemasukan
+2026-01-03,cetak spanduk promo,512000,pengeluaran
+2026-01-03,stok sabun cuci,546000,pengeluaran
+2026-01-03,beli kantong plastik grosir,588000,pengeluaran
+2026-01-03,cetak spanduk promo,130000,pengeluaran
+2026-01-04,cetak spanduk promo,282000,pengeluaran
+2026-01-04,penjualan eceran hari ini,54000,pemasukan
+2026-01-04,kulakan deterjen,352000,pengeluaran
+2026-01-05,bensin angkut,619000,pengeluaran
+2026-01-05,beli kantong plastik grosir,345000,pengeluaran
+2026-01-05,kulakan deterjen,582000,pengeluaran
+2026-01-05,bli kantong plastik grosir,23000,pengeluaran
+2026-01-06,penjualan grosir 30 dus,442000,pemasukan
+2026-01-06,beli kantong plastik grosir,186000,pengeluaran
+2026-01-06,gaji pegawai gudang,140000,pengeluaran
+2026-01-07,stok gula pasir,106000,pengeluaran
+2026-01-07,stok gula pasir,413000,pengeluaran
+2026-01-07,beli kantong plastik grosir,382000,pengeluaran
+2026-01-07,penjualan eceran hari ini,563000,pemasukan
+2026-01-08,stok sabun cuci,157000,pengeluaran
+2026-01-08,stok minyak goreng,550000,pengeluaran
+2026-01-08,beli tisu,535000,pengeluaran
+2026-01-09,stok minyak goreng,528000,pengeluaran
+2026-01-09,beli stok beras 10 karung,22000,pengeluaran
+2026-01-09,setoran tambahan modal,2540000,pemasukan
+2026-01-09,beli mie instan,162000,pengeluaran
+2026-01-10,beli kantong plastik grosir,534000,pengeluaran
+2026-01-10,bensin angkut,260000,pengeluaran
+2026-01-10,cetak spanduk promo,451000,pengeluaran
+2026-01-11,cetak spanduk promo,522000,pengeluaran
+2026-01-11,penjualan eceran hari ini,574000,pemasukan
+2026-01-11,stok teh botol,602000,pengeluaran
+2026-01-11,kulakan deterjen,126000,pengeluaran
+2026-01-12,stok sabun cuci,544000,pengeluaran
+2026-01-12,beli stok beras 10 karung,277000,pengeluaran
+2026-01-12,gaji pegawai gudang,421000,pengeluaran
+2026-01-13,penjualan grosir 30 dus,552000,pemasukan
+2026-01-13,gaji pegawai gudang,69000,pengeluaran
+2026-01-13,beli kantong plastik grosir,649000,pengeluaran
+2026-01-14,stok sabun cuci,197000,pengeluaran
+2026-01-14,kulakan kopi sachet,119000,pengeluaran
+2026-01-14,kulakan deterjen,206000,pengeluaran
+2026-01-14,penjualan eceran hari ini,608000,pemasukan
+2026-01-15,kulakan deterjen,151000,pengeluaran
+2026-01-15,bensin angkut,270000,pengeluaran
+2026-01-15,bli kantong plastik grosir,154000,pengeluaran
+2026-01-16,listrik gudang,397000,pengeluaran
+2026-01-16,gaji pegawai gudang,507000,pengeluaran
+2026-01-16,penjualan grosir 30 dus,389000,pemasukan
+2026-01-16,cetak spanduk promo,486000,pengeluaran
+2026-01-17,stok minyak goreng,356000,pengeluaran
+2026-01-17,listrik gudang,261000,pengeluaran
+2026-01-17,gaji pegawai gudang,465000,pengeluaran
+2026-01-18,bensin angkut,390000,pengeluaran
+2026-01-18,penjualan grosir 30 dus,162000,pemasukan
+2026-01-18,beli tisu,260000,pengeluaran
+2026-01-18,listrik gudang,112000,pengeluaran
+2026-01-19,beli stok beras 10 karung,429000,pengeluaran
+2026-01-19,stok teh botol,93000,pengeluaran
+2026-01-19,gaji pegawai gudang,238000,pengeluaran
+2026-01-20,penjualan eceran hari ini,219000,pemasukan
+2026-01-20,gaji pegawai gudang,33000,pengeluaran
+2026-01-20,listrik gudang,21000,pengeluaran
+2026-01-20,kulakan kopi sachet,111000,pengeluaran
+2026-01-21,gaji pegawai gudang,200000,pengeluaran
+2026-01-21,bensin angkut,487000,pengeluaran
+2026-01-21,setoran tambahan modal,670000,pemasukan
+2026-01-22,beli kantong plastik grosir,412000,pengeluaran
+2026-01-22,kulakan kopi sachet,146000,pengeluaran
+2026-01-22,gaji pegawai gudang,323000,pengeluaran
+2026-01-22,bensin angkut,343000,pengeluaran
+2026-01-23,kulakan deterjen,639000,pengeluaran
+2026-01-23,setoran tambahan modal,415000,pemasukan
+2026-01-23,cetak spanduk promo,332000,pengeluaran
+2026-01-24,gaji pegawai gudang,569000,pengeluaran
+2026-01-24,cetak spanduk promo,451000,pengeluaran
+2026-01-24,beli tisu,191000,pengeluaran
+2026-01-24,kulakan deterjen,317000,pengeluaran
+2026-01-25,penjualan eceran hari ini,392000,pemasukan
+2026-01-25,gaji pegawai gudang,428000,pengeluaran
+2026-01-25,beli tisu,275000,pengeluaran
+2026-01-26,beli stok beras 10 karung,219000,pengeluaran
+2026-01-26,stok minyak goreng,47000,pengeluaran
+2026-01-26,beli kantong plastik grosir,542000,pengeluaran
+2026-01-27,penjualan eceran hari ini,34000,pemasukan
+2026-01-27,beli stok beras 10 karung,166000,pengeluaran
+2026-01-27,beli kantong plastik grosir,77000,pengeluaran
+2026-01-27,beli kantong plastik grosir,220000,pengeluaran
+2026-01-28,cetak spanduk promo,98000,pengeluaran
+2026-01-28,beli kantong plastik grosir,633000,pengeluaran
+2026-01-28,setoran tambahan modal,2715000,pemasukan
+2026-01-29,beli stok beras 10 karung,641000,pengeluaran
+2026-01-29,listrik gudang,194000,pengeluaran
+2026-01-29,stok gula pasir,276000,pengeluaran
+2026-01-29,cetak spanduk promo,211000,pengeluaran
+2026-01-30,gaji pegawai gudang,145000,pengeluaran
+2026-01-30,setoran tambahan modal,815000,pemasukan
+2026-01-30,listrik gudang,342000,pengeluaran
+2026-01-31,listrik gudang,150000,pengeluaran
+2026-01-31,stok gula pasir,285000,pengeluaran
+2026-01-31,kulakan kopi sachet,585000,pengeluaran
+2026-01-31,cetak spanduk promo,566000,pengeluaran
+2026-02-01,setoran tambahan modal,2820000,pemasukan
+2026-02-01,stok teh botol,121000,pengeluaran
+2026-02-01,gaji pegawai gudang,84000,pengeluaran
+2026-02-02,stok gula pasir,603000,pengeluaran
+2026-02-02,kulakan kopi sachet,298000,pengeluaran
+2026-02-02,cetak spanduk promo,595000,pengeluaran
+2026-02-02,setoran tambahan modal,1710000,pemasukan
+2026-02-03,cetak spanduk promo,533000,pengeluaran
+2026-02-03,cetak spanduk promo,78000,pengeluaran
+2026-02-03,gaji pegawai gudang,193000,pengeluaran
+2026-02-04,gaji pegawai gudang,90000,pengeluaran
+2026-02-04,bli kantong plastik grosir,257000,pengeluaran
+2026-02-04,setoran tambahan modal,1705000,pemasukan
+2026-02-04,kulakan kopi sachet,402000,pengeluaran
+2026-02-05,stok teh botol,275000,pengeluaran
+2026-02-05,listrik gudang,319000,pengeluaran
+2026-02-05,beli tisu,564000,pengeluaran
+2026-02-06,beli kantong plastik grosir,517000,pengeluaran
+2026-02-06,penjualan grosir 30 dus,374000,pemasukan
+2026-02-06,gaji pegawai gudang,628000,pengeluaran
+2026-02-06,gaji pegawai gudang,474000,pengeluaran
+2026-02-07,kulakan kopi sachet,528000,pengeluaran
+2026-02-07,beli tisu,464000,pengeluaran
+2026-02-07,kulakan deterjen,311000,pengeluaran
+2026-02-08,setoran tambahan modal,450000,pemasukan
+2026-02-08,kulakan deterjen,431000,pengeluaran
+2026-02-08,gaji pegawai gudang,633000,pengeluaran
+2026-02-09,beli mie instan,635000,pengeluaran
+2026-02-09,gaji pegawai gudang,156000,pengeluaran
+2026-02-09,stok minyak goreng,397000,pengeluaran
+2026-02-09,setoran tambahan modal,2315000,pemasukan
+2026-02-10,beli mie instan,279000,pengeluaran
+2026-02-10,bensin angkut,449000,pengeluaran
+2026-02-10,cetak spanduk promo,485000,pengeluaran
+2026-02-11,stok sabun cuci,260000,pengeluaran
+2026-02-11,cetak spanduk promo,160000,pengeluaran
+2026-02-11,setoran tambahan modal,1680000,pemasukan
+2026-02-11,bensin angkut,415000,pengeluaran
+2026-02-12,beli stok beras 10 karung,538000,pengeluaran
+2026-02-12,gaji pegawai gudang,500000,pengeluaran
+2026-02-12,cetak spanduk promo,195000,pengeluaran
+2026-02-13,cetak spanduk promo,39000,pengeluaran
+2026-02-13,setoran tambahan modal,1255000,pemasukan
+2026-02-13,stok teh botol,438000,pengeluaran
+2026-02-13,beli mie instan,178000,pengeluaran
+2026-02-14,bli kantong plastik grosir,560000,pengeluaran
+2026-02-14,beli stok beras 10 karung,145000,pengeluaran
+2026-02-14,gaji pegawai gudang,121000,pengeluaran
+2026-02-15,setoran tambahan modal,1995000,pemasukan
+2026-02-15,beli tisu,259000,pengeluaran
+2026-02-15,beli stok beras 10 karung,485000,pengeluaran
+2026-02-15,cetak spanduk promo,56000,pengeluaran
+2026-02-16,gaji pegawai gudang,143000,pengeluaran
+2026-02-16,gaji pegawai gudang,595000,pengeluaran
+2026-02-16,penjualan grosir 30 dus,540000,pemasukan
+2026-02-17,cetak spanduk promo,94000,pengeluaran
+2026-02-17,beli stok beras 10 karung,275000,pengeluaran
+2026-02-17,listrik gudang,256000,pengeluaran
+2026-02-17,stok gula pasir,52000,pengeluaran
+2026-02-18,stok sabun cuci,21000,pengeluaran
+2026-02-18,penjualan grosir 30 dus,206000,pemasukan
+2026-02-18,stok teh botol,287000,pengeluaran
+2026-02-19,bli kantong plastik grosir,375000,pengeluaran
+2026-02-19,listrik gudang,409000,pengeluaran
+2026-02-19,listrik gudang,253000,pengeluaran
+2026-02-19,beli mie instan,191000,pengeluaran
+2026-02-20,penjualan grosir 30 dus,424000,pemasukan
+2026-02-20,beli tisu,543000,pengeluaran
+2026-02-20,stok minyak goreng,518000,pengeluaran
+2026-02-21,bensin angkut,297000,pengeluaran
+2026-02-21,stok minyak goreng,282000,pengeluaran
+2026-02-21,stok minyak goreng,462000,pengeluaran
+2026-02-22,penjualan eceran hari ini,425000,pemasukan
+2026-02-22,listrik gudang,229000,pengeluaran
+2026-02-22,cetak spanduk promo,304000,pengeluaran
+2026-02-22,kulakan deterjen,334000,pengeluaran
+2026-02-23,listrik gudang,490000,pengeluaran
+2026-02-23,gaji pegawai gudang,294000,pengeluaran
+2026-02-23,setoran tambahan modal,2420000,pemasukan
+2026-02-24,listrik gudang,29000,pengeluaran
+2026-02-24,gaji pegawai gudang,86000,pengeluaran
+2026-02-24,gaji pegawai gudang,16000,pengeluaran
+2026-02-24,kulakan kopi sachet,161000,pengeluaran
+2026-02-25,gaji pegawai gudang,225000,pengeluaran
+2026-02-25,penjualan eceran hari ini,38000,pemasukan
+2026-02-25,cetak spanduk promo,213000,pengeluaran
+2026-02-26,cetak spanduk promo,68000,pengeluaran
+2026-02-26,stok sabun cuci,449000,pengeluaran
+2026-02-26,kulakan kopi sachet,78000,pengeluaran
+2026-02-26,beli kantong plastik grosir,449000,pengeluaran
+2026-02-27,penjualan eceran hari ini,236000,pemasukan
+2026-02-27,beli kantong plastik grosir,552000,pengeluaran
+2026-02-27,cetak spanduk promo,590000,pengeluaran
+2026-02-28,beli tisu,255000,pengeluaran
+2026-02-28,bensin angkut,532000,pengeluaran
+2026-02-28,kulakan kopi sachet,42000,pengeluaran
+2026-02-28,penjualan grosir 30 dus,53000,pemasukan
+2026-03-01,kulakan deterjen,563000,pengeluaran
+2026-03-01,beli mie instan,112000,pengeluaran
+2026-03-01,stok minyak goreng,364000,pengeluaran
+2026-03-02,stok teh botol,577000,pengeluaran
+2026-03-02,bensin angkut,531000,pengeluaran
+2026-03-02,setoran tambahan modal,680000,pemasukan
+2026-03-02,gaji pegawai gudang,618000,pengeluaran
+2026-03-03,kulakan kopi sachet,526000,pengeluaran
+2026-03-03,gaji pegawai gudang,95000,pengeluaran
+2026-03-03,kulakan kopi sachet,512000,pengeluaran
+2026-03-04,gaji pegawai gudang,222000,pengeluaran
+2026-03-04,penjualan grosir 30 dus,546000,pemasukan
+2026-03-04,stok teh botol,625000,pengeluaran
+2026-03-04,listrik gudang,514000,pengeluaran
+2026-03-05,gaji pegawai gudang,586000,pengeluaran
+2026-03-05,beli mie instan,400000,pengeluaran
+2026-03-05,bli kantong plastik grosir,504000,pengeluaran
+2026-03-06,penjualan eceran hari ini,311000,pemasukan
+2026-03-06,stok gula pasir,404000,pengeluaran
+2026-03-06,stok minyak goreng,363000,pengeluaran
+2026-03-07,cetak spanduk promo,415000,pengeluaran
+2026-03-07,cetak spanduk promo,558000,pengeluaran
+2026-03-07,listrik gudang,61000,pengeluaran
+2026-03-07,setoran tambahan modal,1595000,pemasukan
+2026-03-08,beli tisu,536000,pengeluaran
+2026-03-08,gaji pegawai gudang,222000,pengeluaran
+2026-03-08,beli kantong plastik grosir,58000,pengeluaran
+2026-03-09,stok teh botol,383000,pengeluaran
+2026-03-09,listrik gudang,474000,pengeluaran
+2026-03-09,penjualan grosir 30 dus,147000,pemasukan
+2026-03-09,cetak spanduk promo,296000,pengeluaran
+2026-03-10,stok teh botol,104000,pengeluaran
+2026-03-10,kulakan deterjen,228000,pengeluaran
+2026-03-10,bli kantong plastik grosir,413000,pengeluaran
+2026-03-11,stok teh botol,298000,pengeluaran
+2026-03-11,penjualan eceran hari ini,253000,pemasukan
+2026-03-11,stok gula pasir,281000,pengeluaran
+2026-03-11,beli tisu,118000,pengeluaran
+2026-03-12,gaji pegawai gudang,570000,pengeluaran
+2026-03-12,beli tisu,476000,pengeluaran
+2026-03-12,stok teh botol,233000,pengeluaran
+2026-03-13,penjualan eceran hari ini,568000,pemasukan
+2026-03-13,beli kantong plastik grosir,293000,pengeluaran
+2026-03-13,beli tisu,243000,pengeluaran
+2026-03-13,bensin angkut,630000,pengeluaran
+2026-03-14,gaji pegawai gudang,355000,pengeluaran
+2026-03-14,stok minyak goreng,212000,pengeluaran
+2026-03-14,penjualan eceran hari ini,276000,pemasukan
+2026-03-15,stok gula pasir,19000,pengeluaran
+2026-03-15,bensin angkut,156000,pengeluaran
+2026-03-15,stok teh botol,154000,pengeluaran
+2026-03-15,beli mie instan,18000,pengeluaran
+2026-03-16,beli tisu,102000,pengeluaran
+2026-03-16,penjualan eceran hari ini,350000,pemasukan
+2026-03-16,cetak spanduk promo,581000,pengeluaran
+2026-03-17,gaji pegawai gudang,108000,pengeluaran
+2026-03-17,gaji pegawai gudang,500000,pengeluaran
+2026-03-17,beli kantong plastik grosir,59000,pengeluaran
+2026-03-17,cetak spanduk promo,275000,pengeluaran
+2026-03-18,penjualan eceran hari ini,185000,pemasukan
+2026-03-18,bensin angkut,496000,pengeluaran
+2026-03-18,beli mie instan,519000,pengeluaran
+2026-03-19,bensin angkut,532000,pengeluaran
+2026-03-19,bensin angkut,461000,pengeluaran
+2026-03-19,beli stok beras 10 karung,525000,pengeluaran
+2026-03-20,penjualan eceran hari ini,162000,pemasukan
+2026-03-20,cetak spanduk promo,63000,pengeluaran
+2026-03-20,cetak spanduk promo,449000,pengeluaran
+2026-03-20,cetak spanduk promo,349000,pengeluaran
+2026-03-21,beli tisu,245000,pengeluaran
+2026-03-21,stok sabun cuci,42000,pengeluaran
+2026-03-21,setoran tambahan modal,1530000,pemasukan
+2026-03-22,cetak spanduk promo,231000,pengeluaran
+2026-03-22,kulakan kopi sachet,256000,pengeluaran
+2026-03-22,stok minyak goreng,499000,pengeluaran
+2026-03-22,gaji pegawai gudang,367000,pengeluaran
+2026-03-23,kulakan kopi sachet,300000,pengeluaran
+2026-03-23,penjualan grosir 30 dus,584000,pemasukan
+2026-03-23,stok sabun cuci,208000,pengeluaran
+2026-03-24,beli kantong plastik grosir,488000,pengeluaran
+2026-03-24,gaji pegawai gudang,401000,pengeluaran
+2026-03-24,beli tisu,283000,pengeluaran
+2026-03-24,cetak spanduk promo,356000,pengeluaran
+2026-03-25,penjualan eceran hari ini,180000,pemasukan
+2026-03-25,bensin angkut,17000,pengeluaran
+2026-03-25,cetak spanduk promo,411000,pengeluaran
+2026-03-26,cetak spanduk promo,120000,pengeluaran
+2026-03-26,gaji pegawai gudang,110000,pengeluaran
+2026-03-26,cetak spanduk promo,345000,pengeluaran
+2026-03-26,penjualan eceran hari ini,293000,pemasukan
+2026-03-27,stok minyak goreng,281000,pengeluaran
+2026-03-27,listrik gudang,459000,pengeluaran
+2026-03-27,beli kantong plastik grosir,574000,pengeluaran
+2026-03-28,beli kantong plastik grosir,181000,pengeluaran
+2026-03-28,stok sabun cuci,497000,pengeluaran
+2026-03-28,penjualan eceran hari ini,376000,pemasukan
+2026-03-28,gaji pegawai gudang,512000,pengeluaran
+2026-03-29,bensin angkut,446000,pengeluaran
+2026-03-29,beli kantong plastik grosir,500000,pengeluaran
+2026-03-29,listrik gudang,541000,pengeluaran
+2026-03-30,beli stok beras 10 karung,175000,pengeluaran
+2026-03-30,penjualan grosir 30 dus,289000,pemasukan
+2026-03-30,cetak spanduk promo,282000,pengeluaran
+2026-03-30,gaji pegawai gudang,633000,pengeluaran
+2026-03-31,beli kantong plastik grosir,646000,pengeluaran
+2026-03-31,stok teh botol,313000,pengeluaran
+2026-03-31,beli kantong plastik grosir,243000,pengeluaran
+2026-04-01,penjualan eceran hari ini,487000,pemasukan
+2026-04-01,stok sabun cuci,220000,pengeluaran
+2026-04-01,stok sabun cuci,635000,pengeluaran
+2026-04-02,beli kantong plastik grosir,311000,pengeluaran
+2026-04-02,stok minyak goreng,559000,pengeluaran
+2026-04-02,beli mie instan,285000,pengeluaran
+2026-04-02,penjualan grosir 30 dus,550000,pemasukan
+2026-04-03,stok teh botol,552000,pengeluaran
+2026-04-03,stok gula pasir,202000,pengeluaran
+2026-04-03,bensin angkut,389000,pengeluaran
+2026-04-04,beli kantong plastik grosir,301000,pengeluaran
+2026-04-04,listrik gudang,548000,pengeluaran
+2026-04-04,penjualan grosir 30 dus,609000,pemasukan
+2026-04-04,bensin angkut,20000,pengeluaran
+2026-04-05,gaji pegawai gudang,344000,pengeluaran
+2026-04-05,stok teh botol,269000,pengeluaran
+2026-04-05,kulakan deterjen,258000,pengeluaran
+2026-04-06,stok sabun cuci,108000,pengeluaran
+2026-04-06,penjualan eceran hari ini,626000,pemasukan
+2026-04-06,beli tisu,393000,pengeluaran
+2026-04-06,stok teh botol,535000,pengeluaran
+2026-04-07,stok sabun cuci,284000,pengeluaran
+2026-04-07,beli tisu,549000,pengeluaran
+2026-04-07,beli stok beras 10 karung,508000,pengeluaran
+2026-04-08,penjualan eceran hari ini,278000,pemasukan
+2026-04-08,beli mie instan,176000,pengeluaran
+2026-04-08,stok sabun cuci,502000,pengeluaran
+2026-04-08,kulakan deterjen,224000,pengeluaran
+2026-04-09,cetak spanduk promo,86000,pengeluaran
+2026-04-09,beli stok beras 10 karung,51000,pengeluaran
+2026-04-09,penjualan eceran hari ini,50000,pemasukan
+2026-04-10,gaji pegawai gudang,642000,pengeluaran
+2026-04-10,gaji pegawai gudang,65000,pengeluaran
+2026-04-10,bensin angkut,371000,pengeluaran
+2026-04-10,gaji pegawai gudang,416000,pengeluaran
+2026-04-11,stok minyak goreng,276000,pengeluaran
+2026-04-11,setoran tambahan modal,1840000,pemasukan
+2026-04-11,beli mie instan,376000,pengeluaran
+2026-04-12,bensin angkut,103000,pengeluaran
+2026-04-12,kulakan kopi sachet,175000,pengeluaran
+2026-04-12,kulakan deterjen,592000,pengeluaran
+2026-04-12,stok teh botol,418000,pengeluaran
+2026-04-13,setoran tambahan modal,1220000,pemasukan
+2026-04-13,beli kantong plastik grosir,27000,pengeluaran
+2026-04-13,beli kantong plastik grosir,37000,pengeluaran
+2026-04-14,gaji pegawai gudang,375000,pengeluaran
+2026-04-14,stok sabun cuci,233000,pengeluaran
+2026-04-14,kulakan deterjen,527000,pengeluaran
+2026-04-15,penjualan eceran hari ini,299000,pemasukan
+2026-04-15,cetak spanduk promo,470000,pengeluaran
+2026-04-15,beli kantong plastik grosir,592000,pengeluaran
+2026-04-15,gaji pegawai gudang,448000,pengeluaran
+2026-04-16,stok minyak goreng,283000,pengeluaran
+2026-04-16,bensin angkut,117000,pengeluaran
+2026-04-16,penjualan grosir 30 dus,619000,pemasukan
+2026-04-17,cetak spanduk promo,105000,pengeluaran
+2026-04-17,gaji pegawai gudang,434000,pengeluaran
+2026-04-17,stok minyak goreng,121000,pengeluaran
+2026-04-17,beli mie instan,376000,pengeluaran
+2026-04-18,gaji pegawai gudang,21000,pengeluaran
+2026-04-18,penjualan eceran hari ini,484000,pemasukan
+2026-04-18,stok sabun cuci,288000,pengeluaran
+2026-04-19,bli kantong plastik grosir,164000,pengeluaran
+2026-04-19,gaji pegawai gudang,364000,pengeluaran
+2026-04-19,kulakan deterjen,360000,pengeluaran
+2026-04-19,beli stok beras 10 karung,480000,pengeluaran
+2026-04-20,penjualan eceran hari ini,459000,pemasukan
+2026-04-20,stok teh botol,369000,pengeluaran
+2026-04-20,bensin angkut,605000,pengeluaran
+2026-04-21,beli kantong plastik grosir,333000,pengeluaran
+2026-04-21,stok gula pasir,380000,pengeluaran
+2026-04-21,stok gula pasir,591000,pengeluaran
+2026-04-21,setoran tambahan modal,90000,pemasukan
+2026-04-22,gaji pegawai gudang,368000,pengeluaran
+2026-04-22,stok minyak goreng,24000,pengeluaran
+2026-04-22,beli stok beras 10 karung,426000,pengeluaran
+2026-04-23,stok sabun cuci,649000,pengeluaran
+2026-04-23,stok sabun cuci,24000,pengeluaran
+2026-04-23,penjualan grosir 30 dus,231000,pemasukan
+2026-04-23,bli mie instan,85000,pengeluaran
+2026-04-24,gaji pegawai gudang,98000,pengeluaran
+2026-04-24,beli mie instan,286000,pengeluaran
+2026-04-24,beli mie instan,133000,pengeluaran
+2026-04-25,cetak spanduk promo,396000,pengeluaran
+2026-04-25,penjualan grosir 30 dus,32000,pemasukan
+2026-04-25,beli kantong plastik grosir,425000,pengeluaran
+2026-04-25,bensin angkut,473000,pengeluaran
+2026-04-26,kulakan kopi sachet,221000,pengeluaran
+2026-04-26,kulakan deterjen,17000,pengeluaran
+2026-04-26,stok gula pasir,559000,pengeluaran
+2026-04-27,setoran tambahan modal,985000,pemasukan
+2026-04-27,beli kantong plastik grosir,236000,pengeluaran
+2026-04-27,kulakan deterjen,146000,pengeluaran
+2026-04-28,stok sabun cuci,303000,pengeluaran
+2026-04-28,listrik gudang,418000,pengeluaran
+2026-04-28,beli kantong plastik grosir,399000,pengeluaran
+2026-04-28,penjualan eceran hari ini,452000,pemasukan
+2026-04-29,cetak spanduk promo,520000,pengeluaran
+2026-04-29,bensin angkut,91000,pengeluaran
+2026-04-29,gaji pegawai gudang,496000,pengeluaran
+2026-04-30,beli stok beras 10 karung,260000,pengeluaran
+2026-04-30,kulakan deterjen,499000,pengeluaran
+2026-04-30,penjualan grosir 30 dus,79000,pemasukan
+2026-04-30,beli mie instan,110000,pengeluaran
+2026-05-01,listrik gudang,376000,pengeluaran
+2026-05-01,bensin angkut,438000,pengeluaran
+2026-05-01,beli kantong plastik grosir,306000,pengeluaran
+2026-05-02,stok teh botol,508000,pengeluaran
+2026-05-02,setoran tambahan modal,2395000,pemasukan
+2026-05-02,listrik gudang,629000,pengeluaran
+2026-05-02,beli mie instan,403000,pengeluaran
+2026-05-03,listrik gudang,98000,pengeluaran
+2026-05-03,cetak spanduk promo,207000,pengeluaran
+2026-05-03,bli mie instan,205000,pengeluaran
+2026-05-04,penjualan eceran hari ini,539000,pemasukan
+2026-05-04,stok teh botol,119000,pengeluaran
+2026-05-04,listrik gudang,449000,pengeluaran
+2026-05-04,gaji pegawai gudang,640000,pengeluaran
+2026-05-05,stok minyak goreng,530000,pengeluaran
+2026-05-05,stok sabun cuci,195000,pengeluaran
+2026-05-05,penjualan grosir 30 dus,413000,pemasukan
+2026-05-06,stok teh botol,241000,pengeluaran
+2026-05-06,kulakan deterjen,589000,pengeluaran
+2026-05-06,beli kantong plastik grosir,590000,pengeluaran
+2026-05-06,beli mie instan,287000,pengeluaran
+2026-05-07,gaji pegawai gudang,247000,pengeluaran
+2026-05-07,penjualan grosir 30 dus,169000,pemasukan
+2026-05-07,stok gula pasir,327000,pengeluaran
+2026-05-08,listrik gudang,540000,pengeluaran
+2026-05-08,stok teh botol,292000,pengeluaran
+2026-05-08,kulakan kopi sachet,414000,pengeluaran
+2026-05-08,listrik gudang,461000,pengeluaran
+2026-05-09,penjualan eceran hari ini,316000,pemasukan
+2026-05-09,beli mie instan,600000,pengeluaran
+2026-05-09,gaji pegawai gudang,498000,pengeluaran
+2026-05-10,beli stok beras 10 karung,167000,pengeluaran
+2026-05-10,beli stok beras 10 karung,82000,pengeluaran
+2026-05-10,stok sabun cuci,163000,pengeluaran
+2026-05-11,penjualan grosir 30 dus,23000,pemasukan
+2026-05-11,beli kantong plastik grosir,66000,pengeluaran
+2026-05-11,gaji pegawai gudang,296000,pengeluaran
+2026-05-11,gaji pegawai gudang,124000,pengeluaran
+2026-05-12,stok gula pasir,408000,pengeluaran
+2026-05-12,beli kantong plastik grosir,371000,pengeluaran
+2026-05-12,setoran tambahan modal,725000,pemasukan
+2026-05-13,beli kantong plastik grosir,515000,pengeluaran
+2026-05-13,cetak spanduk promo,442000,pengeluaran
+2026-05-13,stok gula pasir,433000,pengeluaran
+2026-05-13,beli kantong plastik grosir,633000,pengeluaran
+2026-05-14,beli kantong plastik grosir,626000,pengeluaran
+2026-05-14,penjualan eceran hari ini,582000,pemasukan
+2026-05-14,cetak spanduk promo,304000,pengeluaran
+2026-05-15,kulakan kopi sachet,353000,pengeluaran
+2026-05-15,gaji pegawai gudang,470000,pengeluaran
+2026-05-15,stok gula pasir,452000,pengeluaran
+2026-05-15,listrik gudang,315000,pengeluaran
+2026-05-16,penjualan eceran hari ini,43000,pemasukan
+2026-05-16,cetak spanduk promo,528000,pengeluaran
+2026-05-16,beli tisu,617000,pengeluaran
+2026-05-17,gaji pegawai gudang,582000,pengeluaran
+2026-05-17,beli kantong plastik grosir,589000,pengeluaran
+2026-05-17,beli kantong plastik grosir,85000,pengeluaran
+2026-05-17,penjualan eceran hari ini,514000,pemasukan
+2026-05-18,listrik gudang,500000,pengeluaran
+2026-05-18,stok minyak goreng,601000,pengeluaran
+2026-05-18,beli mie instan,457000,pengeluaran
+2026-05-19,beli stok beras 10 karung,483000,pengeluaran
+2026-05-19,cetak spanduk promo,335000,pengeluaran
+2026-05-19,penjualan grosir 30 dus,513000,pemasukan
+2026-05-19,stok sabun cuci,501000,pengeluaran
+2026-05-20,gaji pegawai gudang,166000,pengeluaran
+2026-05-20,beli stok beras 10 karung,542000,pengeluaran
+2026-05-20,listrik gudang,353000,pengeluaran
+2026-05-21,stok sabun cuci,615000,pengeluaran
+2026-05-21,setoran tambahan modal,2475000,pemasukan
+2026-05-21,kulakan deterjen,320000,pengeluaran
+2026-05-21,beli kantong plastik grosir,403000,pengeluaran
+2026-05-22,stok sabun cuci,600000,pengeluaran
+2026-05-22,beli kantong plastik grosir,365000,pengeluaran
+2026-05-22,listrik gudang,61000,pengeluaran
+2026-05-23,penjualan eceran hari ini,226000,pemasukan
+2026-05-23,bli kantong plastik grosir,532000,pengeluaran
+2026-05-23,cetak spanduk promo,587000,pengeluaran
+2026-05-24,gaji pegawai gudang,283000,pengeluaran
+2026-05-24,kulakan kopi sachet,116000,pengeluaran
+2026-05-24,gaji pegawai gudang,218000,pengeluaran
+2026-05-24,setoran tambahan modal,3130000,pemasukan
+2026-05-25,stok sabun cuci,289000,pengeluaran
+2026-05-25,stok sabun cuci,472000,pengeluaran
+2026-05-25,gaji pegawai gudang,238000,pengeluaran
+2026-05-26,beli stok beras 10 karung,486000,pengeluaran
+2026-05-26,gaji pegawai gudang,183000,pengeluaran
+2026-05-26,penjualan eceran hari ini,556000,pemasukan
+2026-05-26,cetak spanduk promo,521000,pengeluaran
+2026-05-27,beli kantong plastik grosir,291000,pengeluaran
+2026-05-27,gaji pegawai gudang,45000,pengeluaran
+2026-05-27,gaji pegawai gudang,94000,pengeluaran
+2026-05-28,cetak spanduk promo,518000,pengeluaran
+2026-05-28,penjualan eceran hari ini,567000,pemasukan
+2026-05-28,stok gula pasir,172000,pengeluaran
+2026-05-28,gaji pegawai gudang,120000,pengeluaran
+2026-05-29,bensin angkut,520000,pengeluaran
+2026-05-29,stok sabun cuci,202000,pengeluaran
+2026-05-29,beli mie instan,344000,pengeluaran
+2026-05-30,penjualan eceran hari ini,258000,pemasukan
+2026-05-30,cetak spanduk promo,249000,pengeluaran
+2026-05-30,cetak spanduk promo,193000,pengeluaran
+2026-05-30,bensin angkut,56000,pengeluaran
+2026-05-31,listrik gudang,529000,pengeluaran
+2026-05-31,bensin angkut,580000,pengeluaran
+2026-05-31,penjualan grosir 30 dus,139000,pemasukan
+2026-06-01,beli stok beras 10 karung,141000,pengeluaran
+2026-06-01,beli mie instan,469000,pengeluaran
+2026-06-01,listrik gudang,458000,pengeluaran
+2026-06-01,listrik gudang,349000,pengeluaran
+2026-06-02,kulakan deterjen,491000,pengeluaran
+2026-06-02,penjualan eceran hari ini,458000,pemasukan
+2026-06-02,stok sabun cuci,590000,pengeluaran
+2026-06-03,listrik gudang,526000,pengeluaran
+2026-06-03,beli kantong plastik grosir,219000,pengeluaran
+2026-06-03,cetak spanduk promo,148000,pengeluaran
+2026-06-03,gaji pegawai gudang,139000,pengeluaran
+2026-06-04,setoran tambahan modal,1005000,pemasukan
+2026-06-04,bensin angkut,594000,pengeluaran
+2026-06-04,beli mie instan,231000,pengeluaran
+2026-06-05,kulakan deterjen,125000,pengeluaran
+2026-06-05,kulakan kopi sachet,31000,pengeluaran
+2026-06-05,beli mie instan,208000,pengeluaran
+2026-06-06,setoran tambahan modal,1325000,pemasukan
+2026-06-06,stok gula pasir,386000,pengeluaran
+2026-06-06,kulakan kopi sachet,271000,pengeluaran
+2026-06-06,gaji pegawai gudang,18000,pengeluaran
+2026-06-07,kulakan deterjen,158000,pengeluaran
+2026-06-07,stok teh botol,74000,pengeluaran
+2026-06-07,penjualan grosir 30 dus,605000,pemasukan
+2026-06-08,bensin angkut,563000,pengeluaran
+2026-06-08,bensin angkut,353000,pengeluaran
+2026-06-08,kulakan kopi sachet,353000,pengeluaran
+2026-06-08,cetak spanduk promo,176000,pengeluaran
+2026-06-09,kulakan deterjen,229000,pengeluaran
+2026-06-09,penjualan eceran hari ini,486000,pemasukan
+2026-06-09,gaji pegawai gudang,515000,pengeluaran
+2026-06-10,listrik gudang,287000,pengeluaran
+2026-06-10,gaji pegawai gudang,49000,pengeluaran
+2026-06-10,stok minyak goreng,304000,pengeluaran
+2026-06-10,gaji pegawai gudang,423000,pengeluaran
+2026-06-11,setoran tambahan modal,2350000,pemasukan
+2026-06-11,stok sabun cuci,17000,pengeluaran
+2026-06-11,beli stok beras 10 karung,149000,pengeluaran
+2026-06-12,stok minyak goreng,246000,pengeluaran
+2026-06-12,beli tisu,597000,pengeluaran
+2026-06-12,cetak spanduk promo,347000,pengeluaran
+2026-06-12,penjualan eceran hari ini,471000,pemasukan
+2026-06-13,cetak spanduk promo,473000,pengeluaran
+2026-06-13,bensin angkut,399000,pengeluaran
+2026-06-13,bensin angkut,471000,pengeluaran
+2026-06-14,gaji pegawai gudang,336000,pengeluaran
+2026-06-14,beli stok beras 10 karung,203000,pengeluaran
+2026-06-14,setoran tambahan modal,1145000,pemasukan
+2026-06-14,beli stok beras 10 karung,537000,pengeluaran
+2026-06-15,beli kantong plastik grosir,222000,pengeluaran
+2026-06-15,beli kantong plastik grosir,314000,pengeluaran
+2026-06-15,listrik gudang,179000,pengeluaran
+2026-06-16,cetak spanduk promo,455000,pengeluaran
+2026-06-16,penjualan eceran hari ini,607000,pemasukan
+2026-06-16,stok sabun cuci,58000,pengeluaran
+2026-06-16,gaji pegawai gudang,222000,pengeluaran
+2026-06-17,beli mie instan,319000,pengeluaran
+2026-06-17,cetak spanduk promo,307000,pengeluaran
+2026-06-17,beli kantong plastik grosir,154000,pengeluaran
+2026-06-18,penjualan grosir 30 dus,256000,pemasukan
+2026-06-18,gaji pegawai gudang,17000,pengeluaran
+2026-06-18,cetak spanduk promo,21000,pengeluaran
+2026-06-19,bensin angkut,278000,pengeluaran
+2026-06-19,stok minyak goreng,226000,pengeluaran
+2026-06-19,beli mie instan,199000,pengeluaran
+2026-06-19,penjualan eceran hari ini,538000,pemasukan
+2026-06-20,cetak spanduk promo,207000,pengeluaran
+2026-06-20,listrik gudang,539000,pengeluaran
+2026-06-20,stok sabun cuci,431000,pengeluaran
+2026-06-21,stok minyak goreng,71000,pengeluaran
+2026-06-21,gaji pegawai gudang,76000,pengeluaran
+2026-06-21,setoran tambahan modal,1630000,pemasukan
+2026-06-21,cetak spanduk promo,135000,pengeluaran
+2026-06-22,gaji pegawai gudang,156000,pengeluaran
+2026-06-22,gaji pegawai gudang,637000,pengeluaran
+2026-06-22,stok teh botol,546000,pengeluaran
+2026-06-23,kulakan deterjen,30000,pengeluaran
+2026-06-23,penjualan eceran hari ini,195000,pemasukan
+2026-06-23,cetak spanduk promo,554000,pengeluaran
+2026-06-23,cetak spanduk promo,426000,pengeluaran
+2026-06-24,listrik gudang,94000,pengeluaran
+2026-06-24,stok teh botol,361000,pengeluaran
+2026-06-24,beli kantong plastik grosir,627000,pengeluaran
+2026-06-25,setoran tambahan modal,250000,pemasukan
+2026-06-25,kulakan deterjen,413000,pengeluaran
+2026-06-25,stok teh botol,307000,pengeluaran
+2026-06-25,cetak spanduk promo,32000,pengeluaran
+2026-06-26,kulakan deterjen,329000,pengeluaran
+2026-06-26,bensin angkut,191000,pengeluaran
+2026-06-26,penjualan eceran hari ini,52000,pemasukan
+2026-06-27,stok gula pasir,410000,pengeluaran
+2026-06-27,gaji pegawai gudang,227000,pengeluaran
+2026-06-27,listrik gudang,607000,pengeluaran
+2026-06-27,beli mie instan,186000,pengeluaran
+2026-06-28,stok teh botol,31000,pengeluaran
+2026-06-28,penjualan grosir 30 dus,530000,pemasukan
+2026-06-28,kulakan deterjen,572000,pengeluaran
+2026-06-29,kulakan deterjen,231000,pengeluaran
+2026-06-29,stok sabun cuci,153000,pengeluaran
+2026-06-29,gaji pegawai gudang,500000,pengeluaran
+2026-06-29,kulakan deterjen,645000,pengeluaran
+2026-06-30,penjualan grosir 30 dus,17000,pemasukan
+2026-06-30,stok teh botol,58000,pengeluaran
+2026-06-30,kulakan deterjen,69000,pengeluaran
+2026-07-01,beli kantong plastik grosir,480000,pengeluaran
+2026-07-01,gaji pegawai gudang,237000,pengeluaran
+2026-07-01,bli kantong plastik grosir,77000,pengeluaran
+2026-07-02,setoran tambahan modal,1375000,pemasukan
+2026-07-02,cetak spanduk promo,303000,pengeluaran
+2026-07-02,beli kantong plastik grosir,401000,pengeluaran
+2026-07-02,gaji pegawai gudang,17000,pengeluaran
+2026-07-03,stok teh botol,326000,pengeluaran
+2026-07-03,beli kantong plastik grosir,335000,pengeluaran
+2026-07-03,penjualan grosir 30 dus,604000,pemasukan
+2026-07-04,listrik gudang,488000,pengeluaran
+2026-07-04,stok sabun cuci,146000,pengeluaran
+2026-07-04,bensin angkut,445000,pengeluaran
+2026-07-04,stok gula pasir,647000,pengeluaran
+2026-07-05,gaji pegawai gudang,278000,pengeluaran
+2026-07-05,penjualan grosir 30 dus,366000,pemasukan
+2026-07-05,gaji pegawai gudang,497000,pengeluaran
+2026-07-06,beli mie instan,263000,pengeluaran
+2026-07-06,cetak spanduk promo,512000,pengeluaran
+2026-07-06,gaji pegawai gudang,324000,pengeluaran
+2026-07-06,gaji pegawai gudang,120000,pengeluaran
+2026-07-07,penjualan grosir 30 dus,118000,pemasukan
+2026-07-07,gaji pegawai gudang,390000,pengeluaran
+2026-07-07,cetak spanduk promo,341000,pengeluaran
+2026-07-08,gaji pegawai gudang,627000,pengeluaran
+2026-07-08,beli tisu,176000,pengeluaran
+2026-07-08,stok sabun cuci,450000,pengeluaran
+2026-07-08,penjualan grosir 30 dus,445000,pemasukan
+2026-07-09,cetak spanduk promo,535000,pengeluaran
+2026-07-09,kulakan kopi sachet,231000,pengeluaran
+2026-07-09,cetak spanduk promo,637000,pengeluaran
+2026-07-10,listrik gudang,248000,pengeluaran
+2026-07-10,gaji pegawai gudang,528000,pengeluaran
+2026-07-10,penjualan grosir 30 dus,149000,pemasukan
+2026-07-10,bensin angkut,143000,pengeluaran
+2026-07-11,beli kantong plastik grosir,122000,pengeluaran
+2026-07-11,bli mie instan,231000,pengeluaran
+2026-07-11,beli kantong plastik grosir,532000,pengeluaran
+2026-07-12,stok minyak goreng,227000,pengeluaran
+2026-07-12,setoran tambahan modal,1100000,pemasukan
+2026-07-12,stok teh botol,134000,pengeluaran
+2026-07-12,kulakan kopi sachet,578000,pengeluaran
+2026-07-13,bensin angkut,632000,pengeluaran
+2026-07-13,stok sabun cuci,522000,pengeluaran
+2026-07-13,beli kantong plastik grosir,105000,pengeluaran
+2026-07-14,setoran tambahan modal,1685000,pemasukan
+2026-07-14,beli tisu,77000,pengeluaran
+2026-07-14,gaji pegawai gudang,621000,pengeluaran
+2026-07-15,listrik gudang,29000,pengeluaran
+2026-07-15,kulakan kopi sachet,264000,pengeluaran
+2026-07-15,beli stok beras 10 karung,99000,pengeluaran
+2026-07-15,penjualan eceran hari ini,227000,pemasukan
+2026-07-16,stok sabun cuci,174000,pengeluaran
+2026-07-16,bensin angkut,311000,pengeluaran
+2026-07-16,beli mie instan,258000,pengeluaran
+2026-07-17,beli kantong plastik grosir,632000,pengeluaran
+2026-07-17,kulakan deterjen,162000,pengeluaran
+2026-07-17,penjualan eceran hari ini,108000,pemasukan
+2026-07-17,beli kantong plastik grosir,607000,pengeluaran
+2026-07-18,bensin angkut,546000,pengeluaran
+2026-07-18,stok sabun cuci,441000,pengeluaran
+2026-07-18,cetak spanduk promo,317000,pengeluaran
+2026-07-19,cetak spanduk promo,411000,pengeluaran
+2026-07-19,penjualan grosir 30 dus,276000,pemasukan
+2026-07-19,cetak spanduk promo,208000,pengeluaran
+2026-07-19,gaji pegawai gudang,447000,pengeluaran
+2026-07-20,beli kantong plastik grosir,183000,pengeluaran
+2026-07-20,cetak spanduk promo,66000,pengeluaran
+2026-07-20,cetak spanduk promo,416000,pengeluaran
+2026-07-21,penjualan grosir 30 dus,620000,pemasukan
+2026-07-21,bli stok beras 10 karung,547000,pengeluaran
+2026-07-21,kulakan deterjen,531000,pengeluaran
+2026-07-21,bensin angkut,16000,pengeluaran
+2026-07-22,beli stok beras 10 karung,314000,pengeluaran
+2026-07-22,cetak spanduk promo,305000,pengeluaran
+2026-07-22,penjualan grosir 30 dus,403000,pemasukan
+2026-07-23,kulakan deterjen,158000,pengeluaran
+2026-07-23,kulakan kopi sachet,139000,pengeluaran
+2026-07-23,beli kantong plastik grosir,59000,pengeluaran
+2026-07-23,kulakan deterjen,195000,pengeluaran
+2026-07-24,beli kantong plastik grosir,379000,pengeluaran
+2026-07-24,penjualan eceran hari ini,312000,pemasukan
+2026-07-24,kulakan kopi sachet,211000,pengeluaran
+2026-07-25,bensin angkut,20000,pengeluaran
+2026-07-25,listrik gudang,428000,pengeluaran
+2026-07-25,beli stok beras 10 karung,166000,pengeluaran
+2026-07-25,beli kantong plastik grosir,415000,pengeluaran
+2026-07-26,penjualan grosir 30 dus,529000,pemasukan
+2026-07-26,beli stok beras 10 karung,153000,pengeluaran
+2026-07-26,gaji pegawai gudang,518000,pengeluaran
+2026-07-27,gaji pegawai gudang,63000,pengeluaran
+2026-07-27,stok gula pasir,349000,pengeluaran
+2026-07-27,gaji pegawai gudang,145000,pengeluaran
+2026-07-28,penjualan eceran hari ini,268000,pemasukan
+2026-07-28,kulakan deterjen,198000,pengeluaran
+2026-07-28,beli mie instan,344000,pengeluaran
+2026-07-28,kulakan deterjen,589000,pengeluaran
+2026-07-29,bensin angkut,429000,pengeluaran
+2026-07-29,cetak spanduk promo,402000,pengeluaran
+2026-07-29,penjualan eceran hari ini,390000,pemasukan
+2026-07-30,gaji pegawai gudang,318000,pengeluaran
+2026-07-30,gaji pegawai gudang,226000,pengeluaran
+2026-07-30,cetak spanduk promo,369000,pengeluaran
+2026-07-30,stok teh botol,233000,pengeluaran
+2026-07-31,stok minyak goreng,36000,pengeluaran
+2026-07-31,penjualan eceran hari ini,545000,pemasukan
+2026-07-31,listrik gudang,160000,pengeluaran
+2026-08-01,gaji pegawai gudang,161000,pengeluaran
+2026-08-01,cetak spanduk promo,244000,pengeluaran
+2026-08-01,kulakan kopi sachet,556000,pengeluaran
+2026-08-01,beli kantong plastik grosir,524000,pengeluaran
+2026-08-02,penjualan grosir 30 dus,84000,pemasukan
+2026-08-02,cetak spanduk promo,21000,pengeluaran
+2026-08-02,beli stok beras 10 karung,236000,pengeluaran
+2026-08-03,kulakan deterjen,488000,pengeluaran
+2026-08-03,bensin angkut,98000,pengeluaran
+2026-08-03,bensin angkut,75000,pengeluaran
+2026-08-03,penjualan grosir 30 dus,469000,pemasukan
+2026-08-04,beli stok beras 10 karung,515000,pengeluaran
+2026-08-04,cetak spanduk promo,590000,pengeluaran
+2026-08-04,bensin angkut,546000,pengeluaran
+2026-08-05,bli mie instan,237000,pengeluaran
+2026-08-05,gaji pegawai gudang,502000,pengeluaran
+2026-08-05,penjualan eceran hari ini,373000,pemasukan
+2026-08-05,beli stok beras 10 karung,539000,pengeluaran
+2026-08-06,stok teh botol,340000,pengeluaran
+2026-08-06,beli stok beras 10 karung,494000,pengeluaran
+2026-08-06,stok minyak goreng,473000,pengeluaran
+2026-08-07,bensin angkut,332000,pengeluaran
+2026-08-07,penjualan grosir 30 dus,408000,pemasukan
+2026-08-07,beli kantong plastik grosir,515000,pengeluaran
+2026-08-07,bensin angkut,363000,pengeluaran
+2026-08-08,cetak spanduk promo,554000,pengeluaran
+2026-08-08,beli mie instan,223000,pengeluaran
+2026-08-08,stok sabun cuci,597000,pengeluaran
+2026-08-09,penjualan eceran hari ini,510000,pemasukan
+2026-08-09,cetak spanduk promo,106000,pengeluaran
+2026-08-09,listrik gudang,47000,pengeluaran
+2026-08-10,gaji pegawai gudang,235000,pengeluaran
+2026-08-10,beli mie instan,360000,pengeluaran
+2026-08-10,stok teh botol,165000,pengeluaran
+2026-08-10,setoran tambahan modal,2150000,pemasukan
+2026-08-11,beli kantong plastik grosir,404000,pengeluaran
+2026-08-11,stok teh botol,110000,pengeluaran
+2026-08-11,listrik gudang,171000,pengeluaran
+2026-08-12,stok teh botol,261000,pengeluaran
+2026-08-12,kulakan kopi sachet,468000,pengeluaran
+2026-08-12,penjualan grosir 30 dus,402000,pemasukan
+2026-08-12,stok teh botol,452000,pengeluaran
+2026-08-13,kulakan deterjen,257000,pengeluaran
+2026-08-13,beli kantong plastik grosir,123000,pengeluaran
+2026-08-13,beli mie instan,109000,pengeluaran
+2026-08-14,beli tisu,30000,pengeluaran
+2026-08-14,penjualan eceran hari ini,18000,pemasukan
+2026-08-14,cetak spanduk promo,328000,pengeluaran
+2026-08-14,bli stok beras 10 karung,430000,pengeluaran
+2026-08-15,beli tisu,37000,pengeluaran
+2026-08-15,kulakan kopi sachet,507000,pengeluaran
+2026-08-15,gaji pegawai gudang,226000,pengeluaran
+2026-08-16,setoran tambahan modal,895000,pemasukan
+2026-08-16,cetak spanduk promo,477000,pengeluaran
+2026-08-16,bensin angkut,218000,pengeluaran
+2026-08-16,stok minyak goreng,438000,pengeluaran
+2026-08-17,stok sabun cuci,561000,pengeluaran
+2026-08-17,kulakan kopi sachet,30000,pengeluaran
+2026-08-17,penjualan eceran hari ini,484000,pemasukan
+2026-08-18,bensin angkut,505000,pengeluaran
+2026-08-18,beli kantong plastik grosir,341000,pengeluaran
+2026-08-18,gaji pegawai gudang,234000,pengeluaran
+2026-08-18,kulakan kopi sachet,173000,pengeluaran
+2026-08-19,cetak spanduk promo,417000,pengeluaran
+2026-08-19,penjualan grosir 30 dus,560000,pemasukan
+2026-08-19,gaji pegawai gudang,511000,pengeluaran
+2026-08-20,stok sabun cuci,624000,pengeluaran
+2026-08-20,kulakan kopi sachet,165000,pengeluaran
+2026-08-20,kulakan kopi sachet,548000,pengeluaran
+2026-08-20,gaji pegawai gudang,243000,pengeluaran
+2026-08-21,penjualan eceran hari ini,50000,pemasukan
+2026-08-21,beli stok beras 10 karung,649000,pengeluaran
+2026-08-21,beli stok beras 10 karung,44000,pengeluaran
+2026-08-22,gaji pegawai gudang,200000,pengeluaran
+2026-08-22,bensin angkut,586000,pengeluaran
+2026-08-22,beli kantong plastik grosir,266000,pengeluaran
+2026-08-23,setoran tambahan modal,2445000,pemasukan
+2026-08-23,cetak spanduk promo,533000,pengeluaran
+2026-08-23,beli kantong plastik grosir,349000,pengeluaran
+2026-08-23,gaji pegawai gudang,126000,pengeluaran
+2026-08-24,stok teh botol,609000,pengeluaran
+2026-08-24,beli tisu,30000,pengeluaran
+2026-08-24,penjualan grosir 30 dus,414000,pemasukan
+2026-08-25,beli stok beras 10 karung,520000,pengeluaran
+2026-08-25,beli kantong plastik grosir,596000,pengeluaran
+2026-08-25,gaji pegawai gudang,48000,pengeluaran
+2026-08-25,gaji pegawai gudang,406000,pengeluaran
+2026-08-26,gaji pegawai gudang,129000,pengeluaran
+2026-08-26,penjualan eceran hari ini,131000,pemasukan
+2026-08-26,stok gula pasir,98000,pengeluaran
+2026-08-27,kulakan deterjen,259000,pengeluaran
+2026-08-27,stok sabun cuci,446000,pengeluaran
+2026-08-27,gaji pegawai gudang,149000,pengeluaran
+2026-08-27,bensin angkut,112000,pengeluaran
+2026-08-28,setoran tambahan modal,2820000,pemasukan
+2026-08-28,cetak spanduk promo,458000,pengeluaran
+2026-08-28,stok gula pasir,194000,pengeluaran
+2026-08-29,stok gula pasir,329000,pengeluaran
+2026-08-29,beli kantong plastik grosir,114000,pengeluaran
+2026-08-29,gaji pegawai gudang,508000,pengeluaran
+2026-08-29,penjualan eceran hari ini,24000,pemasukan
+2026-08-30,gaji pegawai gudang,54000,pengeluaran
+2026-08-30,beli tisu,160000,pengeluaran
+2026-08-30,gaji pegawai gudang,421000,pengeluaran
+2026-08-31,bensin angkut,446000,pengeluaran
+2026-08-31,beli stok beras 10 karung,468000,pengeluaran
+2026-08-31,setoran tambahan modal,1755000,pemasukan
+2026-08-31,cetak spanduk promo,525000,pengeluaran
+2026-09-01,listrik gudang,341000,pengeluaran
+2026-09-01,gaji pegawai gudang,127000,pengeluaran
+2026-09-01,gaji pegawai gudang,250000,pengeluaran
+2026-09-02,beli kantong plastik grosir,116000,pengeluaran
+2026-09-02,penjualan eceran hari ini,274000,pemasukan
+2026-09-02,beli kantong plastik grosir,117000,pengeluaran
+2026-09-02,cetak spanduk promo,341000,pengeluaran
+2026-09-03,beli mie instan,574000,pengeluaran
+2026-09-03,bli kantong plastik grosir,46000,pengeluaran
+2026-09-03,bensin angkut,342000,pengeluaran
+2026-09-04,penjualan grosir 30 dus,152000,pemasukan
+2026-09-04,gaji pegawai gudang,584000,pengeluaran
+2026-09-04,beli tisu,30000,pengeluaran
+2026-09-05,bensin angkut,142000,pengeluaran
+2026-09-05,stok gula pasir,377000,pengeluaran
+2026-09-05,stok teh botol,129000,pengeluaran
+2026-09-05,penjualan grosir 30 dus,227000,pemasukan
+2026-09-06,kulakan kopi sachet,296000,pengeluaran
+2026-09-06,stok sabun cuci,452000,pengeluaran
+2026-09-06,kulakan deterjen,246000,pengeluaran
+2026-09-07,kulakan deterjen,537000,pengeluaran
+2026-09-07,beli kantong plastik grosir,247000,pengeluaran
+2026-09-07,penjualan grosir 30 dus,50000,pemasukan
+2026-09-07,stok minyak goreng,220000,pengeluaran
+2026-09-08,beli kantong plastik grosir,417000,pengeluaran
+2026-09-08,cetak spanduk promo,641000,pengeluaran
+2026-09-08,bensin angkut,611000,pengeluaran
+2026-09-09,kulakan deterjen,401000,pengeluaran
+2026-09-09,setoran tambahan modal,630000,pemasukan
+2026-09-09,beli stok beras 10 karung,57000,pengeluaran
+2026-09-09,beli kantong plastik grosir,326000,pengeluaran
+2026-09-10,gaji pegawai gudang,336000,pengeluaran
+2026-09-10,kulakan kopi sachet,520000,pengeluaran
+2026-09-10,stok gula pasir,70000,pengeluaran
+2026-09-11,setoran tambahan modal,1650000,pemasukan
+2026-09-11,beli kantong plastik grosir,602000,pengeluaran
+2026-09-11,stok sabun cuci,482000,pengeluaran
+2026-09-11,beli kantong plastik grosir,83000,pengeluaran
+2026-09-12,beli mie instan,201000,pengeluaran
+2026-09-12,bensin angkut,408000,pengeluaran
+2026-09-12,penjualan grosir 30 dus,349000,pemasukan
+2026-09-13,gaji pegawai gudang,579000,pengeluaran
+2026-09-13,bli tisu,476000,pengeluaran
+2026-09-13,beli mie instan,365000,pengeluaran
+2026-09-13,kulakan deterjen,430000,pengeluaran
+2026-09-14,stok sabun cuci,346000,pengeluaran
+2026-09-14,penjualan grosir 30 dus,33000,pemasukan
+2026-09-14,kulakan kopi sachet,132000,pengeluaran
+2026-09-15,gaji pegawai gudang,434000,pengeluaran
+2026-09-15,kulakan kopi sachet,444000,pengeluaran
+2026-09-15,kulakan deterjen,369000,pengeluaran
+2026-09-15,stok teh botol,29000,pengeluaran
+2026-09-16,setoran tambahan modal,2080000,pemasukan
+2026-09-16,stok teh botol,543000,pengeluaran
+2026-09-16,bensin angkut,77000,pengeluaran
+2026-09-17,gaji pegawai gudang,510000,pengeluaran
+2026-09-17,cetak spanduk promo,487000,pengeluaran
+2026-09-17,stok gula pasir,589000,pengeluaran

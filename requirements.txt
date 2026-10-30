@@ -1,0 +1,9 @@
+streamlit>=1.33.0
+supabase>=2.4.0
+python-dotenv>=1.0.1
+pandas>=2.2.0
+numpy>=2.0.0
+ollama>=0.2.0
+plotly>=5.20.0
+openpyxl>=3.1.2
+pytest>=8.1.0

@@ -1,0 +1,301 @@
+tanggal,deskripsi,nominal,tipe
+2026-01-01,setoran modal bengkel,2275000,pemasukan
+2026-01-01,cetak brosur servis,636000,pengeluaran
+2026-01-02,beli kunci ring,23000,pengeluaran
+2026-01-03,beli kompresor,381000,pengeluaran
+2026-01-04,beli kunci ring,18000,pengeluaran
+2026-01-05,beli stok oli mesin,589000,pengeluaran
+2026-01-06,pendapatan servis motor,182000,pemasukan
+2026-01-07,beli kunci ring,131000,pengeluaran
+2026-01-07,bayar listrik bengkel,159000,pengeluaran
+2026-01-08,cetak brosur servis,75000,pengeluaran
+2026-01-09,kulakan busi motor,181000,pengeluaran
+2026-01-10,beli stok oli mesin,440000,pengeluaran
+2026-01-11,setoran modal bengkel,3180000,pemasukan
+2026-01-12,gaji mekanik,192000,pengeluaran
+2026-01-13,beli kunci ring,272000,pengeluaran
+2026-01-14,beli kompresor,387000,pengeluaran
+2026-01-14,kulakan busi motor,186000,pengeluaran
+2026-01-15,bli kunci ring,266000,pengeluaran
+2026-01-16,pendapatan servis motor,193000,pemasukan
+2026-01-17,cetak brosur servis,546000,pengeluaran
+2026-01-18,kulakan busi motor,180000,pengeluaran
+2026-01-19,bayar sewa bengkel,527000,pengeluaran
+2026-01-20,stok kampas rem,141000,pengeluaran
+2026-01-20,cetak brosur servis,445000,pengeluaran
+2026-01-21,penjualan oli,574000,pemasukan
+2026-01-22,kulakan busi motor,537000,pengeluaran
+2026-01-23,gaji mekanik,215000,pengeluaran
+2026-01-24,cetak brosur servis,607000,pengeluaran
+2026-01-25,beli kunci ring,261000,pengeluaran
+2026-01-26,beli stok oli mesin,482000,pengeluaran
+2026-01-27,penjualan oli,456000,pemasukan
+2026-01-27,bayar sewa bengkel,383000,pengeluaran
+2026-01-28,bayar listrik bengkel,307000,pengeluaran
+2026-01-29,bayar listrik bengkel,394000,pengeluaran
+2026-01-30,bli stok oli mesin,442000,pengeluaran
+2026-01-31,beli stok oli mesin,646000,pengeluaran
+2026-02-01,pendapatan servis motor,235000,pemasukan
+2026-02-02,cetak brosur servis,277000,pengeluaran
+2026-02-02,beli kunci ring,431000,pengeluaran
+2026-02-03,beli kompresor,149000,pengeluaran
+2026-02-04,gaji mekanik,146000,pengeluaran
+2026-02-05,stok kampas rem,295000,pengeluaran
+2026-02-06,pendapatan servis motor,89000,pemasukan
+2026-02-07,kulakan busi motor,69000,pengeluaran
+2026-02-08,cetak brosur servis,592000,pengeluaran
+2026-02-09,bayar sewa bengkel,593000,pengeluaran
+2026-02-09,beli kunci ring,568000,pengeluaran
+2026-02-10,stok kampas rem,296000,pengeluaran
+2026-02-11,setoran modal bengkel,1520000,pemasukan
+2026-02-12,gaji mekanik,553000,pengeluaran
+2026-02-13,bayar sewa bengkel,320000,pengeluaran
+2026-02-14,byr sewa bengkel,71000,pengeluaran
+2026-02-15,cetak brosur servis,597000,pengeluaran
+2026-02-15,beli stok oli mesin,469000,pengeluaran
+2026-02-16,setoran modal bengkel,1405000,pemasukan
+2026-02-17,beli stok oli mesin,361000,pengeluaran
+2026-02-18,stok kampas rem,620000,pengeluaran
+2026-02-19,cetak brosur servis,212000,pengeluaran
+2026-02-20,beli kompresor,296000,pengeluaran
+2026-02-21,cetak brosur servis,479000,pengeluaran
+2026-02-22,setoran modal bengkel,1055000,pemasukan
+2026-02-22,cetak brosur servis,56000,pengeluaran
+2026-02-23,beli kunci ring,92000,pengeluaran
+2026-02-24,gaji mekanik,373000,pengeluaran
+2026-02-25,kulakan busi motor,212000,pengeluaran
+2026-02-26,gaji mekanik,270000,pengeluaran
+2026-02-27,setoran modal bengkel,990000,pemasukan
+2026-02-28,beli kompresor,189000,pengeluaran
+2026-02-28,bli stok oli mesin,369000,pengeluaran
+2026-03-01,gaji mekanik,181000,pengeluaran
+2026-03-02,gaji mekanik,296000,pengeluaran
+2026-03-03,cetak brosur servis,131000,pengeluaran
+2026-03-04,penjualan oli,325000,pemasukan
+2026-03-05,cetak brosur servis,545000,pengeluaran
+2026-03-06,gaji mekanik,97000,pengeluaran
+2026-03-07,beli kompresor,461000,pengeluaran
+2026-03-07,beli kunci ring,204000,pengeluaran
+2026-03-08,bayar listrik bengkel,354000,pengeluaran
+2026-03-09,penjualan oli,441000,pemasukan
+2026-03-10,stok kampas rem,616000,pengeluaran
+2026-03-11,bayar sewa bengkel,552000,pengeluaran
+2026-03-12,bayar sewa bengkel,163000,pengeluaran
+2026-03-13,gaji mekanik,541000,pengeluaran
+2026-03-13,beli stok oli mesin,389000,pengeluaran
+2026-03-14,pendapatan servis motor,56000,pemasukan
+2026-03-15,byr sewa bengkel,129000,pengeluaran
+2026-03-16,bayar listrik bengkel,181000,pengeluaran
+2026-03-17,kulakan busi motor,271000,pengeluaran
+2026-03-18,gaji mekanik,378000,pengeluaran
+2026-03-19,cetak brosur servis,563000,pengeluaran
+2026-03-20,setoran modal bengkel,1450000,pemasukan
+2026-03-20,beli kompresor,253000,pengeluaran
+2026-03-21,bayar listrik bengkel,243000,pengeluaran
+2026-03-22,bayar sewa bengkel,525000,pengeluaran
+2026-03-23,gaji mekanik,420000,pengeluaran
+2026-03-24,bayar sewa bengkel,588000,pengeluaran
+2026-03-25,setoran modal bengkel,1700000,pemasukan
+2026-03-26,beli kunci ring,532000,pengeluaran
+2026-03-26,bayar listrik bengkel,387000,pengeluaran
+2026-03-27,bayar listrik bengkel,245000,pengeluaran
+2026-03-28,bayar listrik bengkel,549000,pengeluaran
+2026-03-29,beli stok oli mesin,577000,pengeluaran
+2026-03-30,setoran modal bengkel,1085000,pemasukan
+2026-03-31,bayar listrik bengkel,127000,pengeluaran
+2026-04-01,bayar listrik bengkel,238000,pengeluaran
+2026-04-02,gaji mekanik,627000,pengeluaran
+2026-04-02,beli kunci ring,241000,pengeluaran
+2026-04-03,beli kompresor,485000,pengeluaran
+2026-04-04,pendapatan servis motor,469000,pemasukan
+2026-04-05,cetak brosur servis,101000,pengeluaran
+2026-04-06,cetak brosur servis,112000,pengeluaran
+2026-04-07,beli kunci ring,550000,pengeluaran
+2026-04-08,beli kunci ring,594000,pengeluaran
+2026-04-08,bayar sewa bengkel,127000,pengeluaran
+2026-04-09,setoran modal bengkel,2950000,pemasukan
+2026-04-10,gaji mekanik,381000,pengeluaran
+2026-04-11,gaji mekanik,102000,pengeluaran
+2026-04-12,gaji mekanik,568000,pengeluaran
+2026-04-13,beli kompresor,416000,pengeluaran
+2026-04-14,byr sewa bengkel,336000,pengeluaran
+2026-04-15,penjualan oli,189000,pemasukan
+2026-04-15,bayar listrik bengkel,21000,pengeluaran
+2026-04-16,gaji mekanik,349000,pengeluaran
+2026-04-17,beli kompresor,241000,pengeluaran
+2026-04-18,beli stok oli mesin,249000,pengeluaran
+2026-04-19,cetak brosur servis,109000,pengeluaran
+2026-04-20,pendapatan servis motor,168000,pemasukan
+2026-04-21,cetak brosur servis,627000,pengeluaran
+2026-04-21,gaji mekanik,82000,pengeluaran
+2026-04-22,beli stok oli mesin,460000,pengeluaran
+2026-04-23,beli stok oli mesin,87000,pengeluaran
+2026-04-24,stok kampas rem,135000,pengeluaran
+2026-04-25,setoran modal bengkel,2120000,pemasukan
+2026-04-26,gaji mekanik,561000,pengeluaran
+2026-04-27,gaji mekanik,550000,pengeluaran
+2026-04-28,beli kunci ring,405000,pengeluaran
+2026-04-28,byr sewa bengkel,385000,pengeluaran
+2026-04-29,kulakan busi motor,257000,pengeluaran
+2026-04-30,penjualan oli,410000,pemasukan
+2026-05-01,gaji mekanik,41000,pengeluaran
+2026-05-02,cetak brosur servis,416000,pengeluaran
+2026-05-03,gaji mekanik,565000,pengeluaran
+2026-05-04,kulakan busi motor,317000,pengeluaran
+2026-05-04,cetak brosur servis,46000,pengeluaran
+2026-05-05,penjualan oli,534000,pemasukan
+2026-05-06,bayar sewa bengkel,202000,pengeluaran
+2026-05-07,stok kampas rem,304000,pengeluaran
+2026-05-08,beli kompresor,566000,pengeluaran
+2026-05-09,gaji mekanik,493000,pengeluaran
+2026-05-10,bayar sewa bengkel,184000,pengeluaran
+2026-05-11,pendapatan servis motor,263000,pemasukan
+2026-05-11,beli kompresor,494000,pengeluaran
+2026-05-12,beli kunci ring,549000,pengeluaran
+2026-05-13,bli kunci ring,259000,pengeluaran
+2026-05-14,beli stok oli mesin,396000,pengeluaran
+2026-05-15,cetak brosur servis,416000,pengeluaran
+2026-05-16,penjualan oli,312000,pemasukan
+2026-05-17,bayar sewa bengkel,357000,pengeluaran
+2026-05-17,stok kampas rem,335000,pengeluaran
+2026-05-18,gaji mekanik,162000,pengeluaran
+2026-05-19,beli kunci ring,268000,pengeluaran
+2026-05-20,beli kompresor,427000,pengeluaran
+2026-05-21,pendapatan servis motor,344000,pemasukan
+2026-05-22,beli kunci ring,135000,pengeluaran
+2026-05-23,bayar listrik bengkel,516000,pengeluaran
+2026-05-24,bayar sewa bengkel,35000,pengeluaran
+2026-05-24,gaji mekanik,435000,pengeluaran
+2026-05-25,stok kampas rem,328000,pengeluaran
+2026-05-26,pendapatan servis motor,361000,pemasukan
+2026-05-27,beli kunci ring,629000,pengeluaran
+2026-05-28,byr sewa bengkel,85000,pengeluaran
+2026-05-29,bayar sewa bengkel,304000,pengeluaran
+2026-05-30,cetak brosur servis,56000,pengeluaran
+2026-05-30,cetak brosur servis,525000,pengeluaran
+2026-05-31,setoran modal bengkel,1760000,pemasukan
+2026-06-01,cetak brosur servis,407000,pengeluaran
+2026-06-02,beli stok oli mesin,225000,pengeluaran
+2026-06-03,gaji mekanik,494000,pengeluaran
+2026-06-04,beli stok oli mesin,159000,pengeluaran
+2026-06-05,gaji mekanik,200000,pengeluaran
+2026-06-06,pendapatan servis motor,196000,pemasukan
+2026-06-06,cetak brosur servis,86000,pengeluaran
+2026-06-07,cetak brosur servis,498000,pengeluaran
+2026-06-08,gaji mekanik,135000,pengeluaran
+2026-06-09,gaji mekanik,313000,pengeluaran
+2026-06-10,beli stok oli mesin,273000,pengeluaran
+2026-06-11,penjualan oli,66000,pemasukan
+2026-06-12,stok kampas rem,130000,pengeluaran
+2026-06-12,gaji mekanik,325000,pengeluaran
+2026-06-13,beli kompresor,121000,pengeluaran
+2026-06-14,gaji mekanik,270000,pengeluaran
+2026-06-15,gaji mekanik,529000,pengeluaran
+2026-06-16,pendapatan servis motor,220000,pemasukan
+2026-06-17,beli stok oli mesin,111000,pengeluaran
+2026-06-18,beli kunci ring,330000,pengeluaran
+2026-06-19,gaji mekanik,589000,pengeluaran
+2026-06-19,gaji mekanik,451000,pengeluaran
+2026-06-20,kulakan busi motor,583000,pengeluaran
+2026-06-21,penjualan oli,147000,pemasukan
+2026-06-22,kulakan busi motor,308000,pengeluaran
+2026-06-23,kulakan busi motor,418000,pengeluaran
+2026-06-24,gaji mekanik,276000,pengeluaran
+2026-06-25,beli stok oli mesin,538000,pengeluaran
+2026-06-25,bayar listrik bengkel,370000,pengeluaran
+2026-06-26,setoran modal bengkel,520000,pemasukan
+2026-06-27,cetak brosur servis,588000,pengeluaran
+2026-06-28,gaji mekanik,644000,pengeluaran
+2026-06-29,bayar sewa bengkel,488000,pengeluaran
+2026-06-30,stok kampas rem,601000,pengeluaran
+2026-07-01,beli kunci ring,633000,pengeluaran
+2026-07-02,setoran modal bengkel,2840000,pemasukan
+2026-07-02,bayar listrik bengkel,436000,pengeluaran
+2026-07-03,kulakan busi motor,325000,pengeluaran
+2026-07-04,stok kampas rem,212000,pengeluaran
+2026-07-05,gaji mekanik,599000,pengeluaran
+2026-07-06,bayar listrik bengkel,353000,pengeluaran
+2026-07-07,penjualan oli,87000,pemasukan
+2026-07-08,bayar sewa bengkel,567000,pengeluaran
+2026-07-08,bayar sewa bengkel,480000,pengeluaran
+2026-07-09,bayar sewa bengkel,600000,pengeluaran
+2026-07-10,bayar sewa bengkel,642000,pengeluaran
+2026-07-11,cetak brosur servis,598000,pengeluaran
+2026-07-12,penjualan oli,134000,pemasukan
+2026-07-13,cetak brosur servis,627000,pengeluaran
+2026-07-14,gaji mekanik,196000,pengeluaran
+2026-07-15,beli stok oli mesin,125000,pengeluaran
+2026-07-15,beli kompresor,177000,pengeluaran
+2026-07-16,stok kampas rem,600000,pengeluaran
+2026-07-17,penjualan oli,592000,pemasukan
+2026-07-18,stok kampas rem,26000,pengeluaran
+2026-07-19,bayar sewa bengkel,539000,pengeluaran
+2026-07-20,cetak brosur servis,586000,pengeluaran
+2026-07-21,cetak brosur servis,170000,pengeluaran
+2026-07-21,cetak brosur servis,365000,pengeluaran
+2026-07-22,pendapatan servis motor,557000,pemasukan
+2026-07-23,gaji mekanik,109000,pengeluaran
+2026-07-24,cetak brosur servis,49000,pengeluaran
+2026-07-25,gaji mekanik,598000,pengeluaran
+2026-07-26,kulakan busi motor,351000,pengeluaran
+2026-07-27,cetak brosur servis,635000,pengeluaran
+2026-07-28,setoran modal bengkel,445000,pemasukan
+2026-07-28,cetak brosur servis,623000,pengeluaran
+2026-07-29,beli kompresor,429000,pengeluaran
+2026-07-30,stok kampas rem,86000,pengeluaran
+2026-07-31,stok kampas rem,330000,pengeluaran
+2026-08-01,beli kompresor,454000,pengeluaran
+2026-08-02,pendapatan servis motor,493000,pemasukan
+2026-08-03,cetak brosur servis,102000,pengeluaran
+2026-08-03,cetak brosur servis,30000,pengeluaran
+2026-08-04,bayar sewa bengkel,125000,pengeluaran
+2026-08-05,kulakan busi motor,552000,pengeluaran
+2026-08-06,kulakan busi motor,279000,pengeluaran
+2026-08-07,penjualan oli,526000,pemasukan
+2026-08-08,kulakan busi motor,278000,pengeluaran
+2026-08-09,stok kampas rem,226000,pengeluaran
+2026-08-10,cetak brosur servis,315000,pengeluaran
+2026-08-10,bayar listrik bengkel,224000,pengeluaran
+2026-08-11,gaji mekanik,477000,pengeluaran
+2026-08-12,setoran modal bengkel,1710000,pemasukan
+2026-08-13,beli kunci ring,74000,pengeluaran
+2026-08-14,beli kunci ring,25000,pengeluaran
+2026-08-15,cetak brosur servis,42000,pengeluaran
+2026-08-16,kulakan busi motor,364000,pengeluaran
+2026-08-16,gaji mekanik,527000,pengeluaran
+2026-08-17,pendapatan servis motor,49000,pemasukan
+2026-08-18,gaji mekanik,486000,pengeluaran
+2026-08-19,gaji mekanik,472000,pengeluaran
+2026-08-20,cetak brosur servis,154000,pengeluaran
+2026-08-21,cetak brosur servis,457000,pengeluaran
+2026-08-22,beli kompresor,202000,pengeluaran
+2026-08-23,pendapatan servis motor,145000,pemasukan
+2026-08-23,cetak brosur servis,213000,pengeluaran
+2026-08-24,byr sewa bengkel,256000,pengeluaran
+2026-08-25,bayar listrik bengkel,333000,pengeluaran
+2026-08-26,cetak brosur servis,261000,pengeluaran
+2026-08-27,beli kunci ring,67000,pengeluaran
+2026-08-28,penjualan oli,569000,pemasukan
+2026-08-29,beli kunci ring,413000,pengeluaran
+2026-08-29,cetak brosur servis,460000,pengeluaran
+2026-08-30,bayar sewa bengkel,215000,pengeluaran
+2026-08-31,gaji mekanik,227000,pengeluaran
+2026-09-01,stok kampas rem,196000,pengeluaran
+2026-09-02,pendapatan servis motor,262000,pemasukan
+2026-09-03,cetak brosur servis,477000,pengeluaran
+2026-09-04,cetak brosur servis,344000,pengeluaran
+2026-09-05,bayar listrik bengkel,199000,pengeluaran
+2026-09-05,beli kompresor,19000,pengeluaran
+2026-09-06,gaji mekanik,522000,pengeluaran
+2026-09-07,setoran modal bengkel,200000,pemasukan
+2026-09-08,bli kompresor,286000,pengeluaran
+2026-09-09,stok kampas rem,535000,pengeluaran
+2026-09-10,kulakan busi motor,542000,pengeluaran
+2026-09-11,bayar sewa bengkel,559000,pengeluaran
+2026-09-11,bayar sewa bengkel,642000,pengeluaran
+2026-09-12,penjualan oli,204000,pemasukan
+2026-09-13,gaji mekanik,67000,pengeluaran
+2026-09-14,stok kampas rem,559000,pengeluaran
+2026-09-15,beli kunci ring,66000,pengeluaran
+2026-09-16,cetak brosur servis,168000,pengeluaran
+2026-09-17,stok kampas rem,423000,pengeluaran

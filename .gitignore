@@ -1,0 +1,89 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.toml
+.streamlit/secrets.toml
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Local AI models and vector indexes
+*.faiss
+*.index
+*.gguf
+*.ggml
+models/
+vector_store/
+vector_indexes/
+
+# Local datasets and generated exports
+data/raw/
+data/private/
+data/exports/
+exports/
+uploads/
+backups/
+*.bak
+
+# Temporary files and logs
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# IDE local configuration
+.idea/
+.vscode/
+.antigravity/
+
+# Operating system
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Streamlit cache
+.streamlit/cache/
+
+# Test artifacts
+test-results/
+playwright-report/
