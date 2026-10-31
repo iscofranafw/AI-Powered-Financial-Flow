@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from services.cashier_service import create_cashier, list_cashiers
 from services import finance_service as f
-from pages import ai_tools, import_view, report_view
+from pages import ai_tools, import_view, report_view, chat_view
 from pages.finance import transactions_ui, categories_ui, approvals_ui
 from utils.ui_components import page_header, section_header
 
@@ -47,6 +47,7 @@ def render(token, profile):
         "Ringkasan Bisnis",
         "Transaksi",
         "Pencatatan Cepat",
+        "AI Financial Chat",
         "Persetujuan Kasir",
         "Kategori Pembukuan",
         "Impor Data CSV",
@@ -66,6 +67,8 @@ def render(token, profile):
         transactions_ui(token, owner=True)
     elif pilihan == "Pencatatan Cepat":
         ai_tools.quick_entry(token, owner=True)
+    elif pilihan in ("AI Financial Chat", "Asisten Keuangan AI"):
+        chat_view.render(token, profile)
     elif pilihan == "Persetujuan Kasir":
         approvals_ui(token)
     elif pilihan == "Kategori Pembukuan":

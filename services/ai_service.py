@@ -179,3 +179,18 @@ def suggest_others(token, tipe):
     existing = {c['nama'].casefold() for c in cats}
     return [str(x).strip()[:80] for x in result.get('usulan', [])[:3]
             if isinstance(x, str) and x.strip() and x.strip().casefold() not in existing]
+
+
+def chat_message(token, text):
+    from services.chat_service import handle_chat_message
+    return handle_chat_message(token, text)
+
+
+def confirm_chat_proposal(token, proposal):
+    from services.chat_service import confirm_proposal
+    return confirm_proposal(token, proposal)
+
+
+def cancel_chat_proposal(proposal):
+    from services.chat_service import cancel_proposal
+    return cancel_proposal(proposal)
