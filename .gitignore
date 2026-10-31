@@ -87,3 +87,5 @@ desktop.ini
 # Test artifacts
 test-results/
 playwright-report/
+
+/PRD.md

@@ -45,6 +45,15 @@ def render(token):
             except Exception:
                 pass
 
+        st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
+        if st.button('Periksa Integritas Dataset Sampel Referensi'):
+            from services.dataset_service import audit_reference_datasets
+            report = audit_reference_datasets()
+            if report['status'] == 'PASSED':
+                st.success(f"Seluruh {report['total_files_audited']} berkas referensi ({report['total_rows_audited']} baris data) terverifikasi valid dan siap digunakan.")
+            else:
+                st.error('Ditemukan ketidaksesuaian pada berkas referensi.')
+
     st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
     section_header('Tahap 1: Unggah Berkas')
     file = st.file_uploader('Pilih berkas CSV (UTF-8, maksimal 1.000 baris, 5 MB):', type=['csv'], key='upload_csv')

@@ -4,8 +4,9 @@ from services.auth_service import verify_actor
 from services import finance_service as finance
 from ai.classifier import classify, detect_type
 from ai.category_suggester import recommend
-from ai.text_normalizer import extract_money
+from ai.text_normalizer import extract_money, clean_text_for_storage
 from ai.ollama_client import diagnosis
+from ai.rag_engine import retrieve_context_for_actor
 
 def prepare_categories(token):
     actor = verify_actor(token, {'pemilik_toko'})
@@ -32,8 +33,11 @@ def save_initial_categories(token, selection):
     return finance.list_categories(token)
 
 def classify_preview(token, tipe, deskripsi):
-    verify_actor(token, {'pemilik_toko', 'kasir'})
-    return classify(tipe, deskripsi, finance.list_categories(token))
+    actor = verify_actor(token, {'pemilik_toko', 'kasir'})
+    return classify(tipe, deskripsi, finance.list_categories(token), toko_id=actor['toko_id'])
+
+def retrieve_semantic_context(token, tipe, text, top_k=5):
+    return retrieve_context_for_actor(token, text, tipe, top_k=top_k)
 
 def quick_preview(token, text, tipe=None):
     amount = extract_money(text)
@@ -41,13 +45,25 @@ def quick_preview(token, text, tipe=None):
     choice = classify_preview(token, tp, text)
     return {
         'tanggal': datetime.date.today().isoformat(),
-        'deskripsi': text.strip(),
+        'deskripsi': clean_text_for_storage(text),
         'nominal': str(amount),
         'tipe': tp,
         **choice
     }
 
 def commit_preview(token, row, kategori_id):
+    kwargs = {}
+    if 'status_kategori' in row:
+        kwargs['status_kategori'] = row['status_kategori']
+    if 'skor' in row:
+        kwargs['skor'] = row['skor']
+    if 'usulan' in row:
+        kwargs['usulan'] = row['usulan']
+    if kwargs:
+        return finance.add_transaction(
+            token, row['tanggal'], row['deskripsi'], row['nominal'],
+            row['tipe'], kategori_id, **kwargs
+        )
     return finance.add_transaction(
         token, row['tanggal'], row['deskripsi'], row['nominal'],
         row['tipe'], kategori_id

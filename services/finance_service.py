@@ -3,6 +3,12 @@ from decimal import Decimal, InvalidOperation
 from database.client import privileged_client
 from services.auth_service import verify_actor, AccessError
 from repositories.finance_repository import categories, transactions, category_by_id, transaction_by_id
+from services.validation_service import (
+    validate_amount,
+    validate_date,
+    validate_type,
+    validate_description,
+)
 
 EXPENSE_DEFAULTS=['Gaji','Operasional','Pemasaran','Others']
 INCOME_DEFAULTS=['Penjualan','Tambahan Modal','Pendapatan Lain','Others']
@@ -10,17 +16,9 @@ LIMITS={'pengeluaran':10,'pemasukan':5}
 
 def _owner(token): return verify_actor(token,{'pemilik_toko'})
 def _member(token): return verify_actor(token,{'pemilik_toko','kasir'})
-def _money(value):
- try: n=Decimal(str(value))
- except (InvalidOperation,ValueError): raise ValueError('Nominal tidak valid')
- if not n.is_finite() or n<=0 or n>Decimal('9999999999999999.99') or n.as_tuple().exponent < -2: raise ValueError('Nominal harus positif, maksimal 2 desimal')
- return str(n)
-def _date(value):
- try: return date.fromisoformat(str(value)).isoformat()
- except ValueError: raise ValueError('Tanggal tidak valid')
-def _type(value):
- if value not in LIMITS: raise ValueError('Jenis transaksi tidak valid')
- return value
+def _money(value): return validate_amount(value)
+def _date(value): return validate_date(value)
+def _type(value): return validate_type(value)
 
 def list_categories(token):
  a=_member(token); return categories(a['toko_id'])
@@ -84,8 +82,7 @@ def _validate_category(shop,category_id,tipe):
 
 def add_transaction(token,tanggal,deskripsi,nominal,tipe,kategori_id,status_kategori='dikonfirmasi',skor=None,usulan=None):
  a=_member(token);shop=a['toko_id'];tipe=_type(tipe);_validate_category(shop,kategori_id,tipe)
- desc=deskripsi.strip()
- if not desc or len(desc)>500: raise ValueError('Keterangan wajib (maksimal 500 karakter)')
+ desc=validate_description(deskripsi)
  owner=a['role']=='pemilik_toko'
  return privileged_client().table('transaksi').insert({'toko_id':shop,'tanggal':_date(tanggal),'deskripsi':desc,'nominal':_money(nominal),'tipe':tipe,'kategori_id':kategori_id,'dicatat_oleh':a['id'],'status_persetujuan':'disetujui' if owner else 'pending','disetujui_oleh':a['id'] if owner else None,'disetujui_pada':datetime.now(timezone.utc).isoformat() if owner else None,'status_kategori':status_kategori,'skor':skor,'usulan':usulan or {}}).execute().data
 
@@ -93,8 +90,11 @@ def update_transaction(token,transaction_id,tanggal,deskripsi,nominal,tipe,kateg
  a=_member(token);shop=a['toko_id'];old=transaction_by_id(shop,transaction_id)
  if not old: raise ValueError('Transaksi tidak ditemukan')
  if a['role']=='kasir' and (old['dicatat_oleh']!=a['id'] or old['status_persetujuan']!='pending'): raise AccessError('Kasir hanya dapat mengubah entri sendiri yang masih pending')
- tipe=_type(tipe);_validate_category(shop,kategori_id,tipe);desc=deskripsi.strip()
- if not desc or len(desc)>500: raise ValueError('Keterangan tidak valid')
+ tipe=_type(tipe);_validate_category(shop,kategori_id,tipe)
+ try:
+     desc=validate_description(deskripsi)
+ except ValueError:
+     raise ValueError('Keterangan tidak valid')
  payload={'tanggal':_date(tanggal),'deskripsi':desc,'nominal':_money(nominal),'tipe':tipe,'kategori_id':kategori_id,'updated_at':datetime.now(timezone.utc).isoformat(),'status_kategori':'dikonfirmasi','usulan':{}}
  return privileged_client().table('transaksi').update(payload).eq('toko_id',shop).eq('id',transaction_id).execute().data
 

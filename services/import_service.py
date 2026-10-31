@@ -2,6 +2,7 @@ import csv,io,uuid
 from services.auth_service import verify_actor
 from services.finance_service import _money,_date,_type,_validate_category
 from database.client import privileged_client
+from ai.text_normalizer import clean_text_for_storage
 
 
 def preview_csv(content:bytes):
@@ -16,7 +17,7 @@ def preview_csv(content:bytes):
         if i>1001:raise ValueError('Maksimal 1000 baris per impor')
         try:
             if None in row:raise ValueError('Jumlah kolom tidak sesuai')
-            desc=(row.get('deskripsi') or '').strip()
+            desc=clean_text_for_storage(row.get('deskripsi') or '')
             if not desc or len(desc)>500:raise ValueError('Deskripsi tidak valid')
             tp=(row.get('tipe') or '').strip().lower()
             if tp:_type(tp)
@@ -48,7 +49,7 @@ def atomic_import(token,rows):
     batch=[]
     for i,r in enumerate(rows,1):
         tp=_type(r.get('tipe'));_validate_category(actor['toko_id'],r.get('kategori_id'),tp)
-        desc=str(r.get('deskripsi','')).strip()
+        desc=clean_text_for_storage(r.get('deskripsi', ''))
         if not desc or len(desc)>500:raise ValueError(f'Deskripsi baris {i} tidak valid')
         batch.append({'tanggal':_date(r['tanggal']),'deskripsi':desc,'nominal':_money(r['nominal']),
                       'tipe':tp,'kategori_id':r['kategori_id'],
