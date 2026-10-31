@@ -17,25 +17,171 @@ def apply_custom_styles():
         -webkit-font-smoothing: antialiased;
     }
 
-    [data-testid="stSidebarCollapseButton"],
-    [data-testid="stExpandSidebarButton"],
-    [data-testid="collapsedControl"],
-    [data-testid="stSidebarHeader"],
-    button[aria-label*="sidebar" i],
-    button[aria-label*="Sidebar" i],
-    button[data-testid="stBaseButton-header"],
-    button[data-testid="stBaseButton-headerNoPadding"],
-    header[data-testid="stHeader"] button,
-    .stAppHeader button {
+    /* Top header and decorations cleanup */
+    header[data-testid="stHeader"] {
+        background-color: transparent !important;
+        z-index: 99999 !important;
+    }
+    [data-testid="stDeployButton"],
+    [data-testid="stAppDeployButton"],
+    [data-testid="stToolbarActions"],
+    [data-testid="stDecoration"] {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
-        pointer-events: none !important;
-        height: 0 !important;
-        width: 0 !important;
+    }
+
+    /* Sidebar Header container */
+    [data-testid="stSidebarHeader"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        height: auto !important;
+        min-height: 2.75rem !important;
+        padding: 0.5rem 0.75rem 0.25rem 0.75rem !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        background-color: transparent !important;
+    }
+
+    /* Sidebar Collapse Button (Hide side) */
+    [data-testid="stSidebarCollapseButton"] {
+        display: inline-flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    [data-testid="stSidebarCollapseButton"] button {
+        display: inline-flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 2rem !important;
+        height: 2rem !important;
+        min-width: 2rem !important;
+        min-height: 2rem !important;
         padding: 0 !important;
         margin: 0 !important;
+        border-radius: 6px !important;
+        border: 1px solid #E2E8F0 !important;
+        background-color: #FFFFFF !important;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        cursor: pointer !important;
+        position: relative !important;
+        color: transparent !important;
         overflow: hidden !important;
+        transition: all 0.15s ease-in-out !important;
+    }
+
+    [data-testid="stSidebarCollapseButton"] button:hover {
+        background-color: #F8FAFC !important;
+        border-color: #CBD5E1 !important;
+    }
+
+    /* Suppress unrendered raw font ligature text inside collapse button */
+    [data-testid="stSidebarCollapseButton"] button span,
+    [data-testid="stSidebarCollapseButton"] button p,
+    [data-testid="stSidebarCollapseButton"] button svg {
+        display: none !important;
+        font-size: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        line-height: 0 !important;
+        color: transparent !important;
+        visibility: hidden !important;
+    }
+
+    /* Render crisp SVG chevron-left for collapse button */
+    [data-testid="stSidebarCollapseButton"] button::after {
+        content: "" !important;
+        display: block !important;
+        width: 16px !important;
+        height: 16px !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: contain !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    }
+
+    /* Sidebar Expand Button (Open side when collapsed) */
+    [data-testid="stExpandSidebarButton"],
+    [data-testid="collapsedControl"] button,
+    button[aria-label="Expand sidebar" i] {
+        display: inline-flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+        min-width: 2.25rem !important;
+        min-height: 2.25rem !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 6px !important;
+        border: 1px solid #CBD5E1 !important;
+        background-color: #FFFFFF !important;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08) !important;
+        cursor: pointer !important;
+        position: relative !important;
+        color: transparent !important;
+        overflow: hidden !important;
+        transition: all 0.15s ease-in-out !important;
+    }
+
+    [data-testid="stExpandSidebarButton"]:hover,
+    [data-testid="collapsedControl"] button:hover,
+    button[aria-label="Expand sidebar" i]:hover {
+        background-color: #F8FAFC !important;
+        border-color: #94A3B8 !important;
+    }
+
+    [data-testid="collapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: fixed !important;
+        top: 0.75rem !important;
+        left: 0.75rem !important;
+        z-index: 999999 !important;
+    }
+
+    /* Suppress unrendered raw font ligature text inside expand button */
+    [data-testid="stExpandSidebarButton"] span,
+    [data-testid="stExpandSidebarButton"] p,
+    [data-testid="stExpandSidebarButton"] svg,
+    [data-testid="collapsedControl"] span,
+    [data-testid="collapsedControl"] p,
+    [data-testid="collapsedControl"] svg,
+    button[aria-label="Expand sidebar" i] span,
+    button[aria-label="Expand sidebar" i] p,
+    button[aria-label="Expand sidebar" i] svg {
+        display: none !important;
+        font-size: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        line-height: 0 !important;
+        color: transparent !important;
+        visibility: hidden !important;
+    }
+
+    /* Render crisp SVG chevron-right for expand button */
+    [data-testid="stExpandSidebarButton"]::after,
+    [data-testid="collapsedControl"] button::after,
+    button[aria-label="Expand sidebar" i]::after {
+        content: "" !important;
+        display: block !important;
+        width: 16px !important;
+        height: 16px !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: contain !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'%3E%3C/polyline%3E%3C/svg%3E") !important;
     }
 
     [data-testid="stIconMaterial"],
@@ -67,12 +213,24 @@ def apply_custom_styles():
         display: none !important;
     }
 
+    #MainMenu, footer {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
     [data-testid="stSidebar"] {
         border-right: 1px solid #E2E8F0;
         background-color: #FFFFFF;
     }
+    [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
+        padding-top: 0.5rem;
+    }
+    [data-testid="stSidebar"] [data-testid="stSidebarUserContent"] {
+        padding-top: 0.5rem;
+        padding-bottom: 2rem;
+    }
     [data-testid="stSidebar"] .block-container {
-        padding-top: 2rem;
+        padding-top: 1rem;
         padding-bottom: 2rem;
     }
 

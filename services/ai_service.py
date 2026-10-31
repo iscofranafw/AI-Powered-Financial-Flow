@@ -6,12 +6,14 @@ from ai.classifier import classify, detect_type
 from ai.category_suggester import recommend
 from ai.text_normalizer import extract_money, clean_text_for_storage
 from ai.ollama_client import diagnosis
-from ai.rag_engine import retrieve_context_for_actor
+from ai.rag_engine import retrieve_context_for_actor, get_or_sync_index
+
 
 def prepare_categories(token):
     actor = verify_actor(token, {'pemilik_toko'})
     shop = privileged_client().table('toko').select('bidang_usaha').eq('id', actor['toko_id']).single().execute().data
     return recommend(shop['bidang_usaha'])
+
 
 def save_initial_categories(token, selection):
     actor = verify_actor(token, {'pemilik_toko'})
@@ -32,12 +34,97 @@ def save_initial_categories(token, selection):
             finance.create_category(token, name, tp, system_seed=True)
     return finance.list_categories(token)
 
+
 def classify_preview(token, tipe, deskripsi):
     actor = verify_actor(token, {'pemilik_toko', 'kasir'})
     return classify(tipe, deskripsi, finance.list_categories(token), toko_id=actor['toko_id'])
 
+
 def retrieve_semantic_context(token, tipe, text, top_k=5):
     return retrieve_context_for_actor(token, text, tipe, top_k=top_k)
+
+
+def bulk_classify(token, rows, progress=None):
+    if not rows:
+        return []
+    actor = verify_actor(token, {'pemilik_toko', 'kasir'})
+    shop_id = actor['toko_id']
+    cats = finance.list_categories(token)
+    total = len(rows)
+
+    # Pre-sync FAISS indexes once per batch to avoid repetitive database version queries.
+    for tp in ('pengeluaran', 'pemasukan'):
+        try:
+            get_or_sync_index(shop_id, tp)
+        except Exception:
+            pass
+
+    other_cats = {
+        tp: next((c for c in cats if c['tipe'] == tp and c['nama'].casefold() == 'others'), None)
+        for tp in ('pengeluaran', 'pemasukan')
+    }
+
+    output = []
+    for idx, row in enumerate(rows):
+        row_res = dict(row)
+
+        if row.get('error'):
+            row_res['status_kategori'] = 'perlu_tinjauan'
+            output.append(row_res)
+            if progress:
+                progress((idx + 1) / total)
+            continue
+
+        raw_desc = str(row.get('deskripsi') or '')
+        clean_desc = clean_text_for_storage(raw_desc)
+        if not clean_desc.strip():
+            row_res['error'] = 'Deskripsi transaksi kosong'
+            row_res['status_kategori'] = 'perlu_tinjauan'
+            other = other_cats.get(row.get('tipe', 'pengeluaran'))
+            row_res['kategori_id'] = other['id'] if other else None
+            output.append(row_res)
+            if progress:
+                progress((idx + 1) / total)
+            continue
+
+        tp = (row.get('tipe') or '').strip().lower()
+        if not tp or tp not in ('pemasukan', 'pengeluaran'):
+            try:
+                tp = detect_type(clean_desc)
+            except Exception:
+                # Ambiguous transaction type defaults to expense and flags for user review.
+                tp = 'pengeluaran'
+                row_res['tipe'] = tp
+                row_res['error'] = 'Jenis transaksi tidak dapat ditentukan otomatis'
+                row_res['status_kategori'] = 'perlu_tinjauan'
+                other = other_cats['pengeluaran']
+                row_res['kategori_id'] = other['id'] if other else None
+                row_res['message'] = 'Jenis transaksi ambigu, disarankan untuk ditinjau'
+                output.append(row_res)
+                if progress:
+                    progress((idx + 1) / total)
+                continue
+
+        row_res['tipe'] = tp
+
+        try:
+            decision = classify(tp, clean_desc, cats, toko_id=shop_id)
+            row_res.update(decision)
+        except Exception as exc:
+            other = other_cats.get(tp)
+            row_res['kategori_id'] = other['id'] if other else None
+            row_res['usulan'] = {}
+            row_res['skor'] = None
+            row_res['status_kategori'] = 'perlu_tinjauan'
+            row_res['message'] = f'Gagal klasifikasi: {exc}'
+            row_res['error'] = str(exc)
+
+        output.append(row_res)
+        if progress:
+            progress((idx + 1) / total)
+
+    return output
+
 
 def quick_preview(token, text, tipe=None):
     amount = extract_money(text)
@@ -50,6 +137,7 @@ def quick_preview(token, text, tipe=None):
         'tipe': tp,
         **choice
     }
+
 
 def commit_preview(token, row, kategori_id):
     kwargs = {}
@@ -68,6 +156,7 @@ def commit_preview(token, row, kategori_id):
         token, row['tanggal'], row['deskripsi'], row['nominal'],
         row['tipe'], kategori_id
     )
+
 
 def suggest_others(token, tipe):
     import json

@@ -31,17 +31,9 @@ def preview_csv(content:bytes):
     if not result:raise ValueError('CSV kosong')
     return result
 
-def enrich_rows(token,rows,progress=None):
-    from services.ai_service import classify_preview
-    from ai.classifier import detect_type
-    output=[]
-    for i,r in enumerate(rows):
-        if r['error']:raise ValueError('Perbaiki kesalahan CSV terlebih dahulu')
-        tp=r['tipe'] or detect_type(r['deskripsi'])
-        decision=classify_preview(token,tp,r['deskripsi'])
-        output.append({**r,'tipe':tp,**decision})
-        if progress:progress((i+1)/len(rows))
-    return output
+def enrich_rows(token, rows, progress=None):
+    from services.ai_service import bulk_classify
+    return bulk_classify(token, rows, progress=progress)
 
 def atomic_import(token,rows):
     actor=verify_actor(token,{'pemilik_toko','kasir'})

@@ -1,12 +1,18 @@
 import os
 import json
-import faiss
 import numpy as np
 from datetime import datetime, timezone
 from database.client import privileged_client
 from services.auth_service import verify_actor
 from ai.embedding_pipeline import embed_text, embed_batch, get_embedding_dimension
 from ai.text_normalizer import normalize
+
+try:
+    import faiss
+    FAISS_AVAILABLE = True
+except ImportError:
+    faiss = None
+    FAISS_AVAILABLE = False
 
 INDEX_ROOT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'vector_store')
 
@@ -140,16 +146,20 @@ def build_and_save_index(toko_id, tipe, entries=None, version=None):
         entries = build_corpus_entries(toko_id, tipe)
 
     dim = get_embedding_dimension()
-    index = faiss.IndexFlatIP(dim)
+    index = faiss.IndexFlatIP(dim) if FAISS_AVAILABLE else None
 
     if entries:
         texts = [e['text'] for e in entries]
         vectors = embed_batch(texts)
-        if vectors.shape[0] > 0:
+        if vectors.shape[0] > 0 and index is not None:
             index.add(vectors)
 
     faiss_path, meta_path = _get_file_paths(toko_id, tipe)
-    faiss.write_index(index, faiss_path)
+    if index is not None and FAISS_AVAILABLE:
+        try:
+            faiss.write_index(index, faiss_path)
+        except Exception:
+            pass
 
     meta = {
         'toko_id': str(toko_id),
@@ -182,7 +192,7 @@ def get_or_sync_index(toko_id, tipe, force_rebuild=False):
         return cached['index'], cached['meta']
 
     faiss_path, meta_path = _get_file_paths(toko_id, tipe)
-    if not force_rebuild and os.path.exists(faiss_path) and os.path.exists(meta_path):
+    if not force_rebuild and os.path.exists(faiss_path) and os.path.exists(meta_path) and FAISS_AVAILABLE:
         try:
             with open(meta_path, 'r', encoding='utf-8') as f:
                 meta = json.load(f)
@@ -209,15 +219,32 @@ def retrieve_context(toko_id, tipe, query, top_k=5, min_score=0.25):
 
     index, meta = get_or_sync_index(toko_id, tipe)
     entries = meta.get('entries', [])
-    if index.ntotal == 0 or not entries:
+    if not entries:
         return []
 
     q_vec = embed_text(str(query)).reshape(1, -1)
-    k = min(top_k, index.ntotal)
-    scores, indices = index.search(q_vec, k)
+
+    if index is not None and hasattr(index, 'search'):
+        if index.ntotal == 0:
+            return []
+        k = min(top_k, index.ntotal)
+        scores, indices = index.search(q_vec, k)
+        scores_arr = scores[0]
+        indices_arr = indices[0]
+    else:
+        # Dense vector cosine similarity calculation via NumPy when FAISS binary is absent.
+        texts = [e['text'] for e in entries]
+        vectors = embed_batch(texts)
+        if vectors.shape[0] == 0:
+            return []
+        sims = np.dot(vectors, q_vec.T).flatten()
+        k = min(top_k, len(entries))
+        top_idx = np.argsort(sims)[::-1][:k]
+        scores_arr = sims[top_idx]
+        indices_arr = top_idx
 
     results = []
-    for score, idx in zip(scores[0], indices[0]):
+    for score, idx in zip(scores_arr, indices_arr):
         if idx < 0 or idx >= len(entries):
             continue
         sc = float(score)

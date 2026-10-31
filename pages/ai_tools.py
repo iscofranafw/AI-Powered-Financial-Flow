@@ -42,7 +42,11 @@ def quick_entry(token, owner=True):
 
     st.divider()
     section_header('Hasil Analisis Transaksi')
-    st.markdown(f"<div style='border: 1px solid #E2E8F0; background-color: #FFFFFF; border-radius: 6px; padding: 0.875rem 1rem; margin-bottom: 1.25rem; font-size: 0.875rem; color: #334155;'><strong>Rekomendasi Sistem:</strong> {data.get('message', '-')}</div>", unsafe_allow_html=True)
+    badge = ''
+    if data.get('skor') is not None:
+        status_lbl = 'Otomatis' if data.get('status_kategori') == 'otomatis' else 'Perlu Tinjauan'
+        badge = f" &nbsp; <span style='display:inline-block; padding: 0.15rem 0.5rem; background-color: #F1F5F9; border-radius: 4px; font-size: 0.75rem; color: #475569;'>Tingkat Keyakinan: {data['skor']:.2f} ({status_lbl})</span>"
+    st.markdown(f"<div style='border: 1px solid #E2E8F0; background-color: #FFFFFF; border-radius: 6px; padding: 0.875rem 1rem; margin-bottom: 1.25rem; font-size: 0.875rem; color: #334155;'><strong>Rekomendasi Sistem:</strong> {data.get('message', '-')}{badge}</div>", unsafe_allow_html=True)
 
     cats = [x for x in all_cats if x['tipe'] == data['tipe']]
     if not cats:

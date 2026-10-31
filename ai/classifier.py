@@ -1,6 +1,6 @@
 import json
 from ai.ollama_client import ask_json, LLMUnavailable
-from ai.text_normalizer import normalize
+from ai.text_normalizer import normalize, clean_text_for_storage
 from ai.rag_engine import retrieve_context
 
 CHOICE_SCHEMA = {
@@ -38,10 +38,20 @@ def detect_type(text):
 
 
 def classify(tipe, deskripsi, cats, toko_id=None):
+    clean_desc = clean_text_for_storage(deskripsi)
     relevant = [c for c in cats if c['tipe'] == tipe]
     allowed_categories = [{'id': c['id'], 'nama': c['nama'], 'deskripsi': c.get('deskripsi', '')}
                           for c in relevant if c['nama'].casefold() != 'others']
     other_cat = next((c for c in relevant if c['nama'].casefold() == 'others'), None)
+
+    if not clean_desc or not normalize(clean_desc):
+        return {
+            'kategori_id': other_cat['id'] if other_cat else None,
+            'usulan': {},
+            'skor': None,
+            'status_kategori': 'perlu_tinjauan',
+            'message': 'Deskripsi transaksi kosong atau tidak bermakna'
+        }
 
     if not allowed_categories:
         return {
@@ -57,7 +67,7 @@ def classify(tipe, deskripsi, cats, toko_id=None):
     rag_hits = []
     if toko_id:
         try:
-            rag_hits = retrieve_context(toko_id, tipe, deskripsi, top_k=5, min_score=0.35)
+            rag_hits = retrieve_context(toko_id, tipe, clean_desc, top_k=5, min_score=0.30)
         except Exception:
             rag_hits = []
 
@@ -71,12 +81,12 @@ def classify(tipe, deskripsi, cats, toko_id=None):
     )
     user_payload = {
         'tipe_transaksi': tipe,
-        'deskripsi_transaksi': deskripsi,
+        'deskripsi_transaksi': clean_desc,
         'daftar_kategori_tersedia': allowed_categories
     }
     if rag_hits:
         user_payload['bukti_historis_serupa'] = [
-            {'contoh': h['text'], 'kategori': h['category_name'], 'kemiripan': h['score']}
+            {'contoh': h['text'][:120], 'kategori': h['category_name'], 'kemiripan': h['score']}
             for h in rag_hits[:3]
         ]
 
@@ -85,7 +95,7 @@ def classify(tipe, deskripsi, cats, toko_id=None):
     try:
         reply = ask_json(system_prompt, user_prompt, CHOICE_SCHEMA)
         cid = reply.get('kategori_id', '')
-        proposed = reply.get('nama_baru', '').strip()[:80]
+        proposed = clean_text_for_storage(reply.get('nama_baru', '')).strip()[:80]
 
         if cid in valid_ids:
             cat_name = next(c['nama'] for c in allowed_categories if c['id'] == cid)
@@ -96,7 +106,7 @@ def classify(tipe, deskripsi, cats, toko_id=None):
                 matched_hit = next((h for h in rag_hits if h.get('category_id') == cid), None)
                 if matched_hit:
                     score = matched_hit['score']
-            status = 'otomatis' if score is not None and score >= 0.75 else 'dikonfirmasi'
+            status = 'otomatis' if score is not None and score >= 0.80 else 'dikonfirmasi'
             return {
                 'kategori_id': cid,
                 'usulan': {},
@@ -132,6 +142,16 @@ def classify(tipe, deskripsi, cats, toko_id=None):
                 'skor': None,
                 'status_kategori': 'perlu_tinjauan',
                 'message': f"Llama 3 mengusulkan kategori baru: {proposed}"
+            }
+
+        # Fall back to high-confidence historical evidence if LLM response is indeterminate.
+        if best_rag_hit and best_rag_hit['score'] >= 0.75 and best_rag_hit['category_id'] in valid_ids:
+            return {
+                'kategori_id': best_rag_hit['category_id'],
+                'usulan': {},
+                'skor': best_rag_hit['score'],
+                'status_kategori': 'perlu_tinjauan',
+                'message': f"Pencarian semantik merekomendasikan: {best_rag_hit['category_name']} (skor: {best_rag_hit['score']:.2f})"
             }
 
         return {
