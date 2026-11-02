@@ -14,6 +14,7 @@ from ai.copilot_schema import (
     DateRangeParams,
     FilterParams,
     ConversationContext,
+    ForecastOutputMode,
 )
 from ai.financial_chat import (
     resolve_date_range_indonesian,
@@ -59,9 +60,125 @@ def plan_stage_a_deterministic(text: str, context: Optional[ConversationContext]
     if any(w in s for w in ['halo', 'hai', 'bantuan', 'help', 'menu apa', 'bisa apa', 'selamat pagi', 'selamat siang', 'selamat sore', 'selamat malam', 'panduan penggunaan']):
         return PlannerDecision(tool_name=ToolName.GENERAL_HELP, raw_query=text)
 
-    # 3. Forecast / Proyeksi (Prophet)
-    if any(w in s for w in ['forecast', 'forecasting', 'peramalan', 'prediksi', 'proyeksi', 'prophet']):
+    # 3. Forecast / Proyeksi (Prophet) Capabilities
+    is_forecast_word = any(w in s for w in [
+        'forecast', 'forecasting', 'peramalan', 'ramalan', 'prediksi', 'proyeksi',
+        'prophet', 'perkiraan', 'kiraan', 'diperkirakan', 'estimasi'
+    ])
+
+    # 3.1 Accuracy and evaluation metrics (MAPE, MAE, RMSE)
+    if any(w in s for w in ['mape', 'mae', 'rmse', 'wape', 'seberapa akurat', 'akurasi prediksi', 'akurasi peramalan', 'akurasi prophet', 'keandalan model', 'evaluasi model', 'backtest']):
+        return PlannerDecision(tool_name=ToolName.GET_FORECAST_ACCURACY, raw_query=text)
+
+    # 3.2 Forecast readiness / data sufficiency
+    if (is_forecast_word or 'data toko' in s) and any(w in s for w in ['cukup untuk', 'apakah bisa', 'syarat', 'kesiapan', 'readiness', 'mencukupi untuk']):
+        return PlannerDecision(tool_name=ToolName.GET_FORECAST_READINESS, raw_query=text)
+
+    # 3.3 Cash balance sufficiency against forecast
+    if any(w in s for w in ['saldo', 'uang kas', 'kas saat ini', 'saldo kas']) and any(w in s for w in ['cukup', 'mencukupi', 'aman']) and any(w in s for w in ['prediksi', 'pengeluaran', 'beban', 'ke depan']):
+        days = 30
+        if '7 hari' in s or 'tujuh hari' in s or 'seminggu' in s:
+            days = 7
+        return PlannerDecision(
+            tool_name=ToolName.CHECK_FORECAST_AGAINST_CASH_BALANCE,
+            filter_params=FilterParams(days_ahead=days),
+            raw_query=text
+        )
+
+    # 3.4 Actual vs Forecast Comparison (direct or contextual follow-up)
+    has_comp_word = ('bandingkan' in s or 'perbandingan' in s or 'komparasi' in s)
+    has_forecast_comp = has_comp_word and (is_forecast_word or ('bulan depan' in s and ('bulan ini' in s or 'bulan lalu' in s)))
+    is_follow_up_comp = (
+        context is not None and
+        context.last_tool in [
+            ToolName.GET_EXPENSE_FORECAST.value,
+            ToolName.GET_FORECAST_FOR_PERIOD.value,
+            ToolName.COMPARE_ACTUAL_VS_FORECAST.value,
+            ToolName.GET_NEXT_PREDICTED_EXPENSE.value,
+        ] and (
+            has_comp_word or
+            (s.startswith('bagaimana dengan') and ('bulan ini' in s or 'bulan lalu' in s or 'realisasi' in s))
+        )
+    )
+    if has_forecast_comp or is_follow_up_comp:
+        return PlannerDecision(
+            tool_name=ToolName.COMPARE_ACTUAL_VS_FORECAST,
+            follow_up_resolved=is_follow_up_comp,
+            raw_query=text
+        )
+
+    # 3.5 Expense Trend and Drivers
+    if (is_forecast_word or any(w in s for w in ['pengeluaran', 'biaya', 'tren'])) and any(w in s for w in ['meningkat', 'naik', 'turun', 'menurun', 'arah tren', 'tren pengeluaran', 'kenapa prediksi', 'mengapa prediksi', 'kenapa pengeluaran naik', 'mengapa pengeluaran naik']):
+        return PlannerDecision(tool_name=ToolName.GET_EXPENSE_TREND, raw_query=text)
+
+    # 3.6 Next Predicted Expense
+    if re.search(r'\bkapan\s+(?:harus\s+bayar|jadwal\s+bayar|pengeluaran|tagihan)\b', s) or any(w in s for w in ['kapan pengeluaran berikutnya', 'kapan tagihan berikutnya', 'kapan jadwal bayar', 'kapan bayar tagihan']):
+        return PlannerDecision(tool_name=ToolName.GET_NEXT_PREDICTED_EXPENSE, raw_query=text)
+
+    # 3.7 Recurring Expenses and 3-Day Upcoming Reminders
+    if any(w in s for w in ['pengeluaran rutin', 'biaya rutin', 'tagihan rutin', 'pembayaran rutin', 'rutin apa saja', 'tiga hari ke depan', '3 hari ke depan']) or (re.search(r'\btagihan\b', s) and any(w in s for w in ['persiapkan', 'mendatang', 'akan datang', 'jadwal'])):
+        return PlannerDecision(tool_name=ToolName.GET_UPCOMING_RECURRING_EXPENSES, raw_query=text)
+
+    # 3.8 Conceptual Prophet questions (e.g. "bagaimana cara kerja prophet", "mekanisme peramalan", "bagaimana peramalan pengeluaran", "prediksi pengeluaran berikutnya")
+    is_conceptual = (
+        (re.search(r'\b(?:bagaimana\s+cara\s+kerja|mekanisme|apa\s+itu|cara\s+kerja)\b', s) and any(w in s for w in ['prophet', 'peramalan', 'forecasting'])) or
+        ('bagaimana' in s and any(w in s for w in ['peramalan', 'prophet', 'forecasting']) and not has_date_specifier(s)) or
+        (s.rstrip('?.') in ['bagaimana prediksi pengeluaran', 'prediksi pengeluaran berikutnya', 'bagaimana prediksi pengeluaran berikutnya'])
+    )
+    if is_conceptual:
         return PlannerDecision(tool_name=ToolName.GET_AVAILABLE_FORECAST, raw_query=text)
+
+    # 3.9 Forecast for Specific Future Period or Horizon or Category
+    if is_forecast_word:
+        found_category = None
+        for cat_kw in ['listrik', 'wifi', 'internet', 'sewa', 'gaji', 'air', 'pdam', 'bahan baku', 'operasional', 'belanja']:
+            if cat_kw in s:
+                found_category = cat_kw
+                break
+
+        is_breakdown = bool(re.search(r'\b(rincian|rincikan|detail|per\s+hari|setiap\s+hari|tabel|harian|breakdown)\b', s))
+        output_m = ForecastOutputMode.DAILY_BREAKDOWN if is_breakdown else ForecastOutputMode.SUMMARY
+
+        date_p = _extract_date_params(s)
+        has_period = (
+            date_p.start_date is not None or
+            date_p.period_label in ['Bulan Depan', 'Minggu Depan', 'Besok'] or
+            'hari ke depan' in s or
+            'seminggu' in s or
+            'minggu depan' in s or
+            'bulan depan' in s or
+            'besok' in s or
+            'esok' in s
+        )
+        if has_period:
+            return PlannerDecision(
+                tool_name=ToolName.GET_FORECAST_FOR_PERIOD,
+                date_params=date_p,
+                filter_params=FilterParams(
+                    output_mode=output_m,
+                    category_name=found_category
+                ),
+                raw_query=text
+            )
+
+        days = 30
+        if any(w in s for w in ['7 hari', 'tujuh hari', 'seminggu']):
+            days = 7
+        elif any(w in s for w in ['14 hari', 'dua minggu']):
+            days = 14
+        elif any(w in s for w in ['90 hari', 'tiga bulan']):
+            days = 90
+
+        return PlannerDecision(
+            tool_name=ToolName.GET_EXPENSE_FORECAST,
+            date_params=date_p,
+            filter_params=FilterParams(
+                days_ahead=days,
+                category_name=found_category,
+                output_mode=output_m
+            ),
+            raw_query=text
+        )
 
     # 4. App Feature Guides & How-To
     is_feature_q = bool(re.search(
@@ -178,6 +295,48 @@ def plan_stage_a_deterministic(text: str, context: Optional[ConversationContext]
                 raw_query=text
             )
 
+    # Conversational follow-up: Requesting breakdown / details of previous forecast
+    # e.g. "Tampilkan rinciannya", "Bisa berikan rinciannya?", "Rinciannya", "Detailnya"
+    has_prev_forecast = (
+        context is not None and (
+            context.last_tool in [
+                ToolName.GET_FORECAST_FOR_PERIOD.value,
+                ToolName.GET_EXPENSE_FORECAST.value,
+                "query_forecast"
+            ] or
+            context.last_forecast_period is not None or
+            context.last_forecast_start_date is not None
+        )
+    )
+    is_breakdown_follow_up = (
+        has_prev_forecast and
+        any(w in s for w in ['rincian', 'rinciannya', 'rincikan', 'detailnya', 'tabelnya', 'per harinya', 'pecah per hari', 'harian']) and
+        not any(w in s for w in ['transaksi', 'pemasukan', 'bulan lalu', 'kemarin', 'kasir'])
+    )
+    if is_breakdown_follow_up:
+        start_d = context.last_forecast_start_date or context.last_start_date
+        end_d = context.last_forecast_end_date or context.last_end_date
+        period_lbl = context.last_forecast_period or context.last_period_label or "7 Hari ke Depan"
+        days_cnt = context.last_forecast_days or 7
+
+        date_p = DateRangeParams(
+            start_date=start_d,
+            end_date=end_d,
+            period_label=period_lbl
+        )
+        filter_p = FilterParams(
+            output_mode=ForecastOutputMode.DAILY_BREAKDOWN,
+            days_ahead=days_cnt,
+            category_name=context.last_forecast_category
+        )
+        return PlannerDecision(
+            tool_name=ToolName.GET_FORECAST_FOR_PERIOD,
+            date_params=date_p,
+            filter_params=filter_p,
+            follow_up_resolved=True,
+            raw_query=text
+        )
+
     # 13. Transaction Details & History (CASE 4: "bisa beri detail pengeluaran bulan kemarin?")
     is_tx_detail_req = bool(
         re.search(r'\b(?:detail|rincian|daftar|tampilkan|lihat|riwayat)\s+(?:semua\s+)?(?:transaksi|pengeluaran|pemasukan)\b', s) or
@@ -193,6 +352,21 @@ def plan_stage_a_deterministic(text: str, context: Optional[ConversationContext]
         elif any(w in s for w in ['pengeluaran', 'biaya', 'belanja']) and not any(w in s for w in ['pemasukan', 'pendapatan']):
             filter_p.transaction_type = 'pengeluaran'
         return PlannerDecision(tool_name=ToolName.GET_TRANSACTION_DETAILS, date_params=date_p, filter_params=filter_p, raw_query=text)
+
+    # 13b. Inventory withdrawal / stock taking ("ambil 5 bungkus indomie", "ambil beras", "ambil mie instan")
+    is_inventory_withdrawal = bool(
+        re.search(r'\b(?:ambil|mengambil|pakai|menggunakan)\s+(?:\d+\s*(?:bungkus|bks|pcs|pack|sak|kg|dus|karton|botol|kaleng|butir|lembar|buah)\s+)?(?:stok|barang|etalase|mie|indomie|beras|telur|sabun|rokok|kopi|minyak)\b', s)
+        or (s.startswith('ambil ') and not any(k in s for k in ['kasir', 'kembalian', 'uang', 'modal', 'laba']))
+    )
+    if is_inventory_withdrawal and not any(w in s for w in ['beli', 'bayar', 'jual', 'omzet', 'penjualan']):
+        return PlannerDecision(
+            tool_name=ToolName.CLARIFICATION_NEEDED,
+            raw_query=text,
+            clarification_question=(
+                "Pengambilan barang dagangan memerlukan keterangan konteks: apakah untuk keperluan operasional toko, "
+                "prive (keperluan pribadi pemilik), atau barang rusak/hilang? Pencatatan ini adalah mutasi persediaan, bukan mutasi kas langsung."
+            )
+        )
 
     # 14. Transaction Creation (Commands or money with action)
     is_create_cmd = bool(re.search(r'^(?:tolong\s+|mohon\s+|bisa\s+)?(?:catat(?:lah)?|tambah(?:kan)?|masukkan|input)\b', s))
@@ -262,7 +436,16 @@ def plan_stage_b_llm(text: str, context: Optional[ConversationContext] = None) -
         "- compare_financial_periods: membandingkan periode keuangan (misal bulan ini vs bulan lalu)\n"
         "- get_store_profile: informasi profil toko, nama toko, atau bidang usaha\n"
         "- explain_feature: panduan cara menggunakan fitur aplikasi\n"
-        "- get_available_forecast: peramalan atau prediksi Prophet\n"
+        "- get_available_forecast: penjelasan konsep dan cara kerja model Prophet\n"
+        "- get_expense_forecast: proyeksi pengeluaran umum toko atau kategori tertentu dengan Prophet\n"
+        "- get_forecast_for_period: prediksi pengeluaran untuk periode tertentu (bulan depan, minggu depan)\n"
+        "- get_upcoming_recurring_expenses: deteksi pengeluaran/tagihan rutin mendatang dan pengingat 3 hari\n"
+        "- get_next_predicted_expense: estimasi jadwal dan nominal pengeluaran berikutnya\n"
+        "- compare_actual_vs_forecast: perbandingan realisasi pengeluaran saat ini vs proyeksi mendatang\n"
+        "- get_forecast_accuracy: akurasi model peramalan Prophet (MAE, RMSE, MAPE)\n"
+        "- get_expense_trend: analisis arah tren pengeluaran (meningkat/menurun) dan faktor penggerak\n"
+        "- get_forecast_readiness: kesiapan dan kecukupan data historis toko untuk Prophet\n"
+        "- check_forecast_against_cash_balance: pengecekan apakah saldo kas saat ini mencukupi prediksi pengeluaran\n"
         "- unknown: jika instruksi tidak jelas\n\n"
         "Kembalikan JSON dengan format:\n"
         "{\"tool_name\": string, \"confidence\": float (0.0-1.0), \"period_label\": string}"
@@ -301,6 +484,7 @@ def plan_stage_b_llm(text: str, context: Optional[ConversationContext] = None) -
                 raw_query=text
             )
     except (LLMUnavailable, Exception):
+        # Safe fallback: if LLM planning fails, return None so plan_intent falls back to fallback decision
         pass
 
     return None

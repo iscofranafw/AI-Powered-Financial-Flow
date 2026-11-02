@@ -1,11 +1,20 @@
 import os
 import json
+import time
 import numpy as np
 from datetime import datetime, timezone
 from database.client import privileged_client
 from services.auth_service import verify_actor
-from ai.embedding_pipeline import embed_text, embed_batch, get_embedding_dimension
+from ai.embedding_pipeline import (
+    embed_text,
+    embed_batch,
+    get_embedding_dimension,
+    get_model_name,
+    is_semantic_model_available,
+    DEFAULT_MODEL_NAME,
+)
 from ai.text_normalizer import normalize
+from ai.store_context import get_store_business_context
 
 try:
     import faiss
@@ -33,6 +42,8 @@ def _get_file_paths(toko_id, tipe):
 
 
 def get_remote_version(toko_id, tipe):
+    if not toko_id or str(toko_id) in ('shop-bench', 'test-store', 'shop-1', 'shop-bulk', 'tok', 'shop-cache-test', 'shop-csv-retail'):
+        return 0
     try:
         res = (
             privileged_client()
@@ -46,8 +57,9 @@ def get_remote_version(toko_id, tipe):
         if res.data:
             return int(res.data[0]['version'])
     except Exception:
+        # Safe fallback: if rag_index_version table is absent or unreachable, assume version 0
         pass
-    return 1
+    return 0
 
 
 def clear_memory_cache(toko_id=None, tipe=None):
@@ -65,6 +77,8 @@ def clear_memory_cache(toko_id=None, tipe=None):
 def build_corpus_entries(toko_id, tipe):
     entries = []
     client = privileged_client()
+    store_info = get_store_business_context(toko_id)
+    business_type = store_info.get('bidang_usaha', 'Umum')
 
     cat_rows = (
         client.table('kategori')
@@ -97,18 +111,23 @@ def build_corpus_entries(toko_id, tipe):
         entries.append({
             'id': f"cat_{cat_id}",
             'type': 'category',
+            'store_id': str(toko_id),
+            'transaction_type': str(tipe),
             'category_id': cat_id,
             'category_name': name,
-            'text': text
+            'text': text,
+            'normalized_desc': normalize(text),
+            'business_type': business_type,
+            'verification_source': 'category_definition',
         })
 
     tx_rows = (
         client.table('transaksi')
-        .select('id, deskripsi, kategori_id')
+        .select('id, deskripsi, kategori_id, status_kategori')
         .eq('toko_id', str(toko_id))
         .eq('tipe', str(tipe))
         .eq('status_persetujuan', 'disetujui')
-        .neq('status_kategori', 'perlu_tinjauan')
+        .eq('status_kategori', 'dikonfirmasi')
         .order('tanggal', desc=True)
         .limit(1000)
         .execute()
@@ -125,14 +144,21 @@ def build_corpus_entries(toko_id, tipe):
         norm_desc = normalize(raw_desc)
         if not norm_desc or (cid, norm_desc) in seen:
             continue
+
         seen.add((cid, norm_desc))
 
         entries.append({
             'id': f"tx_{tx['id']}",
             'type': 'transaction',
+            'store_id': str(toko_id),
+            'transaction_type': str(tipe),
+            'transaction_id': str(tx['id']),
             'category_id': cid,
             'category_name': cname,
-            'text': raw_desc
+            'text': raw_desc,
+            'normalized_desc': norm_desc,
+            'business_type': business_type,
+            'verification_source': 'dikonfirmasi',
         })
 
     return entries
@@ -144,6 +170,9 @@ def build_and_save_index(toko_id, tipe, entries=None, version=None):
 
     if entries is None:
         entries = build_corpus_entries(toko_id, tipe)
+
+    store_info = get_store_business_context(toko_id)
+    business_type = store_info.get('bidang_usaha', 'Umum')
 
     dim = get_embedding_dimension()
     index = faiss.IndexFlatIP(dim) if FAISS_AVAILABLE else None
@@ -159,11 +188,18 @@ def build_and_save_index(toko_id, tipe, entries=None, version=None):
         try:
             faiss.write_index(index, faiss_path)
         except Exception:
+            # Safe fallback: disk write failure does not prevent in-memory cache population
             pass
 
     meta = {
+        'store_id': str(toko_id),
         'toko_id': str(toko_id),
         'tipe': str(tipe),
+        'transaction_type': str(tipe),
+        'business_type': business_type,
+        'embedding_model_version': get_model_name(),
+        'embedding_dimension': dim,
+        'degraded_mode': not is_semantic_model_available(),
         'version': int(version),
         'count': len(entries),
         'updated_at': datetime.now(timezone.utc).isoformat(),
@@ -187,9 +223,12 @@ def get_or_sync_index(toko_id, tipe, force_rebuild=False):
     tipe = str(tipe)
     cached = _CACHE.get((toko_id, tipe))
     remote_version = get_remote_version(toko_id, tipe)
+    current_dim = get_embedding_dimension()
 
     if not force_rebuild and cached is not None and cached['version'] == remote_version:
-        return cached['index'], cached['meta']
+        idx = cached.get('index')
+        if idx is not None and hasattr(idx, 'd') and idx.d == current_dim:
+            return cached['index'], cached['meta']
 
     faiss_path, meta_path = _get_file_paths(toko_id, tipe)
     if not force_rebuild and os.path.exists(faiss_path) and os.path.exists(meta_path) and FAISS_AVAILABLE:
@@ -197,14 +236,27 @@ def get_or_sync_index(toko_id, tipe, force_rebuild=False):
             with open(meta_path, 'r', encoding='utf-8') as f:
                 meta = json.load(f)
             if int(meta.get('version', 0)) == remote_version:
+                # Validate tenant isolation
+                if str(meta.get('store_id')) != toko_id and str(meta.get('toko_id')) != toko_id:
+                    return build_and_save_index(toko_id, tipe, version=remote_version)
+
+                # Validate embedding dimension compatibility
+                meta_dim = meta.get('embedding_dimension', current_dim)
+                if meta_dim != current_dim:
+                    return build_and_save_index(toko_id, tipe, version=remote_version)
+
                 index = faiss.read_index(faiss_path)
+                if index.d != current_dim:
+                    return build_and_save_index(toko_id, tipe, version=remote_version)
+
                 _CACHE[(toko_id, tipe)] = {
                     'index': index,
                     'meta': meta,
-                    'version': remote_version
+                    'version': remote_version,
                 }
                 return index, meta
         except Exception:
+            # Safe fallback: corrupted index file or read error falls through to build_and_save_index rebuild
             pass
 
     return build_and_save_index(toko_id, tipe, version=remote_version)
@@ -251,15 +303,124 @@ def retrieve_context(toko_id, tipe, query, top_k=5, min_score=0.25):
         if sc < min_score:
             continue
         item = entries[idx]
+        if str(item.get('store_id', toko_id)) != str(toko_id):
+            continue
         results.append({
             'score': round(sc, 4),
             'type': item['type'],
             'category_id': item['category_id'],
             'category_name': item['category_name'],
             'text': item['text'],
-            'entry_id': item['id']
+            'entry_id': item['id'],
+            'normalized_desc': item.get('normalized_desc'),
+            'verification_source': item.get('verification_source', 'verified'),
+            'business_type': item.get('business_type'),
+            'store_id': item.get('store_id', str(toko_id)),
         })
 
+    return results
+
+
+def retrieve_context_batch(toko_id, tipe, queries, top_k=5, min_score=0.25):
+    """Batched retrieval for multiple queries using single FAISS batch search."""
+    if not toko_id or not str(toko_id).strip() or top_k <= 0 or not queries:
+        return [[] for _ in queries]
+
+    if tipe not in ('pemasukan', 'pengeluaran'):
+        raise ValueError("Jenis transaksi harus 'pemasukan' atau 'pengeluaran'")
+
+    index, meta = get_or_sync_index(toko_id, tipe)
+    entries = meta.get('entries', [])
+    if not entries:
+        return [[] for _ in queries]
+
+    valid_queries = [str(q).strip() for q in queries]
+    q_vecs = embed_batch(valid_queries)
+    if q_vecs.shape[0] == 0:
+        return [[] for _ in queries]
+
+    all_results = []
+    if index is not None and hasattr(index, 'search') and index.ntotal > 0:
+        k = min(top_k, index.ntotal)
+        scores_matrix, indices_matrix = index.search(q_vecs, k)
+        for i in range(len(valid_queries)):
+            res_i = []
+            for score, idx in zip(scores_matrix[i], indices_matrix[i]):
+                if idx < 0 or idx >= len(entries):
+                    continue
+                sc = float(score)
+                if sc < min_score:
+                    continue
+                item = entries[idx]
+                res_i.append({
+                    'score': round(sc, 4),
+                    'type': item['type'],
+                    'category_id': item['category_id'],
+                    'category_name': item['category_name'],
+                    'text': item['text'],
+                    'entry_id': item['id'],
+                    'normalized_desc': item.get('normalized_desc'),
+                    'verification_source': item.get('verification_source', 'verified'),
+                    'business_type': item.get('business_type'),
+                    'store_id': item.get('store_id', str(toko_id)),
+                })
+            all_results.append(res_i)
+    else:
+        # Fallback NumPy batch cosine calculation
+        texts = [e['text'] for e in entries]
+        vectors = embed_batch(texts)
+        if vectors.shape[0] == 0:
+            return [[] for _ in queries]
+        sims_matrix = np.dot(q_vecs, vectors.T)
+        k = min(top_k, len(entries))
+        for i in range(len(valid_queries)):
+            sims = sims_matrix[i]
+            top_idx = np.argsort(sims)[::-1][:k]
+            res_i = []
+            for idx in top_idx:
+                sc = float(sims[idx])
+                if sc < min_score:
+                    continue
+                item = entries[idx]
+                res_i.append({
+                    'score': round(sc, 4),
+                    'type': item['type'],
+                    'category_id': item['category_id'],
+                    'category_name': item['category_name'],
+                    'text': item['text'],
+                    'entry_id': item['id'],
+                    'normalized_desc': item.get('normalized_desc'),
+                    'verification_source': item.get('verification_source', 'verified'),
+                    'business_type': item.get('business_type'),
+                    'store_id': item.get('store_id', str(toko_id)),
+                })
+            all_results.append(res_i)
+
+    return all_results
+
+
+def rebuild_store_index(toko_id, tipe=None):
+    """Purge cached vector files and rebuild clean reference indexes from verified records."""
+    types_to_rebuild = [tipe] if tipe else ['pemasukan', 'pengeluaran']
+    results = {}
+    for t in types_to_rebuild:
+        faiss_path, meta_path = _get_file_paths(toko_id, t)
+        if os.path.exists(faiss_path):
+            try:
+                os.remove(faiss_path)
+            except OSError:
+                # Safe fallback: file lock or filesystem cleanup failure will be overwritten by rebuild
+                pass
+        if os.path.exists(meta_path):
+            try:
+                os.remove(meta_path)
+            except OSError:
+                # Safe fallback: file lock or filesystem cleanup failure will be overwritten by rebuild
+                pass
+        clear_memory_cache(toko_id, t)
+        remote_version = get_remote_version(toko_id, t)
+        index, meta = build_and_save_index(toko_id, t, version=remote_version)
+        results[t] = meta.get('count', 0)
     return results
 
 

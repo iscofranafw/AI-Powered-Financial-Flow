@@ -1,4 +1,4 @@
--- Migration 005: extended category, classification metadata, RAG versioning and atomic writes.
+-- Migrasi 005: perluasan kategori, metadata klasifikasi, versi indeks RAG, dan penulisan atomik.
 ALTER TABLE public.kategori ADD COLUMN IF NOT EXISTS kata_kunci text[] NOT NULL DEFAULT '{}';
 ALTER TABLE public.transaksi ADD COLUMN IF NOT EXISTS status_kategori text NOT NULL DEFAULT 'dikonfirmasi';
 ALTER TABLE public.transaksi ADD COLUMN IF NOT EXISTS usulan jsonb NOT NULL DEFAULT '{}'::jsonb;
@@ -46,7 +46,7 @@ DROP TRIGGER IF EXISTS transaksi_rag_bump ON public.transaksi;
 CREATE TRIGGER transaksi_rag_bump AFTER INSERT OR UPDATE OR DELETE ON public.transaksi
 FOR EACH ROW EXECUTE FUNCTION public.bump_rag_index_version();
 
--- Atomic multi-row approval; only callable by server service role, checks role and shop.
+-- Persetujuan transaksi massal secara atomik; hanya dapat dipanggil oleh service role server, memvalidasi peran dan toko.
 CREATE OR REPLACE FUNCTION public.approve_transactions_atomic(
   p_actor uuid,p_shop uuid,p_ids uuid[],p_decision text
 ) RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
@@ -72,7 +72,7 @@ END $$;
 REVOKE ALL ON FUNCTION public.approve_transactions_atomic(uuid,uuid,uuid[],text) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.approve_transactions_atomic(uuid,uuid,uuid[],text) TO service_role;
 
--- Atomic category merge: entire reassignment + deletion runs in one transaction.
+-- Penggabungan kategori secara atomik: pemindahan seluruh transaksi dan penghapusan kategori berjalan dalam satu transaksi.
 CREATE OR REPLACE FUNCTION public.merge_category_atomic(
   p_actor uuid,p_shop uuid,p_source uuid,p_target uuid
 ) RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
@@ -94,7 +94,7 @@ END $$;
 REVOKE ALL ON FUNCTION public.merge_category_atomic(uuid,uuid,uuid,uuid) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.merge_category_atomic(uuid,uuid,uuid,uuid) TO service_role;
 
--- Atomic batch import of previewed rows, all-or-nothing.
+-- Impor massal baris pratinjau secara atomik, seluruhnya berhasil atau seluruhnya dibatalkan (all-or-nothing).
 CREATE OR REPLACE FUNCTION public.import_transactions_atomic(
  p_actor uuid,p_shop uuid,p_rows jsonb,p_batch uuid
 ) RETURNS integer LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
@@ -124,7 +124,7 @@ END $$;
 REVOKE ALL ON FUNCTION public.import_transactions_atomic(uuid,uuid,jsonb,uuid) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.import_transactions_atomic(uuid,uuid,jsonb,uuid) TO service_role;
 
--- Superadmin sees counts and latest date only; no transaction content.
+-- Superadmin hanya dapat melihat jumlah agregat dan tanggal transaksi terakhir tanpa melihat isi detail transaksi.
 DROP FUNCTION IF EXISTS public.admin_shop_summary();
 CREATE OR REPLACE FUNCTION public.admin_shop_summary()
 RETURNS TABLE(toko_id uuid,nama_toko text,bidang_usaha text,jumlah_pengguna bigint,

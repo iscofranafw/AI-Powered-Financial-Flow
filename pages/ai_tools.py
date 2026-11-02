@@ -20,7 +20,6 @@ def quick_entry(token, owner=True):
                 st.rerun()
             except Exception as exc:
                 st.error(str(exc))
-        return
 
     with st.form('quick_entry'):
         desc = st.text_input('Deskripsi Transaksi')
@@ -40,6 +39,10 @@ def quick_entry(token, owner=True):
     if not data:
         return
 
+    if data.get('_saved_ai_pending'):
+        st.warning('Ollama tidak tersedia - transaksi sudah tersimpan tanpa kategori dan menunggu AI. Gunakan klasifikasi ulang pada halaman Transaksi.')
+        return
+
     st.divider()
     section_header('Hasil Analisis Transaksi')
     badge = ''
@@ -56,8 +59,7 @@ def quick_entry(token, owner=True):
     options = {x['nama']: x['id'] for x in cats}
     other_cat = next((c for c in cats if c['nama'].casefold() == 'others'), None)
 
-    cap = finance.LIMITS.get(data['tipe'], 10)
-    can_create_new = owner and (len(cats) < cap)
+    can_create_new = owner  # Owners have unlimited category creation (see finance_service.check_category_quota)
     suggested_new = (data.get('usulan') or {}).get('nama_baru', '').strip()
 
     cat_modes = []
@@ -67,8 +69,6 @@ def quick_entry(token, owner=True):
         cat_modes = ['Pilih kategori yang sudah ada', 'Buat kategori baru', 'Masukkan ke Others']
     else:
         cat_modes = ['Pilih kategori yang sudah ada', 'Masukkan ke Others']
-        if owner and len(cats) >= cap:
-            st.warning(f"Batas maksimal kategori {data['tipe']} ({cap}) sudah tercapai. Kategori baru tidak dapat dibuat.")
 
     if suggested_new:
         st.info(f"Rekomendasi nama kategori baru: {suggested_new}")
@@ -87,7 +87,7 @@ def quick_entry(token, owner=True):
         if cat_choice.startswith('Buat kategori baru'):
             default_name = suggested_new if suggested_new else ''
             new_cat_name = st.text_input('Nama Kategori Baru:', value=default_name)
-            st.caption(f"Kategori baru akan ditambahkan untuk jenis: {data['tipe']} (Kapasitas terpakai: {len(cats)}/{cap})")
+            st.caption(f"Kategori baru akan ditambahkan untuk jenis: {data['tipe']}")
         elif cat_choice == 'Masukkan ke Others':
             if other_cat:
                 st.caption(f"Transaksi akan dimasukkan ke kategori sistem: {other_cat['nama']}")
@@ -134,8 +134,8 @@ def initial_categories(token):
     if not suggested:
         return
     with st.form('save_initial_categories'):
-        exp = st.multiselect('Kategori Pengeluaran (Maksimal 10):', suggested['pengeluaran'], default=suggested['pengeluaran'])
-        inc = st.multiselect('Kategori Pemasukan (Maksimal 5):', suggested['pemasukan'], default=suggested['pemasukan'])
+        exp = st.multiselect('Kategori Pengeluaran (Maksimal 7):', suggested['pengeluaran'], default=suggested['pengeluaran'])
+        inc = st.multiselect('Kategori Pemasukan (Maksimal 7):', suggested['pemasukan'], default=suggested['pemasukan'])
         save = st.form_submit_button('Simpan Kategori Terpilih')
     if save:
         try:

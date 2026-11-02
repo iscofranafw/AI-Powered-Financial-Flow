@@ -1,5 +1,5 @@
--- Migration 004: repair Stage-1 cashier creation without trusting user-controlled role metadata.
--- Apply AFTER 001 & 003. Safe to repeat creation of functions; this migration is intended to run once.
+-- Migrasi 004: perbaikan pembuatan akun kasir tanpa mempercayai metadata peran dari sisi pengguna.
+-- Terapkan SETELAH migrasi 001 & 003. Aman dijalankan ulang jika diperlukan; migrasi ini dirancang untuk dijalankan sekali.
 CREATE TABLE IF NOT EXISTS public.cashier_provisioning (
     token_hash text PRIMARY KEY,
     email text NOT NULL,
@@ -25,7 +25,7 @@ BEGIN
  v_name := coalesce(nullif(trim(new.raw_user_meta_data->>'nama'),''),'Pengguna');
  v_token := nullif(new.raw_user_meta_data->>'bizflow_cashier_ticket','');
  IF v_token IS NOT NULL THEN
-   -- Secret, single-use, scoped to an email and approved owner; public signups can't forge this.
+   -- Rahasia, sekali pakai, terikat pada email dan pemilik toko yang sah; pendaftaran publik tidak dapat memalsukannya.
    SELECT * INTO v_ticket FROM public.cashier_provisioning
    WHERE token_hash = pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(v_token,'UTF8')),'hex')
      AND lower(email) = lower(new.email)
@@ -41,7 +41,7 @@ BEGIN
    UPDATE public.cashier_provisioning SET consumed_at=now()
      WHERE token_hash=v_ticket.token_hash;
  ELSE
-   -- Public registration can ONLY create pending owner accounts, regardless of metadata.
+   -- Pendaftaran publik HANYA dapat membuat akun pemilik toko berstatus pending, terlepas dari metadata yang dikirim.
    IF coalesce(trim(new.raw_user_meta_data->>'nama_toko'),'')='' OR
       coalesce(trim(new.raw_user_meta_data->>'bidang_usaha'),'')='' THEN
        RAISE EXCEPTION 'Nama toko dan bidang usaha wajib diisi';
@@ -54,4 +54,4 @@ BEGIN
  END IF;
  RETURN new;
 END; $$;
--- Uses built-in pg_catalog.sha256 (PostgreSQL 15+), not extension schema assumptions.
+-- Menggunakan fungsi bawaan pg_catalog.sha256 (PostgreSQL 15+), tanpa bergantung pada skema ekstensi tambahan.

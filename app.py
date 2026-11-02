@@ -46,7 +46,14 @@ elif profile["role"] == "kasir":
 else:
     st.error("Peran akun tidak dikenali dalam sistem.")
 
+# Render Global Floating Financial AI Agent across all authenticated store pages
+if profile.get("role") in ("pemilik_toko", "kasir"):
+    from utils.floating_agent import render_floating_agent
+    render_floating_agent(token, profile)
+
 st.sidebar.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
 if st.sidebar.button("Keluar", use_container_width=True):
-    st.session_state.pop("token", None)
+    from services.auth_service import logout
+    logout(token)
+    st.session_state.clear()
     st.rerun()

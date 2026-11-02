@@ -1,4 +1,4 @@
--- TAHAP 2: jalankan sekali SETELAH 001 dan 002. Tidak menghapus data lama.
+-- Tahap 2: jalankan sekali SETELAH migrasi 001 dan 002. Tidak menghapus data yang sudah ada.
 create table public.kategori (
  id uuid primary key default gen_random_uuid(),
  toko_id uuid not null references public.toko(id) on delete cascade,
@@ -33,11 +33,11 @@ create index transaksi_shop_status on public.transaksi(toko_id,status_persetujua
 create index kategori_shop_type on public.kategori(toko_id,tipe);
 alter table public.kategori enable row level security;
 alter table public.transaksi enable row level security;
--- READ ONLY policies for authenticated clients. Mutations are ONLY through trusted server services.
+-- Kebijakan HANYA BACA untuk klien terautentikasi. Perubahan data HANYA melalui layanan server tepercaya.
 create policy kategori_read on public.kategori for select to authenticated using (
  exists(select 1 from public.profiles p where p.id=(select auth.uid()) and p.toko_id=kategori.toko_id and p.status='aktif')
 );
 create policy transaksi_read on public.transaksi for select to authenticated using (
  exists(select 1 from public.profiles p where p.id=(select auth.uid()) and p.toko_id=transaksi.toko_id and p.status='aktif' and (p.role='pemilik_toko' or (p.role='kasir' and transaksi.dicatat_oleh=p.id)))
 );
--- Server-side checks additionally scope every write to verified actor's toko_id.
+-- Pemeriksaan sisi server membatasi setiap operasi penulisan data ke toko_id milik aktor yang telah terverifikasi.

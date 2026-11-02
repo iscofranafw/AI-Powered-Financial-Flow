@@ -33,6 +33,7 @@ def cluster_rows(rows, level='Sedang'):
             reply = ask_json(system_prompt, user_prompt, schema)
             suggested_names = [s.strip() for s in reply.get('kategori', []) if s.strip()]
         except Exception:
+            # Safe fallback: if LLM naming fails, fall back to default template categories below
             pass
 
         if not suggested_names:

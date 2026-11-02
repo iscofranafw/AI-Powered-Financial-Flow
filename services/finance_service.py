@@ -1,3 +1,5 @@
+import logging
+import json
 from datetime import date, datetime, timezone
 from decimal import Decimal, InvalidOperation
 from database.client import privileged_client
@@ -10,9 +12,34 @@ from services.validation_service import (
     validate_description,
 )
 
+logger = logging.getLogger(__name__)
+
 EXPENSE_DEFAULTS=['Gaji','Operasional','Pemasaran','Others']
 INCOME_DEFAULTS=['Penjualan','Tambahan Modal','Pendapatan Lain','Others']
-LIMITS={'pengeluaran':10,'pemasukan':5}
+# Batas rekomendasi AI per operasi penemuan kategori (Pemilik Toko memiliki kuota kategori tanpa batas)
+AI_RECOMMENDATION_LIMITS = {'pengeluaran': 7, 'pemasukan': 7}
+LIMITS = AI_RECOMMENDATION_LIMITS
+
+def check_category_quota(token, tipe=None):
+    """Inspect category count. Store owners have unlimited categories; AI recommendations are capped at 7 per discovery."""
+    a = _member(token)
+    shop = a['toko_id']
+    cats = categories(shop)
+    types = [tipe] if tipe else ['pengeluaran', 'pemasukan']
+    res = {}
+    for tp in types:
+        count = len([c for c in cats if c['tipe'] == tp])
+        limit = LIMITS.get(tp, 7)
+        res[tp] = {
+            'count': count,
+            'limit': limit,
+            'ai_recommendation_limit': limit,
+            'exceeded': False,
+            'at_limit': False,
+            'can_add': True,  # Owners have unlimited category creation capability
+            'warning': None,
+        }
+    return res if not tipe else res[tipe]
 
 def _owner(token): return verify_actor(token,{'pemilik_toko'})
 def _member(token): return verify_actor(token,{'pemilik_toko','kasir'})
@@ -34,7 +61,6 @@ def create_category(token,name,tipe,description='',system_seed=False,keywords=No
  a=_owner(token);shop=a['toko_id'];tipe=_type(tipe);name=name.strip()
  if not name or len(name)>80: raise ValueError('Nama kategori wajib diisi (maksimal 80 karakter)')
  existing=categories(shop)
- if len([c for c in existing if c['tipe']==tipe])>=LIMITS[tipe]: raise ValueError('Batas kategori tercapai; gabungkan kategori terlebih dahulu')
  if any(c['nama'].casefold()==name.casefold() and c['tipe']==tipe for c in existing): raise ValueError('Kategori sudah ada')
  if name.casefold()=='others' and not system_seed: raise ValueError('Others adalah kategori sistem')
  if name.casefold()=='tambahan modal' and tipe!='pemasukan': raise ValueError('Tambahan Modal harus pemasukan')
@@ -69,7 +95,18 @@ def merge_category(token,source_id,target_id):
  if not src or not dst or source_id==target_id or src['tipe']!=dst['tipe']: raise ValueError('Kategori sumber/tujuan tidak sesuai')
  if src['sistem'] or src['bukan_operasional'] or dst['bukan_operasional']: raise ValueError('Kategori terlindungi tidak dapat digabung')
  admin=privileged_client()
- return admin.rpc('merge_category_atomic',{'p_actor':a['id'],'p_shop':shop,'p_source':source_id,'p_target':target_id}).execute().data
+ res = admin.rpc('merge_category_atomic',{'p_actor':a['id'],'p_shop':shop,'p_source':source_id,'p_target':target_id}).execute().data
+ try:
+     from services.forecast_service import invalidate_forecast_cache
+     invalidate_forecast_cache(shop)
+     from ai.hybrid_classifier import clear_classification_cache
+     clear_classification_cache(shop)
+     from ai.rag_engine import clear_memory_cache
+     clear_memory_cache(shop)
+ except Exception as exc:
+     logger.warning("Cache invalidation failed after merge_category for shop %s; returning committed result: %s", shop, exc)
+     return res
+ return res
 
 def list_transactions(token):
  a=_member(token);data=transactions(a['toko_id'])
@@ -81,33 +118,102 @@ def _validate_category(shop,category_id,tipe):
  return cat
 
 def add_transaction(token,tanggal,deskripsi,nominal,tipe,kategori_id,status_kategori='dikonfirmasi',skor=None,usulan=None):
- a=_member(token);shop=a['toko_id'];tipe=_type(tipe);_validate_category(shop,kategori_id,tipe)
+ a=_member(token);shop=a['toko_id'];tipe=_type(tipe)
+ ai_pending = (usulan or {}).get('ai_pending') is True
+ if ai_pending:
+     kategori_id = None
+     status_kategori = 'perlu_tinjauan'
+ else:
+     _validate_category(shop,kategori_id,tipe)
  desc=validate_description(deskripsi)
- owner=a['role']=='pemilik_toko'
- return privileged_client().table('transaksi').insert({'toko_id':shop,'tanggal':_date(tanggal),'deskripsi':desc,'nominal':_money(nominal),'tipe':tipe,'kategori_id':kategori_id,'dicatat_oleh':a['id'],'status_persetujuan':'disetujui' if owner else 'pending','disetujui_oleh':a['id'] if owner else None,'disetujui_pada':datetime.now(timezone.utc).isoformat() if owner else None,'status_kategori':status_kategori,'skor':skor,'usulan':usulan or {}}).execute().data
+ owner=a['role']=='pemilik_toko' and not ai_pending
+ res = privileged_client().table('transaksi').insert({'toko_id':shop,'tanggal':_date(tanggal),'deskripsi':desc,'nominal':_money(nominal),'tipe':tipe,'kategori_id':kategori_id,'dicatat_oleh':a['id'],'status_persetujuan':'disetujui' if owner else 'pending','disetujui_oleh':a['id'] if owner else None,'disetujui_pada':datetime.now(timezone.utc).isoformat() if owner else None,'status_kategori':status_kategori,'skor':skor,'usulan':usulan or {}}).execute().data
+ if owner:
+     try:
+         from services.forecast_service import invalidate_forecast_cache
+         invalidate_forecast_cache(shop)
+         from ai.hybrid_classifier import clear_classification_cache
+         clear_classification_cache(shop)
+         from ai.rag_engine import clear_memory_cache
+         clear_memory_cache(shop)
+     except Exception as exc:
+         logger.warning("Cache invalidation failed after add_transaction for shop %s; returning committed result: %s", shop, exc)
+         return res
+ return res
+
+def _audited_mutation(client, actor_id, shop_id, action, ids, values=None):
+ return client.rpc('mutate_finance_audited', {
+     'p_actor': actor_id, 'p_shop': shop_id, 'p_action': action,
+     'p_ids': ids, 'p_values': json.loads(json.dumps(values or {}, default=str)),
+ }).execute().data
+
 
 def update_transaction(token,transaction_id,tanggal,deskripsi,nominal,tipe,kategori_id):
  a=_member(token);shop=a['toko_id'];old=transaction_by_id(shop,transaction_id)
  if not old: raise ValueError('Transaksi tidak ditemukan')
- if a['role']=='kasir' and (old['dicatat_oleh']!=a['id'] or old['status_persetujuan']!='pending'): raise AccessError('Kasir hanya dapat mengubah entri sendiri yang masih pending')
- tipe=_type(tipe);_validate_category(shop,kategori_id,tipe)
+ if a['role']=='kasir':
+     if old['dicatat_oleh'] != a['id']:
+         raise AccessError('Kasir hanya dapat mengubah entri yang dicatat sendiri')
+     if old.get('status_persetujuan') not in ('pending', 'ditolak'):
+         raise AccessError('Kasir tidak dapat mengubah transaksi yang sudah disetujui')
+ tipe=_type(tipe)
+ if not kategori_id and (old.get('usulan') or {}).get('ai_pending') is True:
+     kategori_id = None
+ else:
+     _validate_category(shop,kategori_id,tipe)
  try:
      desc=validate_description(deskripsi)
  except ValueError:
      raise ValueError('Keterangan tidak valid')
- payload={'tanggal':_date(tanggal),'deskripsi':desc,'nominal':_money(nominal),'tipe':tipe,'kategori_id':kategori_id,'updated_at':datetime.now(timezone.utc).isoformat(),'status_kategori':'dikonfirmasi','usulan':{}}
- return privileged_client().table('transaksi').update(payload).eq('toko_id',shop).eq('id',transaction_id).execute().data
+
+ payload = {'tanggal': _date(tanggal), 'deskripsi': desc, 'nominal': _money(nominal),
+            'tipe': tipe, 'kategori_id': kategori_id}
+ # Authorization, current snapshots, reapproval and secondary history are
+ # evaluated again under database row locks by the audited mutation RPC.
+ res = _audited_mutation(privileged_client(), a['id'], shop, 'update_transaction', [transaction_id], payload)
+ if not res:
+     raise RuntimeError('Perubahan transaksi tidak tersimpan')
+ try:
+     from ai.hybrid_classifier import clear_classification_cache
+     clear_classification_cache(shop)
+     from ai.rag_engine import clear_memory_cache
+     clear_memory_cache(shop)
+     from services.forecast_service import invalidate_forecast_cache
+     invalidate_forecast_cache(shop)
+ except Exception as exc:
+     logger.warning("Cache invalidation failed after update_transaction for shop %s; returning committed result: %s", shop, exc)
+     return res
+ return res
 
 def delete_transaction(token,transaction_id):
  a=_owner(token);shop=a['toko_id']
- if not transaction_by_id(shop,transaction_id): raise ValueError('Transaksi tidak ditemukan')
- privileged_client().table('transaksi').delete().eq('toko_id',shop).eq('id',transaction_id).execute()
+ old = transaction_by_id(shop,transaction_id)
+ if not old: raise ValueError('Transaksi tidak ditemukan')
+ client = privileged_client()
+ deleted = _audited_mutation(client, a['id'], shop, 'delete_transaction', [transaction_id])
+ if not deleted:
+     raise RuntimeError('Penghapusan transaksi tidak dikonfirmasi')
+ try:
+     from services.forecast_service import invalidate_forecast_cache
+     invalidate_forecast_cache(shop)
+ except Exception as exc:
+     logger.warning("Cache invalidation failed after delete_transaction for shop %s; returning committed result: %s", shop, exc)
+     return None
 
 def approve_transactions(token,ids,decision):
  a=_owner(token);shop=a['toko_id']
  if decision not in ('disetujui','ditolak') or not ids:raise ValueError('Keputusan atau ID tidak valid')
- return privileged_client().rpc('approve_transactions_atomic',{
-  'p_actor':a['id'],'p_shop':shop,'p_ids':list(set(ids)),'p_decision':decision}).execute().data
+ client = privileged_client()
+ unique_ids = list(dict.fromkeys(ids))
+ res = client.rpc('approve_transactions_atomic',{
+  'p_actor':a['id'],'p_shop':shop,'p_ids':unique_ids,'p_decision':decision}).execute().data
+ try:
+     from services.forecast_service import invalidate_forecast_cache
+     invalidate_forecast_cache(shop)
+ except Exception as exc:
+     logger.warning("Cache invalidation failed after approve_transactions for shop %s; returning committed result: %s", shop, exc)
+     return res
+ return res
 
 
 def dashboard_summary(token):
@@ -120,3 +226,18 @@ def dashboard_summary(token):
   if t['tipe']=='pengeluaran':
    name=cats.get(t['kategori_id'],{}).get('nama','?');by_category[name]=by_category.get(name,Decimal(0))+Decimal(str(t['nominal']))
  return {'pemasukan':income,'pengeluaran':expense,'tambahan_modal':capital,'omzet':income-capital,'arus_kas_operasional':income-capital-expense,'arus_kas_total':income-expense,'pengeluaran_per_kategori':by_category,'jumlah_disetujui':len(approved)}
+
+
+def request_deletion_all_transactions(token, confirmation_text):
+    from services.deletion_service import owner_request_bulk_deletion
+    return owner_request_bulk_deletion(token, confirmation_text)
+
+
+def cancel_deletion_request(token, request_id):
+    from services.deletion_service import owner_cancel_deletion_request
+    return owner_cancel_deletion_request(token, request_id)
+
+
+def get_deletion_status(token):
+    from services.deletion_service import owner_get_latest_deletion_request
+    return owner_get_latest_deletion_request(token)

@@ -1,6 +1,6 @@
--- AFTER registering your own account in the app, run in SQL Editor.
--- Replace the email. Verify it is YOUR account before running.
--- The initial signup creates an unused shop; this script deletes it.
+-- Jalankan di SQL Editor SETELAH mendaftarkan akun Anda sendiri di aplikasi.
+-- Ganti alamat email berikut. Pastikan akun tersebut adalah akun Anda sebelum menjalankan skrip.
+-- Pendaftaran awal otomatis membuat toko yang tidak terpakai; skrip ini akan menghapusnya.
 do $$
 declare v_id uuid; v_shop uuid;
 begin

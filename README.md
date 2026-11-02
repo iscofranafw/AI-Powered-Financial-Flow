@@ -26,15 +26,19 @@ Sistem dirancang untuk mendukung berbagai jenis usaha, termasuk bakery, grosir, 
 
 ### Status Pengembangan
 
-**Development Status: Work in Progress — Initial 50% Milestone**
+**Status Pengembangan: Tahap Finalisasi untuk Pengajuan Proyek Capstone Dicoding**
 
-Repository ini mendokumentasikan pengembangan bertahap proyek capstone. Persentase 50% merupakan estimasi progres implementasi, bukan hasil pengukuran otomatis terhadap seluruh persyaratan sistem.
+Repository ini mendokumentasikan pengembangan lengkap aplikasi. Seluruh fitur utama sistem telah diimplementasikan, meliputi:
+- Autentikasi pengguna dan pemisahan hak akses berbasis peran (Superadmin, Pemilik Toko, Kasir).
+- Pencatatan dan pengelolaan transaksi keuangan (pemasukan, pengeluaran, serta pemisahan modal dari pendapatan operasional).
+- Sistem persetujuan transaksi oleh Pemilik Toko (*owner approval workflow*).
+- Impor transaksi massal via CSV dengan validasi integritas, deteksi anomali, dan proteksi idempotensi penulisan atomik.
+- Klasifikasi transaksi berbasis kecerdasan buatan (*AI classification*) dengan ekstraksi nominal deterministik dan normalisasi teks.
+- *Retrieval-Augmented Generation* (RAG) menggunakan *vector store* lokal untuk klasifikasi kontekstual berbasis bidang usaha toko.
+- Peramalan pengeluaran kas usaha (*cash flow forecast*) menggunakan Prophet.
+- Asisten keuangan percakapan berbasis AI (*AI financial chat assistant*) dengan floating agent dan konfirmasi perubahan data.
 
-Versi awal mencakup fondasi autentikasi, pengelolaan pengguna dan toko, pencatatan transaksi, pengaturan kategori, dashboard keuangan, impor data, serta integrasi awal Llama 3.
-
-Pengembangan selanjutnya berfokus pada Retrieval-Augmented Generation (RAG), evaluasi klasifikasi transaksi, peramalan pengeluaran menggunakan Prophet, dan antarmuka percakapan AI untuk membantu pencatatan serta analisis keuangan.
-
-Proyek ini bukan pengganti sistem akuntansi penuh dan tidak ditujukan untuk mengelola penggajian, perpajakan, atau penyusunan laporan akuntansi formal.
+Proyek saat ini berada pada tahap finalisasi dan pengujian komprehensif untuk pengajuan (*submission*) capstone project Dicoding. Aplikasi ini dirancang sebagai asisten operasional arus kas UMKM dan bukan pengganti sistem akuntansi formal untuk perpajakan maupun penggajian.
 
 ---
 
@@ -53,23 +57,25 @@ Proyek ini bukan pengganti sistem akuntansi penuh dan tidak ditujukan untuk meng
 
 Aplikasi mengintegrasikan Llama 3 8B melalui Ollama untuk membantu memahami deskripsi transaksi menggunakan bahasa alami.
 
-Kemampuan yang dikembangkan pada versi awal meliputi:
+Kemampuan yang dikembangkan meliputi:
 
-- Normalisasi teks transaksi.
+- Normalisasi teks transaksi dan penanganan variasi penulisan.
 - Ekstraksi nominal menggunakan aturan deterministik.
-- Identifikasi jenis transaksi berdasarkan konteks.
-- Rekomendasi kategori berdasarkan kategori yang tersedia.
-- Penanganan kesalahan respons model.
+- Identifikasi jenis transaksi berdasarkan konteks usaha.
+- Rekomendasi kategori berdasarkan katalog kategori toko.
+- Penanganan kesalahan respons model dan fallback aman.
 
 Sebagai contoh, deskripsi:
 
 `Beli telur 3 tray 250rb`
 
-dapat diproses untuk mengenali nominal **Rp250.000** dan menentukan kategori pengeluaran yang relevan.
+dapat diproses untuk mengenali nominal **Rp250.000** dan menentukan kategori pengeluaran yang relevan secara otomatis.
 
-Pada tahap berikutnya, klasifikasi akan diperkuat menggunakan **SentenceTransformers dan FAISS** untuk mengambil contoh transaksi dari dataset referensi yang telah divalidasi.
+Klasifikasi diperkuat menggunakan **SentenceTransformers dan FAISS** untuk mengambil contoh transaksi dari dataset referensi yang telah divalidasi, dengan pembatasan kategori sesuai katalog toko.
 
-Kategori hasil klasifikasi akan dibatasi pada kategori referensi yang diizinkan. Transaksi yang tidak sesuai dengan referensi akan diarahkan ke kategori `Others`.
+### Penyesuaian Model terhadap Data
+
+Model bahasa yang dipakai adalah Llama 3 8B (melalui Ollama) tanpa fine-tuning. Penyesuaian terhadap data usaha dilakukan melalui tiga mekanisme: (1) retrieval — klasifikasi mengambil contoh transaksi dari riwayat toko itu sendiri sebagai few-shot (RAG dengan FAISS); (2) prompt — instruksi klasifikasi dan skema jawaban dirancang khusus untuk kategori usaha toko; (3) skema kategori — setiap toko memiliki kategori dan kata kunci sendiri. Data transaksi yang dipakai selama pengembangan bersifat sintetis, karena data asli toko tidak tersedia.
 
 ### 2.3. Dashboard dan Analisis Arus Kas
 
@@ -80,70 +86,54 @@ Dashboard menyediakan ringkasan kondisi keuangan usaha, meliputi:
 - Arus kas bersih.
 - Tren transaksi berdasarkan periode.
 - Distribusi pengeluaran berdasarkan kategori.
-- Visualisasi data menggunakan Plotly.
+- Visualisasi data interaktif menggunakan Plotly.
 
 Sistem membedakan arus kas operasional dari arus kas yang memperhitungkan tambahan modal agar pengguna dapat memahami sumber perubahan saldo secara lebih tepat.
 
-Arus kas bersih tidak selalu sama dengan laba akuntansi karena perhitungan laba dapat memerlukan informasi tambahan seperti harga pokok penjualan, persediaan, dan kewajiban usaha.
-
 ### 2.4. Narasi Laporan Keuangan Berbasis AI
 
-Integrasi Llama 3 digunakan untuk membantu menyusun penjelasan laporan keuangan dalam bahasa yang mudah dipahami.
-
-Nilai numerik harus dihitung oleh kode aplikasi atau database, sedangkan model bahasa digunakan untuk menyusun narasi berdasarkan hasil perhitungan tersebut.
-
-Pendekatan ini bertujuan mengurangi risiko kesalahan angka yang dihasilkan oleh model bahasa.
+Integrasi Llama 3 digunakan untuk membantu menyusun penjelasan laporan keuangan dalam bahasa yang mudah dipahami. Nilai numerik dihitung secara deterministik oleh kode aplikasi atau database, sedangkan model bahasa menyusun narasi berdasarkan hasil perhitungan tersebut guna mencegah halusinasi angka.
 
 ### 2.5. Multi-Tenant dan Role-Based Access Control
 
-Aplikasi dirancang untuk mendukung beberapa toko dengan pemisahan akses berdasarkan peran pengguna.
+Aplikasi dirancang untuk mendukung beberapa toko dengan pemisahan akses berbasis peran:
 
 **Superadmin**
-
-- Meninjau dan menyetujui pendaftaran pemilik toko.
-- Mengelola administrasi aplikasi sesuai kewenangannya.
+- Meninjau dan menyetujui pendaftaran pemilik toko baru.
+- Meninjau pengajuan penghapusan transaksi toko.
+- Mengelola administrasi aplikasi lintas toko.
 
 **Pemilik Toko (Owner)**
-
-- Mengelola transaksi dan kategori.
-- Meninjau transaksi yang dicatat kasir.
-- Mengakses dashboard dan laporan keuangan.
-- Mengelola operasional keuangan toko.
+- Mengelola transaksi dan katalog kategori toko.
+- Meninjau dan menyetujui (*approval*) transaksi yang dicatat kasir.
+- Menerbitkan tiket pendaftaran kasir.
+- Mengakses dashboard, peramalan arus kas, dan laporan keuangan.
 
 **Kasir (Cashier)**
+- Mencatat transaksi kasir harian.
+- Mengirim transaksi ke antrean persetujuan pemilik toko.
+- Melihat riwayat transaksi yang dicatat oleh kasir bersangkutan.
 
-- Mencatat transaksi sesuai kewenangan.
-- Mengirim transaksi untuk proses persetujuan pemilik toko.
-- Mengakses fungsi aplikasi yang diizinkan untuk peran kasir.
-
-Supabase PostgreSQL digunakan sebagai penyimpanan data dan mendukung kebijakan **Row Level Security (RLS)** untuk membantu membatasi akses antar toko.
-
-Keamanan isolasi data tetap memerlukan pengujian integrasi terhadap kebijakan dan konfigurasi database yang digunakan.
+Supabase PostgreSQL digunakan sebagai penyimpanan data dan menerapkan kebijakan **Row Level Security (RLS)** untuk menjamin isolasi data antartoko.
 
 ### 2.6. Impor Transaksi CSV
 
 Fitur impor mendukung:
 
 - Pembacaan transaksi dari file CSV.
-- Pemeriksaan dan validasi data sebelum penyimpanan.
-- Peninjauan kesalahan pada setiap baris.
-- Pengelolaan impor transaksi secara massal.
-- Integrasi dengan fungsi database untuk mendukung konsistensi penyimpanan.
-
-Batas jumlah baris dan perilaku transaksi atomik mengikuti implementasi serta konfigurasi database yang digunakan.
+- Pemeriksaan dan validasi struktur data sebelum penyimpanan.
+- Peninjauan kesalahan baris per baris.
+- Deteksi duplikasi dan idempotensi penulisan atomik via buku besar identitas impor (`import_transaction_identities`).
+- Pengelompokan transaksi massal dalam satu transaksi database terpadu.
 
 ### 2.7. Pengelolaan Kategori Usaha
 
-Sistem menyediakan pengaturan kategori berdasarkan kebutuhan usaha.
+Sistem menyediakan pengaturan kategori berdasarkan kebutuhan usaha. Contoh bidang usaha yang didukung melalui data referensi:
 
-Contoh bidang usaha yang didukung melalui data referensi awal:
-
-- Bakery
-- Grosir
-- Bengkel motor
-- Warung makan
-
-Pengguna dapat menyesuaikan struktur kategori sesuai kebutuhan operasional toko.
+- Bakery (Toko Roti)
+- Bengkel Motor
+- Grosir / Toko Kelontong
+- Warung Makan
 
 ---
 
@@ -175,26 +165,18 @@ Aplikasi menggunakan pendekatan modular dengan pemisahan antara antarmuka, logik
 
 | Komponen | Teknologi | Fungsi |
 |---|---|---|
-| Bahasa pemrograman | Python 3.11+ | Logika aplikasi |
+| Bahasa pemrograman | Python 3.11+ | Logika aplikasi backend dan frontend |
 | Antarmuka | Streamlit | Dashboard dan interaksi pengguna |
-| Database | Supabase PostgreSQL | Penyimpanan dan pengelolaan data |
-| Autentikasi | Supabase Auth | Identitas dan akses pengguna |
-| Model bahasa | Llama 3 8B | Pemrosesan bahasa alami |
-| Inferensi lokal | Ollama | Menjalankan model bahasa |
-| Pengolahan data | Pandas, NumPy | Transformasi dan analisis data |
-| Visualisasi | Plotly | Grafik laporan keuangan |
-| Ekspor Excel | OpenPyXL | Pembuatan laporan spreadsheet |
-| Pengujian | Pytest | Pengujian otomatis |
-
-### Pengembangan Arsitektur AI
-
-Komponen berikut merupakan bagian dari roadmap dan tidak seluruhnya tersedia pada checkpoint awal:
-
-- **SentenceTransformers:** menghasilkan embedding deskripsi transaksi.
-- **FAISS:** melakukan pencarian kemiripan terhadap referensi transaksi.
-- **Retrieval-Augmented Generation:** menyediakan konteks tambahan untuk klasifikasi dan tanya jawab.
-- **Prophet:** melakukan forecasting pengeluaran.
-- **AI Financial Chat Assistant:** menyediakan interaksi percakapan untuk pencatatan dan analisis keuangan.
+| Database | Supabase PostgreSQL | Penyimpanan, RLS, dan RPC mutasi atomik |
+| Autentikasi | Supabase Auth | Manajemen sesi dan identitas pengguna |
+| Model bahasa | Llama 3 8B | Pemrosesan bahasa alami dan penalaran klasifikasi |
+| Inferensi lokal | Ollama | Server inferensi model bahasa lokal |
+| Vector Engine | FAISS & SentenceTransformers | Embedding semantik dan pengambilan referensi (RAG) |
+| Peramalan Kas | Prophet | Time-series forecasting pengeluaran kas usaha |
+| Pengolahan data | Pandas, NumPy | Transformasi data dan agregasi keuangan |
+| Visualisasi | Plotly | Grafik dan diagram interaktif laporan |
+| Ekspor Laporan | OpenPyXL | Pembuatan laporan spreadsheet Excel |
+| Pengujian | Pytest | Rangkaian pengujian unit dan integrasi otomatis |
 
 ---
 
@@ -205,21 +187,49 @@ AI-Powered-Financial-Flow/
 ├── .streamlit/
 │   └── config.toml
 ├── ai/
+│   ├── category_discovery.py
 │   ├── category_suggester.py
 │   ├── classifier.py
+│   ├── copilot_knowledge.py
+│   ├── copilot_planner.py
+│   ├── copilot_schema.py
+│   ├── copilot_tools.py
 │   ├── csv_cluster.py
+│   ├── embedding_pipeline.py
+│   ├── financial_chat.py
+│   ├── hybrid_classifier.py
 │   ├── ollama_client.py
+│   ├── rag_engine.py
+│   ├── store_context.py
 │   └── text_normalizer.py
 ├── config/
 │   └── settings.py
 ├── data/
 │   └── samples/
+│       ├── bakery.csv
+│       ├── bengkel_motor.csv
+│       ├── grosir.csv
+│       └── warung_makan.csv
 ├── database/
 │   ├── client.py
-│   └── migrations/
+│   ├── migrations/
+│   │   ├── 001_initial.sql
+│   │   ├── 002_bootstrap_superadmin.sql
+│   │   ├── 003_stage2_finance.sql
+│   │   ├── 004_fix_cashier_provisioning.sql
+│   │   ├── 005_ai_forecast.sql
+│   │   ├── 006_transaction_deletion_requests.sql
+│   │   ├── 007_import_idempotency.sql
+│   │   ├── 008_chat_proposal_idempotency.sql
+│   │   ├── 009_audit_log.sql
+│   │   ├── 010_atomic_audit_mutations.sql
+│   │   ├── 011_nullable_kategori_for_ai_pending.sql
+│   │   └── README.md
+│   └── schema.sql
 ├── pages/
 │   ├── ai_tools.py
 │   ├── cashier.py
+│   ├── chat_view.py
 │   ├── finance.py
 │   ├── import_view.py
 │   ├── login.py
@@ -227,186 +237,296 @@ AI-Powered-Financial-Flow/
 │   ├── report_view.py
 │   └── superadmin.py
 ├── repositories/
+│   ├── deletion_repository.py
 │   ├── finance_repository.py
 │   └── profile_repository.py
+├── scripts/
+│   ├── build_dist_zip.py
+│   ├── build_dist_zip.sh
+│   └── measure_accuracy_and_mape.py
 ├── services/
 │   ├── admin_service.py
 │   ├── ai_service.py
 │   ├── auth_service.py
 │   ├── cashier_service.py
+│   ├── chat_service.py
+│   ├── dataset_service.py
+│   ├── deletion_service.py
 │   ├── finance_service.py
+│   ├── forecast_service.py
 │   ├── import_service.py
-│   └── report_service.py
+│   ├── report_service.py
+│   ├── smart_import_engine.py
+│   └── validation_service.py
 ├── tests/
 ├── utils/
+│   ├── floating_agent.py
 │   └── ui_components.py
 ├── .env.example
 ├── .gitignore
 ├── app.py
-├── pytest.ini
-├── README.md
 ├── LICENSE
+├── pytest.ini
 └── requirements.txt
 ```
-
-Struktur tersebut menggambarkan organisasi proyek pada checkpoint awal. Direktori dan modul tambahan akan diperkenalkan secara bertahap sesuai pengembangan fitur.
 
 ---
 
 ## 5. Instalasi dan Konfigurasi
 
-### 5.1. Prasyarat
+Ikuti langkah-langkah di bawah ini secara berurutan untuk menyiapkan aplikasi dari awal hingga dapat dijalankan pada perangkat lokal.
 
-Pastikan perangkat telah memiliki:
+### 5.1. Prasyarat Sistem
 
-1. Python 3.11 atau versi yang kompatibel dengan dependensi proyek.
-2. Git.
-3. Ollama.
-4. Akun dan proyek Supabase.
-5. Koneksi internet untuk instalasi dependensi dan akses Supabase.
+Sebelum memulai instalasi, pastikan perangkat lokal Anda telah memenuhi prasyarat berikut:
 
-Model bahasa dijalankan secara lokal melalui Ollama, sedangkan database Supabase memerlukan koneksi ke layanan yang dikonfigurasi.
+1. **Python**: Versi `3.11.x` (direkomendasikan Python 3.11.9).
+2. **Git**: Untuk mengkloning repositori kode sumber.
+3. **Ollama**: Terpasang dan aktif di latar belakang untuk inferensi model bahasa lokal Llama 3 8B.
+4. **Akun Supabase**: Proyek aktif di [Supabase](https://supabase.com) (PostgreSQL 15+).
+5. **Koneksi Internet**: Diperlukan untuk mengunduh dependensi Python, model bahasa, dan mengakses Supabase API.
 
 ### 5.2. Clone Repository
 
+Buka terminal atau PowerShell, lalu jalankan perintah berikut untuk mengkloning repositori:
+
 ```bash
-git clone https://github.com/USERNAME/AI-Powered-Financial-Flow.git
+git clone https://github.com/iscofranafw/AI-Powered-Financial-Flow.git
 cd AI-Powered-Financial-Flow
 ```
 
-Ganti `USERNAME` dengan pemilik repository GitHub setelah repository dibuat.
+### 5.3. Buat dan Aktifkan Virtual Environment
 
-### 5.3. Buat Virtual Environment
+Gunakan virtual environment Python yang bersih untuk menghindari konflik dependensi.
 
-**Windows PowerShell**
+**Windows (PowerShell)**
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-**Linux / macOS**
+**Linux / macOS (Bash)**
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 5.4. Instal Dependensi
+### 5.4. Instal Dependensi Python
+
+Perbarui `pip` ke versi terbaru, kemudian instal seluruh paket dependensi yang terdaftar di `requirements.txt`:
 
 ```bash
-python -m pip install -r requirements.txt
+python -m pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
-### 5.5. Konfigurasi Environment
+### 5.5. Penyiapan Database Supabase
 
-Salin file `.env.example` menjadi `.env`.
+Aplikasi menggunakan skema database PostgreSQL terpadu yang telah menggabungkan seluruh tabel, indeks, prosedur RPC mutasi atomik, dan kebijakan keamanan tingkat baris (RLS).
 
-**Windows PowerShell**
+1. Masuk ke [Supabase Dashboard](https://supabase.com/dashboard) dan buat proyek baru (*New Project*). Tentukan nama proyek, sandi database, dan region terdekat.
+2. Tunggu proses pembuatan proyek selesai hingga status proyek aktif.
+3. Navigasi ke menu **SQL Editor** pada bilah sisi kiri dashboard Supabase.
+4. Buka berkas `database/schema.sql` dari repositori ini di editor teks Anda, salin seluruh isinya, dan tempelkan (*paste*) ke dalam **SQL Editor** Supabase.
+5. Klik tombol **Run** untuk mengeksekusi skema database. Skema ini dirancang untuk dijalankan **satu kali saja (*run ONCE*)** pada proyek database kosong, dan akan membuat seluruh objek database berikut secara atomik:
+   - Ekstensi `pgcrypto`.
+   - 9 tabel utama dalam urutan yang aman dari konflik dependensi (*foreign-key safe order*): `toko`, `profiles`, `kategori`, `transaksi`, `cashier_provisioning`, `rag_index_version`, `transaction_deletion_requests`, `import_transaction_identities`, dan `audit_log`.
+   - 12 indeks performa dan integritas data (termasuk indeks unik parsial untuk idempotensi chat dan penghapusan transaksi).
+   - 12 fungsi stored procedure / RPC mutasi aman bertanda `SECURITY DEFINER` (seperti `mutate_finance_audited`, `import_transactions_atomic`, dan `approve_transactions_atomic`).
+   - 3 trigger database (`on_auth_user_created`, `kategori_rag_bump`, `transaksi_rag_bump`).
+   - Kebijakan Row Level Security (RLS) pada seluruh tabel beserta hak akses khusus `service_role`.
+   - Blok bootstrap Superadmin idempoten.
+
+> [!NOTE]
+> Jika sebelumnya Anda telah menerapkan migrasi `001` hingga `011` secara berurutan pada proyek database yang ada, Anda **TIDAK PERLU** menjalankan `database/schema.sql` karena menghasilkan status akhir (*final state*) yang sama. Direktori `database/migrations/` tetap dipertahankan dalam repositori sebagai catatan riwayat evolusi skema database.
+
+### 5.6. Konfigurasi Environment Variables (`.env`)
+
+Salin file template `.env.example` menjadi file `.env` di direktori utama repositori:
+
+**Windows (PowerShell)**
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-**Linux / macOS**
+**Linux / macOS (Bash)**
 
 ```bash
 cp .env.example .env
 ```
 
-Lengkapi variabel yang diperlukan sesuai `config/settings.py` dan template `.env.example`.
+Buka file `.env` menggunakan editor teks, lalu isi variabel konfigurasi sesuai kredensial proyek Supabase Anda:
 
-Contoh konfigurasi:
+```ini
+# ==============================================================================
+# AI-POWERED FINANCIAL FLOW - ENVIRONMENT CONFIGURATION
+# ==============================================================================
 
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# Kredensial Supabase (Dapatkan dari Project Settings -> API)
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy_anon_public_key
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy_service_role_key
+
+# Konfigurasi Layanan Inferensi Ollama Lokal
 OLLAMA_HOST=http://127.0.0.1:11434
 OLLAMA_MODEL=llama3:8b
+
+# Model Embedding Semantik (Opsional, otomatis fallback ke MiniLM jika kosong)
+EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 ```
 
-Nama variabel harus disesuaikan dengan konfigurasi yang benar-benar dibaca oleh aplikasi.
+**Penjelasan Variabel Lingkungan:**
 
-**Penting:**
+| Nama Variabel | Status | Keterangan |
+|---|:---:|---|
+| `SUPABASE_URL` | **Wajib** | URL endpoint REST API proyek Supabase Anda (ditemukan di menu *Project Settings* &rarr; *API* &rarr; *Project URL*). |
+| `SUPABASE_ANON_KEY` | **Wajib** | Kunci API publik anonim untuk otentikasi sesi klien (*Project Settings* &rarr; *API* &rarr; *Project API keys* &rarr; `anon / public`). |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Wajib** | Kunci API rahasia `service_role` untuk eksekusi mutasi atomik berhak khusus di lapisan backend server (*Project Settings* &rarr; *API* &rarr; *Project API keys* &rarr; `service_role`). |
+| `OLLAMA_HOST` | Opsional | Alamat URL layanan Ollama lokal (nilai default: `http://127.0.0.1:11434`). |
+| `OLLAMA_MODEL` | Opsional | Nama model bahasa yang dijalankan melalui Ollama (nilai default: `llama3:8b`). |
+| `EMBEDDING_MODEL` | Opsional | Nama model sentence-transformers untuk kalkulasi embedding RAG (nilai default: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`). |
 
-- Jangan membagikan `.env`.
-- Jangan memasukkan kredensial asli ke repository.
-- Jangan menggunakan service role key pada kode yang berjalan di browser.
-- Jangan menggunakan kredensial produksi untuk pengujian yang berpotensi mengubah data.
+> [!CAUTION]
+> Jangan pernah membagikan file `.env` atau menyertakan `SUPABASE_SERVICE_ROLE_KEY` ke repository publik. File `.env` telah tercatat di `.gitignore` dan wajib dijaga kerahasiaannya.
 
-### 5.6. Siapkan Ollama
+### 5.7. Menyiapkan Layanan AI Lokal (Ollama)
 
-Unduh model:
+1. Pastikan Ollama telah terpasang pada komputer Anda. Jika belum, unduh melalui [ollama.com](https://ollama.com).
+2. Jalankan perintah berikut di terminal untuk mengunduh model **Llama 3 8B**:
 
 ```bash
 ollama pull llama3:8b
 ```
 
-Pastikan layanan Ollama berjalan sebelum menggunakan fitur AI.
+3. Verifikasi bahwa model telah terpasang dan layanan Ollama aktif merespons:
 
-### 5.7. Siapkan Database Supabase
-
-Buka **SQL Editor** pada dashboard Supabase.
-
-Periksa dan jalankan migrasi yang diperlukan dari direktori:
-
-```text
-database/migrations/
+```bash
+curl -s http://127.0.0.1:11434/api/tags
 ```
 
-Jalankan sesuai urutan dependensi dan petunjuk pada masing-masing migrasi.
+Pastikan tag `llama3:8b` tercantum pada daftar model yang dikembalikan.
 
-Gunakan proyek Supabase khusus pengembangan saat menyiapkan aplikasi untuk pertama kali. Periksa dampak setiap migrasi sebelum mengeksekusinya.
+### 5.8. Menjalankan Aplikasi
 
-### 5.8. Jalankan Aplikasi
+Jalankan server aplikasi Streamlit melalui terminal pada direktori root repositori:
 
 ```bash
 streamlit run app.py
 ```
 
-Secara default, aplikasi Streamlit dapat diakses melalui:
+Setelah server berhasil diinisialisasi, buka browser web Anda dan navigasikan ke alamat:
 
 ```text
 http://localhost:8501
 ```
 
+### 5.9. Alur Login Pertama dan Pengaturan Tiga Peran Pengguna
+
+Sistem menerapkan kontrol akses berbasis tiga peran pengguna dengan alur penyiapan awal sebagai berikut:
+
+#### 1. Mendaftarkan Akun Pemilik Toko (Owner)
+- Buka antarmuka aplikasi di browser pada halaman **Login**.
+- Pilih tab **Daftar Akun Baru**.
+- Isi data lengkap: Nama Pengguna, Email, Kata Sandi, Nama Toko, dan Bidang Usaha (pilih salah satu: *Bakery*, *Grosir*, *Bengkel Motor*, atau *Warung Makan*).
+- Klik tombol **Daftar**. Akun pemilik toko baru akan otomatis dibuat dengan status awal `pending` (menunggu persetujuan Superadmin sebelum dapat mengelola transaksi toko).
+
+#### 2. Aktivasi Akun Superadmin
+- Untuk mengaktifkan akun Superadmin pertama kali pada database baru:
+  1. Daftarkan sebuah akun melalui form pendaftaran aplikasi dengan alamat email yang ingin Anda gunakan sebagai admin utama.
+  2. Buka menu **SQL Editor** pada dashboard Supabase.
+  3. Jalankan blok kode SQL berikut dengan mengganti `'REPLACE_WITH_YOUR_ADMIN_EMAIL'` menggunakan alamat email akun yang baru saja Anda daftarkan:
+
+```sql
+DO $$
+DECLARE
+    v_id uuid;
+    v_shop uuid;
+BEGIN
+    SELECT id, toko_id INTO v_id, v_shop
+    FROM public.profiles
+    WHERE email = 'REPLACE_WITH_YOUR_ADMIN_EMAIL' AND role = 'pemilik_toko';
+
+    IF v_id IS NOT NULL THEN
+        UPDATE public.profiles
+        SET role = 'superadmin', toko_id = NULL, status = 'aktif'
+        WHERE id = v_id;
+
+        IF v_shop IS NOT NULL THEN
+            DELETE FROM public.toko WHERE id = v_shop;
+        END IF;
+
+        UPDATE auth.users
+        SET email_confirmed_at = coalesce(email_confirmed_at, now())
+        WHERE id = v_id;
+    ELSE
+        RAISE NOTICE 'Superadmin candidate not found — pastikan akun sudah terdaftar terlebih dahulu.';
+    END IF;
+END $$;
+```
+
+  4. Setelah skrip berhasil dieksekusi, kembali ke aplikasi dan login menggunakan email tersebut. Anda akan langsung masuk ke halaman navigasi **Superadmin**.
+  5. Pada halaman Superadmin, Anda dapat melihat daftar pemilik toko yang berstatus `pending` dan mengklik tombol **Setujui** untuk mengaktifkan toko.
+
+#### 3. Mendaftarkan Akun Kasir (Cashier)
+- Akun kasir **tidak dapat mendaftar mandiri** secara bebas guna mencegah pencatatan transaksi liar.
+- Pemilik Toko yang akunnya telah aktif membuka menu **Manajemen Kasir** di sidebar, lalu membuat tiket pendaftaran kasir (menentukan nama dan email kasir).
+- Kasir mendaftar menggunakan token tiket tersebut pada formulir pendaftaran kasir, sehingga akun kasir otomatis terhubung dengan toko yang sah dengan status langsung `aktif`.
+
+### 5.10. Pemanfaatan Data Sampel (*Sample Datasets*)
+
+Untuk mencoba fitur analisis arus kas, peramalan Prophet, dan klasifikasi AI tanpa harus mencatat transaksi manual satu per satu, repositori telah menyertakan dataset sintetis siap pakai di direktori `data/samples/`:
+
+- `data/samples/bakery.csv`: Dataset transaksi toko roti dan kue (pembelian bahan tepung, telur, mentega, penjualan harian, modal awal).
+- `data/samples/bengkel_motor.csv`: Dataset transaksi bengkel motor (suku cadang, oli mesin, jasa servis, peralatan montir).
+- `data/samples/grosir.csv`: Dataset transaksi toko grosir dan sembako (kulakan barang dagangan, operasional logistik, penerimaan tunai).
+- `data/samples/warung_makan.csv`: Dataset transaksi usaha kuliner / warung makan (belanja pasar, bumbu, gas LPG, pendapatan harian).
+
+**Cara Mengimpor Data Sampel:**
+1. Login sebagai **Pemilik Toko** yang telah berstatus aktif.
+2. Pilih menu **Impor Transaksi CSV** pada bilah sisi kiri.
+3. Unggah salah satu file contoh dari direktori `data/samples/`.
+4. Sistem akan menampilkan pratinjau data, memverifikasi kesesuaian kolom, mendeteksi anomali tanggal, dan menjalankan pencocokan kategori.
+5. Klik **Simpan Transaksi** untuk memasukkan data secara massal ke dalam database.
+
 ---
 
 ## 6. Pengujian
 
-Proyek menggunakan **Pytest** untuk membantu memverifikasi logika bisnis, validasi transaksi, autentikasi, pengaturan hak akses, dan pemrosesan AI.
+Proyek dilengkapi rangkaian pengujian otomatis menggunakan framework **Pytest** untuk memverifikasi logika bisnis, validasi transaksi, otorisasi peran, penanganan idempotensi, dan algoritma AI.
 
-Jalankan pengujian melalui terminal:
+Jalankan seluruh rangkaian pengujian dari direktori utama:
+
+```bash
+pytest tests/ -v
+```
+
+Atau menggunakan modul Python:
 
 ```bash
 python -m pytest -v
 ```
 
-Pengujian yang menggunakan mock dapat dijalankan tanpa koneksi langsung ke layanan eksternal, bergantung pada konfigurasi pengujian.
-
 ### Cakupan Pengujian
 
-Modul pengujian yang tersedia mencakup:
+Modul pengujian yang tersedia di direktori `tests/` mencakup:
 
-- Administrasi pengguna.
-- Autentikasi.
-- Validasi transaksi.
-- Aturan klasifikasi AI.
-- Layanan AI.
-- Hak akses kasir.
-- Pengelolaan keuangan.
-- Keamanan impor.
-- Pembuatan laporan.
-- Aturan bisnis aplikasi.
+- `test_auth.py`: Autentikasi Supabase dan manajemen sesi pengguna.
+- `test_cashier.py` & `test_cashier_and_admin.py`: Hak akses kasir, tiket pendaftaran kasir, dan persetujuan pemilik.
+- `test_finance_service.py` & `test_stage2_rules.py`: Logika pencatatan transaksi, penyaringan tanggal, dan pemisahan modal.
+- `test_import_security.py` & `test_smart_import.py`: Validasi struktur CSV, batas baris, sanitasi payload, dan idempotensi impor.
+- `test_ai_rules.py`, `test_ai_service.py`, & `test_classification.py`: Ekstraksi nominal, normalisasi teks, dan pipeline Llama 3.
+- `test_rag.py`: Pembangunan index FAISS, pencarian vektor, dan penyuntikan referensi kontekstual.
+- `test_copilot_forecasting.py` & `test_copilot_validation.py`: Engine peramalan Prophet dan validasi input narasi keuangan.
+- `test_deletion_approval.py`: Alur pengajuan persetujuan penghapusan transaksi toko oleh superadmin.
+- `test_audit_remediation.py`: Verifikasi jejak audit atomik dan proteksi konkurensi.
+- `test_floating_agent.py` & `test_chat_assistant.py`: Interaksi agen asisten keuangan AI dan eksekusi instruksi percakapan.
 
 ### Status Pengujian
 
-Jumlah pengujian yang lulus harus mengikuti hasil eksekusi Pytest pada versi source code yang sedang digunakan.
-
-Pengujian unit dengan mock tidak menggantikan pengujian integrasi langsung terhadap Supabase, Ollama, maupun kebijakan Row Level Security.
-
-Sebelum merilis versi stabil, aplikasi perlu menjalani pengujian fungsional, integrasi, regresi, dan pemeriksaan keamanan yang relevan.
+Seluruh pengujian unit dan mock dapat dieksekusi secara lokal tanpa bergantung pada koneksi internet. Untuk pengujian integrasi live yang berinteraksi langsung dengan database Supabase atau Ollama lokal, pastikan variabel `.env` dan daemon Ollama telah disiapkan sesuai instruksi pada bagian 5.
 
 ---
 
@@ -418,77 +538,86 @@ Setiap fitur diimplementasikan, diuji, diperbaiki jika diperlukan, kemudian dido
 
 | Tahap | Fokus Pengembangan | Status |
 |---|---|---|
-| Baseline | Fondasi aplikasi, autentikasi, transaksi, dashboard, integrasi AI awal | Implementasi awal tersedia; pengujian menyeluruh belum diverifikasi |
-| 1 | Dataset referensi dan preprocessing | Direncanakan |
-| 2 | SentenceTransformers dan FAISS | Direncanakan |
-| 3 | Klasifikasi Llama 3 dengan RAG | Direncanakan |
-| 4 | Deteksi kategori `Others` | Direncanakan |
-| 5 | Klasifikasi transaksi massal berbasis RAG | Direncanakan |
-| 6 | RAG untuk tanya jawab riwayat transaksi | Direncanakan |
-| 7 | AI Financial Chat Assistant | Direncanakan |
-| 8 | Forecasting pengeluaran menggunakan Prophet | Direncanakan |
-| 9 | Evaluasi performa model AI | Direncanakan |
-| 10 | Pengujian integrasi akhir dan dokumentasi | Direncanakan |
-
-Beberapa fitur dasar telah memiliki implementasi awal dan dapat dikembangkan lebih lanjut tanpa membangun ulang aplikasi.
+| Baseline | Fondasi aplikasi, autentikasi, transaksi, dashboard, integrasi AI awal | Selesai |
+| 1 | Dataset referensi dan preprocessing | Selesai |
+| 2 | SentenceTransformers dan FAISS Vector Indexing | Selesai |
+| 3 | Klasifikasi Llama 3 terintegrasi RAG | Selesai |
+| 4 | Deteksi kategori fallback dan isolasi bidang usaha | Selesai |
+| 5 | Klasifikasi transaksi massal berbasis RAG | Selesai |
+| 6 | RAG untuk tanya jawab riwayat transaksi | Selesai |
+| 7 | AI Financial Chat Assistant (Floating Agent) | Selesai |
+| 8 | Forecasting pengeluaran menggunakan Prophet | Selesai |
+| 9 | Evaluasi performa model AI dan validasi numerik | Selesai |
+| 10 | Pengujian integrasi akhir, konsolidasi skema, dan dokumentasi | Selesai |
 
 ### Target Evaluasi AI
 
-Sesuai tujuan proyek capstone, pengembangan AI diarahkan untuk memenuhi:
+Sesuai tujuan proyek capstone, performa kecerdasan buatan dievaluasi berdasarkan kriteria kuantitatif berikut:
 
 - **Akurasi klasifikasi transaksi minimal 85%.**
-- **MAPE forecasting maksimal 20%.**
+- **MAPE forecasting pengeluaran kas maksimal 20%.**
 - Evaluasi klasifikasi dengan dan tanpa RAG.
-- Pengujian transaksi di luar referensi menggunakan kategori `Others`.
-- Pengukuran MAE dan MAPE untuk forecasting.
+- Pengujian transaksi di luar referensi menggunakan kategori fallback.
+- Pengukuran metrik MAE dan MAPE untuk forecasting deret waktu Prophet.
 
-Target tersebut merupakan kriteria evaluasi dan belum dinyatakan tercapai sampai tersedia hasil pengujian yang dapat direproduksi.
+### Fitur AI Financial Chat Assistant
 
-### Rencana AI Financial Chat Assistant
+Fitur percakapan asisten keuangan cerdas memungkinkan pengguna:
 
-Fitur percakapan direncanakan untuk memungkinkan pengguna:
-
-- Mencatat pemasukan melalui bahasa alami.
-- Mencatat pengeluaran melalui bahasa alami.
+- Mencatat pemasukan melalui bahasa alami secara interaktif.
+- Mencatat pengeluaran melalui bahasa alami secara interaktif.
 - Mengirim beberapa transaksi dalam satu percakapan.
-- Memeriksa dan mengonfirmasi transaksi sebelum disimpan.
-- Menanyakan ringkasan arus kas.
-- Menelusuri riwayat transaksi.
-- Meminta penjelasan kondisi keuangan berdasarkan data toko.
+- Memeriksa dan mengonfirmasi transaksi sebelum disimpan ke database.
+- Menanyakan ringkasan arus kas toko.
+- Menelusuri riwayat transaksi berdasarkan periode atau kategori.
+- Meminta penjelasan kondisi keuangan berdasarkan data riil toko.
 
-Fitur chat akan menggunakan layanan transaksi dan aturan hak akses yang sama dengan antarmuka aplikasi lainnya.
+Fitur chat beroperasi di bawah aturan hak akses dan lapisan validasi yang sama dengan antarmuka aplikasi utama.
 
 ---
 
 ## 8. Keamanan dan Privasi
 
-Pengembangan aplikasi memperhatikan beberapa aspek keamanan:
+Pengembangan aplikasi menerapkan prinsip pertahanan berlapis (*defense-in-depth*):
 
 **Environment Variables**
-
-Kredensial disimpan melalui konfigurasi lingkungan dan tidak boleh dimasukkan ke source code atau repository publik.
+Kredensial disimpan melalui konfigurasi lingkungan (`.env`) dan tidak boleh dimasukkan ke source code atau repository publik.
 
 **Role-Based Access Control**
+Akses pengguna dibatasi secara ketat berdasarkan peran Superadmin, Pemilik Toko, dan Kasir.
 
-Akses pengguna dibatasi berdasarkan peran superadmin, pemilik toko, dan kasir.
-
-**Row Level Security**
-
-Supabase PostgreSQL mendukung penerapan RLS untuk membatasi akses data berdasarkan konteks pengguna dan toko.
-
-Efektivitas aturan RLS harus dibuktikan melalui pengujian terhadap database yang dikonfigurasi.
+**Row Level Security (RLS)**
+Supabase PostgreSQL menerapkan aturan RLS pada seluruh tabel untuk memastikan data antartoko terisolasi secara aman. Operasi mutasi kritis dijalankan melalui RPC atomik dengan hak akses terkelola.
 
 **Local AI Inference**
+Pemrosesan model bahasa Llama 3 dilakukan secara lokal melalui daemon Ollama pada mesin pengguna, menjaga kerahasiaan deskripsi transaksi bisnis tanpa mengirim teks percakapan ke API pihak ketiga eksternal.
 
-Pemrosesan model Llama 3 dilakukan melalui Ollama lokal. Penyimpanan transaksi tetap menggunakan Supabase, sehingga keamanan data juga bergantung pada konfigurasi database, koneksi jaringan, dan kebijakan akses.
+**Validasi Data dan Jejak Audit**
+Seluruh input transaksi divalidasi sebelum disimpan. Perubahan transaksi penting dicatat dalam buku besar audit terenkapsulasi (`audit_log`).
 
-**Transaction Validation**
+**Distribusi Arsip & Sanitasi Data (Packaging Instructions)**
 
-Input dan output model AI perlu divalidasi sebelum digunakan untuk membuat atau mengubah transaksi.
+Untuk mencegah kebocoran data sensitif saat mendistribusikan aplikasi atau mengemas arsip proyek (misalnya format `.zip`), pastikan aset berikut **wajib dikecualikan**:
+1. **Index Vektor Lokal (`vector_store/`):** Seluruh file `.faiss` dan metadata `_meta.json` berisi embedding teks transaksi nyata toko. File ini diabaikan oleh `.gitignore` dan akan dibuat ulang secara otomatis saat aplikasi dijalankan di lingkungan baru.
+2. **Data Transaksi Riil (`data/Daftar_Transaksi_*.csv`):** File transaksi riil pengguna tidak boleh disertakan dalam paket distribusi. Folder `data/samples/` (seperti `bakery.csv`, `bengkel_motor.csv`, dll.) tetap dipertahankan karena merupakan dataset sintetis untuk keperluan pengujian dan demonstrasi.
+3. **Kredensial dan Secrets:** File konfigurasi `.env`, `.env.*`, dan `.streamlit/secrets.toml`.
 
-**Human Confirmation**
+Perintah pembuatan arsip distribusi yang aman:
 
-Untuk pengembangan fitur chat, tindakan penyimpanan, perubahan, dan penghapusan transaksi direncanakan memerlukan konfirmasi pengguna.
+```bash
+# Menggunakan skrip packaging otomatis (direkomendasikan, cross-platform):
+python scripts/build_dist_zip.py financial-flow-dist.zip
+
+# Atau menggunakan zip (Linux / macOS / Git Bash):
+zip -r financial-flow-dist.zip . -x "vector_store/*" "data/Daftar_Transaksi_*.csv" ".env*" ".git/*" "__pycache__/*" ".pytest_cache/*"
+
+# Atau menggunakan PowerShell (Windows):
+$excludePatterns = @('[\\/]vector_store', 'Daftar_Transaksi_.*\.csv$', '^\.env', '[\\/]\.git', '[\\/]__pycache__', '[\\/]\.pytest_cache')
+Get-ChildItem -Path . -Recurse | Where-Object {
+    $item = $_
+    -not ($excludePatterns | Where-Object { $item.FullName -match $_ -or $item.Name -match $_ })
+} | Compress-Archive -DestinationPath financial-flow-dist.zip
+```
 
 ---
 
@@ -499,10 +628,10 @@ Kontribusi terhadap pengembangan proyek terbuka untuk komunitas.
 Alur kontribusi yang disarankan:
 
 1. Fork repository.
-2. Buat branch untuk fitur atau perbaikan.
-3. Implementasikan perubahan.
-4. Jalankan pengujian yang relevan.
-5. Buat commit dengan pesan yang jelas.
+2. Buat branch untuk fitur atau perbaikan (`git checkout -b feature/nama-fitur`).
+3. Implementasikan perubahan kode.
+4. Jalankan pengujian otomatis (`pytest tests/ -v`).
+5. Buat commit dengan pesan yang jelas dan deskriptif.
 6. Ajukan Pull Request disertai penjelasan perubahan.
 
 Kontribusi diharapkan menjaga kompatibilitas dengan arsitektur proyek dan tidak menyertakan kredensial, data transaksi pribadi, atau informasi sensitif lainnya.
@@ -515,9 +644,7 @@ Proyek **AI-Powered Financial Recording & Cash Flow Assistant** didistribusikan 
 
 Kode sumber dapat digunakan, disalin, dimodifikasi, digabungkan, dipublikasikan, dan didistribusikan, termasuk untuk penggunaan komersial, sesuai ketentuan lisensi MIT.
 
-Penggunaan ulang wajib mempertahankan pemberitahuan hak cipta dan teks lisensi sebagaimana ditentukan dalam MIT License.
-
-Lihat file [LICENSE](LICENSE) untuk ketentuan lengkap.
+Lihat file [LICENSE](LICENSE) untuk ketentuan lisensi lengkap.
 
 ---
 
@@ -525,6 +652,17 @@ Lihat file [LICENSE](LICENSE) untuk ketentuan lengkap.
 
 Repository ini merupakan bagian dari pengembangan proyek capstone **Dicoding Bootcamp — DB15-I023**.
 
-Dokumentasi dan implementasi akan diperbarui secara bertahap mengikuti perkembangan fitur, hasil pengujian, dan evaluasi model.
+Dokumentasi dan implementasi diperbarui mengikuti standar kurikulum Dicoding, hasil pengujian integrasi, dan evaluasi performa model AI. Proyek dikembangkan sebagai perangkat lunak open-source yang dapat dipelajari, digunakan, dan dikembangkan lebih lanjut oleh komunitas UMKM Indonesia.
 
-Proyek dikembangkan sebagai perangkat lunak open-source yang dapat dipelajari, digunakan, dan dikembangkan lebih lanjut oleh komunitas.
+---
+
+## 12. Sumber & Sitasi
+
+- Model embedding: `paraphrase-multilingual-MiniLM-L12-v2` (SentenceTransformers) — https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+- Vector database: FAISS (Meta AI Research) — https://github.com/facebookresearch/faiss
+- Peramalan: Prophet (Meta) — https://github.com/meta/prophet
+- Model bahasa: Llama 3 8B (Meta), dijalankan secara lokal melalui Ollama — https://ollama.com dan https://llama.meta.com/llama3/
+- Pustaka embedding: SentenceTransformers — https://www.sbert.net
+- Database: Supabase (PostgreSQL) — https://supabase.com
+- Antarmuka: Streamlit — https://streamlit.io
+- Dataset: data contoh di `data/samples/` (bakery, grosir, bengkel motor, warung makan) bersifat sintetis dan dibuat untuk proyek ini, karena data transaksi asli toko tidak tersedia.

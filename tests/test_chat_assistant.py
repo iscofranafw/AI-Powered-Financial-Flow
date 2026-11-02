@@ -98,6 +98,13 @@ def test_resolve_date_indonesian():
     assert resolve_date_indonesian('Beli minyak 15 okt', base_dt=base) == date(2026, 10, 15)
     assert resolve_date_indonesian('Beli gas 2026-10-12', base_dt=base) == date(2026, 10, 12)
 
+    # Clamp impossible dates (e.g. 31 February) to the month's last day
+    base_m1 = datetime(2026, 11, 2, 10, 0, 0)
+    assert resolve_date_indonesian("beli tepung tanggal 31 Februari", base_dt=base_m1) == date(2026, 2, 28)
+    assert resolve_date_indonesian("pengeluaran tanggal 31", base_dt=base_m1) == date(2026, 11, 30)
+    assert resolve_date_indonesian("tanggal 15 Januari 2026", base_dt=base_m1) == date(2026, 1, 15)
+    assert resolve_date_indonesian("2026-02-28", base_dt=base_m1) == date(2026, 2, 28)
+
 
 def test_resolve_date_range_indonesian():
     base = datetime(2026, 10, 31, 10, 0, 0)
@@ -113,6 +120,9 @@ def test_resolve_date_range_indonesian():
 
     start_w, end_w, label_w = resolve_date_range_indonesian('Berapa pengeluaran minggu ini?', base_dt=base)
     assert start_w <= date(2026, 10, 31)
+
+    start_imp, end_imp, _ = resolve_date_range_indonesian("pengeluaran tanggal 30 sampai 31 Februari", base_dt=datetime(2026, 11, 2))
+    assert (start_imp, end_imp) == (date(2026, 2, 28), date(2026, 2, 28))
 
 
 def test_clean_transaction_description():
@@ -417,11 +427,11 @@ def test_query_transactions_filtering_and_empty():
         assert 'Tidak ditemukan transaksi' in resp_empty['message']
 
 
-def test_live_ollama_integration_if_available(ollama_env):
+def test_live_ollama_integration_if_available():
     from ai.ollama_client import diagnosis
     diag = diagnosis()
     if not diag.get('ok'):
-        pytest.skip(f"Ollama or required model is not available in environment: {diag.get('message')}")
+        pytest.skip('Ollama or required model is not available in environment')
 
     fake_owner = {'id': 'o1', 'role': 'pemilik_toko', 'toko_id': 'shop1'}
     fake_rows = [
@@ -614,8 +624,8 @@ def test_forecast_and_feature_explanation_queries():
         resp_cat_guide = chat_service.handle_chat_message('owner_tok', 'Bagaimana cara menambah kategori baru?')
         assert resp_cat_guide['intent'] == Intent.EXPLAIN_APP_FEATURE
         assert 'Kategori Pembukuan' in resp_cat_guide['message']
-        assert '5 kategori pemasukan' in resp_cat_guide['message']
-        assert '10 kategori pengeluaran' in resp_cat_guide['message']
+        assert '7 kategori pemasukan' in resp_cat_guide['message']
+        assert '7 kategori pengeluaran' in resp_cat_guide['message']
 
 
 def test_ten_mandatory_questions_end_to_end():
@@ -750,24 +760,11 @@ def test_paraphrases_typos_and_unsupported_requests():
 
 
 def test_live_supabase_and_ollama_real_integration_if_available():
-    import os
-    from dotenv import load_dotenv
-    load_dotenv()
-
-    # Skip explicitly when required Supabase environment configuration is unavailable
-    required_keys = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY']
-    missing_keys = [key for key in required_keys if not os.getenv(key)]
-    if missing_keys:
-        pytest.skip(f"Live Supabase integration skipped: missing environment variables ({', '.join(missing_keys)})")
-
     from database.client import privileged_client
     from ai.ollama_client import diagnosis, ask_text
 
     # 1. Live Supabase verification
-    try:
-        client = privileged_client()
-    except RuntimeError as exc:
-        pytest.skip(f"Live Supabase integration skipped: {exc}")
+    client = privileged_client()
     res = client.table('toko').select('id,nama,bidang_usaha').limit(1).execute()
     assert res.data is not None and len(res.data) > 0, "Live Supabase query failed or returned no shops"
     live_shop = res.data[0]

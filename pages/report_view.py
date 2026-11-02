@@ -2,16 +2,19 @@ import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
 from services import report_service as report
+from services import forecast_service as forecast_svc
 from services.finance_service import list_categories
-from utils.ui_components import page_header, section_header, format_rupiah
+from services.validation_service import get_jakarta_today
+from utils.ui_components import page_header, section_header, format_rupiah, render_recurring_expense_reminders
 
 
 def render(token):
     page_header('Ringkasan Keuangan & Arus Kas', 'Analisis performa keuangan operasional toko dengan pemisahan setoran modal.')
 
+    today_wib = get_jakarta_today()
     col_date1, col_date2 = st.columns(2)
-    d1 = col_date1.date_input('Periode Mulai', date.today() - timedelta(days=90), key='report_start')
-    d2 = col_date2.date_input('Periode Akhir', date.today(), key='report_end')
+    d1 = col_date1.date_input('Periode Mulai', today_wib - timedelta(days=90), key='report_start')
+    d2 = col_date2.date_input('Periode Akhir', today_wib, key='report_end')
     if d1 > d2:
         st.error('Tanggal akhir harus setelah tanggal mulai.')
         return
@@ -76,6 +79,49 @@ def render(token):
                     margin=dict(l=20, r=20, t=40, b=20)
                 )
                 col_chart2.plotly_chart(fig_pie, use_container_width=True)
+
+        st.divider()
+        section_header('Peramalan Pengeluaran & Tagihan Rutin (Prophet)', 'Proyeksi beban pengeluaran deret waktu dan deteksi otomatis jadwal tagihan berkala.')
+        try:
+            rec_data = forecast_svc.detect_recurring_expenses(token)
+            if rec_data.get('upcoming_3_days_items'):
+                render_recurring_expense_reminders(rec_data)
+
+            readiness = forecast_svc.get_forecast_readiness_status(token)
+            if not readiness['ready']:
+                st.info(f"ℹ️ **Status Peramalan:** {readiness['message']}")
+            else:
+                fcst = forecast_svc.train_and_forecast_expenses(token, days_ahead=30)
+                if fcst.get('success'):
+                    col_f1, col_f2, col_f3 = st.columns(3)
+                    col_f1.metric('Estimasi Pengeluaran 30 Hari', format_rupiah(fcst['total_predicted_expense']))
+                    col_f2.metric('Rentang Estimasi (80% CI)', f"{format_rupiah(fcst['total_predicted_lower'])} - {format_rupiah(fcst['total_predicted_upper'])}")
+                    col_f3.metric('Rata-rata Harian Proyeksi', format_rupiah(fcst['average_daily_predicted']))
+
+                    if fcst.get('projections'):
+                        import plotly.express as px
+                        df_proj = pd.DataFrame(fcst['projections'])
+                        fig_line = px.line(
+                            df_proj, x='ds', y='yhat',
+                            title='Proyeksi Pengeluaran Harian 30 Hari ke Depan (Prophet)',
+                            labels={'ds': 'Tanggal', 'yhat': 'Estimasi Pengeluaran (Rp)'}
+                        )
+                        fig_line.update_layout(
+                            font_family='Inter, sans-serif',
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            margin=dict(l=20, r=20, t=40, b=20)
+                        )
+                        st.plotly_chart(fig_line, use_container_width=True)
+
+                    eval_res = forecast_svc.evaluate_forecast_accuracy(token)
+                    if eval_res.get('success') and eval_res.get('ready'):
+                        with st.expander("Metrik Evaluasi Akurasi Model Prophet (Backtest)"):
+                            st.markdown(eval_res.get('message', ''))
+                else:
+                    st.info(fcst.get('message', 'Tidak ada proyeksi peramalan yang tersedia saat ini.'))
+        except Exception as exc:
+            st.error(f"Gagal memuat modul peramalan Prophet: {exc}")
 
         st.divider()
         section_header('Ringkasan Eksekutif Keuangan', 'Analisis naratif kualitatif otomatis berdasarkan kalkulasi matematis arus kas.')

@@ -10,6 +10,13 @@ except ImportError:
 
 from ai.text_normalizer import extract_money, clean_text_for_storage
 from ai.classifier import classify, detect_type
+import calendar
+
+
+def _safe_date(year, month, day):
+    """Clamp day to the last valid day of the month (31 Feb -> 28/29 Feb)."""
+    last_day = calendar.monthrange(year, month)[1]
+    return date(year, month, min(day, last_day))
 
 
 MONTH_MAP = {
@@ -48,6 +55,7 @@ class Intent:
     QUERY_STORE_PROFILE = 'QUERY_STORE_PROFILE'
     EXPLAIN_APP_FEATURE = 'EXPLAIN_APP_FEATURE'
     UNSUPPORTED_MUTATION = 'UNSUPPORTED_MUTATION'
+    CLARIFICATION_NEEDED = 'CLARIFICATION_NEEDED'
     GENERAL_HELP = 'GENERAL_HELP'
     UNKNOWN = 'UNKNOWN'
     # Retained for legacy backward-compatibility
@@ -59,6 +67,7 @@ def get_jakarta_now():
         try:
             return datetime.now(ZoneInfo('Asia/Jakarta'))
         except Exception:
+            # Safe fallback: if IANA tzdata is missing for Asia/Jakarta, use fixed UTC+7 timezone
             pass
     from datetime import timezone
     return datetime.now(timezone(timedelta(hours=7)))
@@ -67,7 +76,12 @@ def get_jakarta_now():
 def has_date_specifier(text):
     s = text.lower()
     return (
-        any(w in s for w in ['hari ini', 'hr ini', 'kemarin', 'kemaren', 'kmrn', 'lusa', 'minggu ini', 'mggu ini', 'minggu lalu', 'minggu kemarin', 'bulan ini', 'bln ini', 'bulan lalu', 'bulan kemarin', 'tahun ini', 'tahun lalu', 'tahun kemarin'])
+        any(w in s for w in [
+            'hari ini', 'hr ini', 'kemarin', 'kemaren', 'kmrn', 'lusa', 'besok', 'esok',
+            'minggu ini', 'mggu ini', 'minggu lalu', 'minggu kemarin', 'minggu depan', 'mggu depan',
+            'bulan ini', 'bln ini', 'bulan lalu', 'bulan kemarin', 'bulan depan', 'bln depan',
+            'tahun ini', 'tahun lalu', 'tahun kemarin', 'hari ke depan', 'seminggu ke depan'
+        ])
         or bool(re.search(r'\b(?:tanggal|tgl)\b', s))
         or bool(re.search(r'\b\d{4}-\d{2}-\d{2}\b', s))
         or bool(re.search(r'\b\d{1,2}[/-]\d{1,2}(?:[/-]\d{2,4})?\b', s))
@@ -85,6 +99,8 @@ def resolve_date_indonesian(text, base_dt=None):
         return (base - timedelta(days=1)).date()
     if 'lusa' in s:
         return (base + timedelta(days=2)).date()
+    if 'besok' in s or 'esok' in s:
+        return (base + timedelta(days=1)).date()
     if 'hari ini' in s:
         return base.date()
 
@@ -98,20 +114,20 @@ def resolve_date_indonesian(text, base_dt=None):
         day = int(m_full.group(1))
         month = MONTH_MAP[m_full.group(2)]
         year = int(m_full.group(3)) if m_full.group(3) else base.year
-        return date(year, month, day)
+        return _safe_date(year, month, day)
 
     m_iso = re.search(r'\b(\d{4})-(\d{2})-(\d{2})\b', s)
     if m_iso:
-        return date(int(m_iso.group(1)), int(m_iso.group(2)), int(m_iso.group(3)))
+        return _safe_date(int(m_iso.group(1)), int(m_iso.group(2)), int(m_iso.group(3)))
 
     m_slash = re.search(r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b', s)
     if m_slash:
-        return date(int(m_slash.group(3)), int(m_slash.group(2)), int(m_slash.group(1)))
+        return _safe_date(int(m_slash.group(3)), int(m_slash.group(2)), int(m_slash.group(1)))
 
     m_day_only = re.search(r'\b(?:tanggal|tgl)\s+(\d{1,2})\b', s)
     if m_day_only:
         day = int(m_day_only.group(1))
-        return date(base.year, base.month, day)
+        return _safe_date(base.year, base.month, day)
 
     return base.date()
 
@@ -131,9 +147,42 @@ def resolve_date_range_indonesian(text, base_dt=None):
         d2 = int(m_range.group(2))
         month = MONTH_MAP[m_range.group(3)]
         year = int(m_range.group(4)) if m_range.group(4) else today.year
-        start = date(year, month, min(d1, d2))
-        end = date(year, month, max(d1, d2))
+        start = _safe_date(year, month, min(d1, d2))
+        end = _safe_date(year, month, max(d1, d2))
         return start, end, f"{start.day} s.d. {end.day} {m_range.group(3).capitalize()} {year}"
+
+    if any(k in s for k in ['bulan depan', 'bln depan']):
+        if today.month == 12:
+            start = date(today.year + 1, 1, 1)
+            end = date(today.year + 1, 1, 31)
+        else:
+            start = date(today.year, today.month + 1, 1)
+            next_next = date(today.year, today.month + 2, 1) if today.month < 11 else date(today.year + 1, 1, 1)
+            end = next_next - timedelta(days=1)
+        return start, end, 'Bulan Depan'
+
+    if any(k in s for k in ['minggu depan', 'mggu depan']):
+        start = today + timedelta(days=7 - today.weekday())
+        end = start + timedelta(days=6)
+        return start, end, 'Minggu Depan'
+
+    m_future_days = re.search(r'\b(\d+|satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan|sepuluh|tiga puluh)\s*hari\s*ke\s*depan\b', s)
+    if m_future_days:
+        word_map = {'satu': 1, 'dua': 2, 'tiga': 3, 'empat': 4, 'lima': 5, 'enam': 6, 'tujuh': 7, 'delapan': 8, 'sembilan': 9, 'sepuluh': 10, 'tiga puluh': 30}
+        val_str = m_future_days.group(1)
+        n_days = word_map[val_str] if val_str in word_map else int(val_str)
+        start = today + timedelta(days=1)
+        end = today + timedelta(days=n_days)
+        return start, end, f'{n_days} Hari ke Depan'
+
+    if re.search(r'\b(?:seminggu|1\s*minggu|satu\s*minggu)\s*(?:ke\s*depan)?\b', s) and any(w in s for w in ['prediksi', 'peramalan', 'proyeksi', 'forecast', 'depan']):
+        start = today + timedelta(days=1)
+        end = today + timedelta(days=7)
+        return start, end, '7 Hari ke Depan'
+
+    if any(k in s for k in ['besok', 'esok']):
+        tomorrow = today + timedelta(days=1)
+        return tomorrow, tomorrow, 'Besok'
 
     if any(k in s for k in ['bulan lalu', 'bulan kemarin', 'bln lalu', 'bln kemarin']):
         first_this = date(today.year, today.month, 1)
@@ -178,6 +227,20 @@ def resolve_date_range_indonesian(text, base_dt=None):
     if re.search(r'(?<!bulan\s)(?<!minggu\s)(?<!tahun\s)(?<!bln\s)(?<!mggu\s)\b(?:kemarin|kemaren|kmrn|1 hari lalu)\b', s):
         yest = today - timedelta(days=1)
         return yest, yest, 'Kemarin'
+
+    m_single = re.search(rf'(?:tanggal|tgl)?\s*(\d{{1,2}})\s+({months_re})(?:\s+(\d{{4}}))?', s)
+    if m_single:
+        day = int(m_single.group(1))
+        month = MONTH_MAP[m_single.group(2)]
+        year = int(m_single.group(3)) if m_single.group(3) else today.year
+        d = _safe_date(year, month, day)
+        month_label = m_single.group(2).capitalize()
+        return d, d, f"{day} {month_label} {year}"
+
+    m_iso = re.search(r'\b(\d{4})-(\d{2})-(\d{2})\b', s)
+    if m_iso:
+        d = _safe_date(int(m_iso.group(1)), int(m_iso.group(2)), int(m_iso.group(3)))
+        return d, d, d.isoformat()
 
     return None, None, 'Semua Periode'
 
@@ -251,8 +314,17 @@ def get_previous_context(history):
             prev_text = msg.get('content', '')
             prev_intent = detect_chat_intent(prev_text, history=None)
             prev_metric = detect_query_metric(prev_text)
-            _, _, prev_period = resolve_date_range_indonesian(prev_text)
-            return {'intent': prev_intent, 'metric': prev_metric, 'period': prev_period}
+            p_start, p_end, prev_period = resolve_date_range_indonesian(prev_text)
+            days = (p_end - p_start).days + 1 if (p_start and p_end) else None
+            return {
+                'intent': prev_intent,
+                'metric': prev_metric,
+                'period': prev_period,
+                'start_date': p_start.isoformat() if p_start else None,
+                'end_date': p_end.isoformat() if p_end else None,
+                'days_ahead': days,
+                'raw_text': prev_text
+            }
     return {}
 
 
@@ -360,6 +432,14 @@ def detect_chat_intent(text, history=None, is_owner=True):
         if s.startswith('bagaimana dengan') and has_expense_word:
             return Intent.QUERY_EXPENSE
 
+    # 10b. Check for inventory withdrawal / stock taking ("ambil 5 bungkus indomie", "ambil mie instan", "ambil beras")
+    is_inventory_withdrawal = bool(
+        re.search(r'\b(?:ambil|mengambil|pakai|menggunakan)\s+(?:\d+\s*(?:bungkus|bks|pcs|pack|sak|kg|dus|karton|botol|kaleng|butir|lembar|buah)\s+)?(?:stok|barang|etalase|mie|indomie|beras|telur|sabun|rokok|kopi|minyak)\b', s)
+        or (s.startswith('ambil ') and not any(k in s for k in ['kasir', 'kembalian', 'uang', 'modal', 'laba']))
+    )
+    if is_inventory_withdrawal and not any(w in s for w in ['beli', 'bayar', 'jual', 'omzet', 'penjualan']):
+        return Intent.CLARIFICATION_NEEDED
+
     # 11. Transaction creation intents
     is_command = bool(re.search(r'^(?:tolong\s+|mohon\s+|bisa\s+)?(?:catat(?:lah)?|tambah(?:kan)?|masukkan|input)\b', s))
     has_money = bool(re.search(r'(?<!\w)(?:rp\.?\s*)?\d[\d.,]*\s*(?:juta|jt|ribu|rb|k|rupiah)?\b', s))
@@ -441,8 +521,16 @@ def build_transaction_proposal(text, intent, categories, toko_id=None, base_dt=N
     if not desc:
         raise ValueError('Keterangan transaksi belum jelas. Mohon sertakan untuk apa transaksi ini dilakukan.')
 
-    # Classify against store categories
-    classification = classify(tp, desc, categories, toko_id=toko_id)
+    # Classify against store categories with verified store business context
+    from ai.store_context import get_store_business_context
+    b_type = get_store_business_context(toko_id).get('bidang_usaha', 'Umum') if toko_id else 'Umum'
+    from ai.ollama_client import LLMUnavailable
+    try:
+        classification = classify(tp, desc, categories, toko_id=toko_id, business_type=b_type)
+    except LLMUnavailable as exc:
+        classification = {'kategori_id': None, 'status_kategori': 'perlu_tinjauan', 'skor': None,
+                          'usulan': {'ai_pending': True, 'ai_error': str(exc)[:300]}}
+
     cat_id = classification.get('kategori_id')
     cat_name = 'Others'
 
@@ -450,7 +538,7 @@ def build_transaction_proposal(text, intent, categories, toko_id=None, base_dt=N
         matched = next((c for c in categories if c['id'] == cat_id), None)
         if matched:
             cat_name = matched['nama']
-    else:
+    elif not (classification.get('usulan') or {}).get('ai_pending'):
         other_cat = next((c for c in categories if c['tipe'] == tp and c['nama'].casefold() == 'others'), None)
         cat_id = other_cat['id'] if other_cat else None
         cat_name = other_cat['nama'] if other_cat else 'Others'

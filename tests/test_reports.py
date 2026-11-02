@@ -26,6 +26,43 @@ def test_llm_narrative_rejects_made_up_amount():
     with patch('services.report_service.ask_json',return_value={'teks':'semua 100 juta','angka':{'pemasukan':100000000}}):
         assert 'semua 100 juta' not in narrative(data)
 
+
+def test_narrative_rejects_teks_with_digits_even_if_angka_matches():
+    """Mocked ask_json returning teks WITH digits + matching angka -> backup is returned, not the LLM text."""
+    data = {'pemasukan': 1000000.0, 'pengeluaran': 400000.0, 'arus_kas_operasional': 600000.0, 'arus_kas_total': 600000.0}
+    with patch('services.report_service.ask_json', return_value={
+        'teks': 'Pemasukan usaha mencapai 1 juta rupiah.',
+        'angka': {'pemasukan': 1000000.0, 'pengeluaran': 400000.0, 'arus_kas_operasional': 600000.0, 'arus_kas_total': 600000.0}
+    }):
+        result = narrative(data)
+        assert result.startswith('Pemasukan Rp1,000,000')
+        assert '1 juta' not in result
+
+
+def test_narrative_accepts_teks_without_digits_when_angka_matches():
+    """Mocked ask_json returning teks WITHOUT digits + matching angka -> the LLM text is returned."""
+    data = {'pemasukan': 1000000.0, 'pengeluaran': 400000.0, 'arus_kas_operasional': 600000.0, 'arus_kas_total': 600000.0}
+    expected_prose = 'Kondisi keuangan usaha terpantau sehat dan surplus.'
+    with patch('services.report_service.ask_json', return_value={
+        'teks': expected_prose,
+        'angka': {'pemasukan': 1000000.0, 'pengeluaran': 400000.0, 'arus_kas_operasional': 600000.0, 'arus_kas_total': 600000.0}
+    }):
+        result = narrative(data)
+        assert result == expected_prose
+
+
+def test_narrative_rejects_mismatched_angka():
+    """Mocked ask_json returning mismatched angka -> backup is returned."""
+    data = {'pemasukan': 1000000.0, 'pengeluaran': 400000.0, 'arus_kas_operasional': 600000.0, 'arus_kas_total': 600000.0}
+    with patch('services.report_service.ask_json', return_value={
+        'teks': 'Kondisi keuangan usaha stabil.',
+        'angka': {'pemasukan': 9999999.0, 'pengeluaran': 400000.0, 'arus_kas_operasional': 600000.0, 'arus_kas_total': 600000.0}
+    }):
+        result = narrative(data)
+        assert result.startswith('Pemasukan Rp1,000,000')
+        assert 'Kondisi keuangan usaha stabil.' not in result
+        assert 'semua 100 juta' not in narrative(data)
+
 def test_csv_has_header():
     assert export_csv([],[]).decode('utf-8-sig').startswith('tanggal,deskripsi,nominal,tipe')
 

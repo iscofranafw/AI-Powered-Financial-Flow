@@ -10,7 +10,7 @@ TOPIC_EXPLANATIONS = {
         'title': 'Kategori Pembukuan',
         'owner_guide': (
             "Fitur **Kategori Pembukuan** (Menu: *Kategori Pembukuan*):\n\n"
-            "1. **Struktur Kategori:** Toko Anda dapat memiliki maksimal **5 kategori pemasukan** dan **10 kategori pengeluaran**.\n"
+            "1. **Struktur Kategori:** Toko Anda dapat memiliki maksimal **7 kategori pemasukan** dan **7 kategori pengeluaran** (maksimal 14 kategori aktif per toko).\n"
             "2. **Jenis Kategori:**\n"
             "   - **Kustom:** Pos operasional harian yang dibuat sesuai bidang usaha toko Anda.\n"
             "   - **Sistem (Others):** Kategori sistem wajib sebagai penampung transaksi dengan tingkat keyakinan rendah atau belum terklasifikasi.\n"
@@ -163,7 +163,7 @@ def get_feature_explanation(topic, is_owner=True):
         "1. **Pencatatan Percakapan (AI Financial Chat):** Catat pemasukan dan pengeluaran secara alami dengan konfirmasi instan.\n"
         "2. **Pencatatan Cepat & AI:** Klasifikasi kategori otomatis menggunakan model lokal Llama 3 dan semantic search FAISS RAG.\n"
         "3. **Persetujuan Kasir:** Tinjauan dan verifikasi massal untuk transaksi yang dicatat staf kasir toko.\n"
-        "4. **Kategori Pembukuan:** Kelola hingga 5 kategori pemasukan dan 10 kategori pengeluaran dengan perlindungan kategori sistem `Others`.\n"
+        "4. **Kategori Pembukuan:** Kelola hingga 7 kategori pemasukan dan 7 kategori pengeluaran dengan perlindungan kategori sistem `Others`.\n"
         "5. **Ringkasan Bisnis & Laporan:** Pantau omzet, arus kas operasional, dan grafik keuangan serta ekspor ke Excel/CSV.\n"
         "6. **Impor CSV:** Masukkan rekap transaksi perbankan atau pembukuan lampau dengan klasifikasi otomatis.\n"
         "7. **Pengelolaan Kasir:** Pendaftaran akun staf kasir yang terisolasi aman per toko.\n\n"

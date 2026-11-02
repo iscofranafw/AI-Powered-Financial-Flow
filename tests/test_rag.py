@@ -13,6 +13,8 @@ from ai.ollama_client import LLMUnavailable
 
 @pytest.fixture(autouse=True)
 def clean_rag_state():
+    from ai.hybrid_classifier import clear_classification_cache
+    clear_classification_cache()
     rag_engine.clear_memory_cache()
     yield
     rag_engine.clear_memory_cache()
@@ -211,49 +213,54 @@ def test_classify_with_rag_context_and_confidence():
         {'id': 'c_other', 'nama': 'Others', 'tipe': 'pengeluaran'}
     ]
     rag_mock_hits = [
-        {'score': 0.88, 'type': 'transaction', 'category_id': 'c_bahan', 'category_name': 'Bahan Baku', 'text': 'beli tepung terigu 50kg', 'entry_id': 'tx1'}
+        {'score': 0.88, 'type': 'transaction', 'category_id': 'c_bahan', 'category_name': 'Bahan Baku', 'text': 'beli tepung terigu 50kg', 'entry_id': 'tx1', 'store_id': 'shop-rag'}
     ]
 
     with patch('ai.classifier.retrieve_context', return_value=rag_mock_hits), \
-         patch('ai.classifier.ask_json', return_value={'kategori_id': 'c_bahan', 'nama_baru': '', 'alasan': 'Sesuai bukti historis'}):
+         patch('ai.classifier.is_semantic_model_available', return_value=True), \
+         patch('ai.classifier.ask_json') as llm:
         res = classify('pengeluaran', 'beli tepung terigu 25kg', cats, toko_id='shop-rag')
         assert res['kategori_id'] == 'c_bahan'
         assert res['skor'] == 0.88
-        assert res['status_kategori'] == 'otomatis'
+        assert res['status_kategori'] == 'dikonfirmasi'
+        assert res['source'] == 'similarity'
+        llm.assert_not_called()
         assert 'Bahan Baku' in res['message']
 
 
-def test_classify_offline_fallback_uses_high_confidence_rag():
+def test_classify_high_confidence_gate_needs_no_ollama():
     cats = [
         {'id': 'c_bahan', 'nama': 'Bahan Baku', 'tipe': 'pengeluaran'},
         {'id': 'c_other', 'nama': 'Others', 'tipe': 'pengeluaran'}
     ]
     rag_mock_hits = [
-        {'score': 0.84, 'type': 'category', 'category_id': 'c_bahan', 'category_name': 'Bahan Baku', 'text': 'Bahan Baku', 'entry_id': 'cat1'}
+        {'score': 0.84, 'type': 'category', 'category_id': 'c_bahan', 'category_name': 'Bahan Baku', 'text': 'Bahan Baku', 'entry_id': 'cat1', 'store_id': 'shop-rag'}
     ]
 
     # When Ollama is offline, high-confidence vector retrieval resolves category without user frustration.
     with patch('ai.classifier.retrieve_context', return_value=rag_mock_hits), \
-         patch('ai.classifier.ask_json', side_effect=LLMUnavailable('daemon down')):
+         patch('ai.classifier.is_semantic_model_available', return_value=True), \
+         patch('ai.classifier.ask_json', side_effect=LLMUnavailable('daemon down')) as llm:
         res = classify('pengeluaran', 'beli terigu segak', cats, toko_id='shop-rag')
         assert res['kategori_id'] == 'c_bahan'
         assert res['skor'] == 0.84
-        assert res['status_kategori'] == 'otomatis'
-        assert 'Pencarian semantik merekomendasikan' in res['message']
+        assert res['status_kategori'] == 'dikonfirmasi'
+        assert res['source'] == 'similarity'
+        llm.assert_not_called()
 
 
-def test_classify_offline_low_confidence_falls_back_to_others():
+def test_classify_offline_low_confidence_raises_for_pending_queue():
     cats = [
         {'id': 'c_bahan', 'nama': 'Bahan Baku', 'tipe': 'pengeluaran'},
         {'id': 'c_other', 'nama': 'Others', 'tipe': 'pengeluaran'}
     ]
     rag_mock_hits = [
-        {'score': 0.42, 'type': 'category', 'category_id': 'c_bahan', 'category_name': 'Bahan Baku', 'text': 'Bahan Baku', 'entry_id': 'cat1'}
+        {'score': 0.42, 'type': 'category', 'category_id': 'c_bahan', 'category_name': 'Bahan Baku', 'text': 'Bahan Baku', 'entry_id': 'cat1', 'store_id': 'shop-rag'}
     ]
 
     with patch('ai.classifier.retrieve_context', return_value=rag_mock_hits), \
-         patch('ai.classifier.ask_json', side_effect=LLMUnavailable('daemon down')):
-        res = classify('pengeluaran', 'sesuatu yang asing', cats, toko_id='shop-rag')
-        assert res['kategori_id'] == 'c_other'
-        assert res['skor'] is None
-        assert res['status_kategori'] == 'perlu_tinjauan'
+         patch('ai.classifier.is_semantic_model_available', return_value=True), \
+         patch('ai.classifier.ask_json', side_effect=LLMUnavailable('daemon down')) as llm:
+        with pytest.raises(LLMUnavailable, match='Jalankan Ollama'):
+            classify('pengeluaran', 'sesuatu yang asing', cats, toko_id='shop-rag')
+        llm.assert_called_once()

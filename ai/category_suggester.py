@@ -4,11 +4,24 @@ from ai.ollama_client import ask_json, LLMUnavailable
 BASE_EXPENSE = ['Gaji', 'Operasional', 'Pemasaran', 'Others']
 BASE_INCOME = ['Penjualan', 'Tambahan Modal', 'Pendapatan Lain', 'Others']
 BUILTINS = {
-    'grosir': (['Stok Sembako', 'Stok Makanan dan Minuman', 'Stok Kebutuhan Rumah Tangga', 'Kemasan'], ['Penjualan Eceran', 'Penjualan Partai']),
-    'bakery': (['Bahan Baku', 'Kemasan'], ['Penjualan Toko', 'Pesanan', 'Penjualan Online']),
-    'roti': (['Bahan Baku', 'Kemasan'], ['Penjualan Toko', 'Pesanan', 'Penjualan Online']),
+    'retail': (['Stok Barang Dagangan', 'Kemasan'], ['Penjualan Toko', 'Penjualan Eceran']),
+    'minimarket': (['Stok Barang Dagangan', 'Kemasan'], ['Penjualan Toko', 'Penjualan Eceran']),
+    'kelontong': (['Stok Barang Dagangan', 'Kemasan'], ['Penjualan Toko', 'Penjualan Eceran']),
+    'sembako': (['Stok Sembako', 'Kemasan'], ['Penjualan Toko', 'Penjualan Eceran']),
+    'grosir': (['Stok Sembako', 'Stok Makanan dan Minuman', 'Kemasan'], ['Penjualan Eceran', 'Penjualan Partai']),
+    'wholesale': (['Stok Barang Dagangan', 'Kemasan'], ['Penjualan Eceran', 'Penjualan Partai']),
+    'bakery': (['Bahan Baku', 'Kemasan'], ['Penjualan Toko', 'Pesanan']),
+    'roti': (['Bahan Baku', 'Kemasan'], ['Penjualan Toko', 'Pesanan']),
+    'kue': (['Bahan Baku', 'Kemasan'], ['Penjualan Toko', 'Pesanan']),
     'warung makan': (['Bahan Baku', 'Kemasan', 'Transportasi'], ['Penjualan Makanan', 'Pesanan']),
+    'restoran': (['Bahan Baku', 'Kemasan', 'Transportasi'], ['Penjualan Makanan', 'Pesanan']),
+    'rumah makan': (['Bahan Baku', 'Kemasan', 'Transportasi'], ['Penjualan Makanan', 'Pesanan']),
+    'kuliner': (['Bahan Baku', 'Kemasan'], ['Penjualan Makanan', 'Pesanan']),
+    'cafe': (['Bahan Baku', 'Kemasan'], ['Penjualan Makanan & Minuman', 'Pesanan']),
     'bengkel': (['Stok Suku Cadang', 'Peralatan'], ['Jasa Servis', 'Penjualan Suku Cadang']),
+    'otomotif': (['Stok Suku Cadang', 'Peralatan'], ['Jasa Servis', 'Penjualan Suku Cadang']),
+    'jasa': (['Perlengkapan', 'Peralatan'], ['Pendapatan Jasa']),
+    'laundry': (['Bahan Cuci', 'Kemasan'], ['Pendapatan Jasa Laundry']),
 }
 
 def recommend(bidang):
@@ -29,9 +42,10 @@ def recommend(bidang):
                 if isinstance(name, str) and 2 <= len(name.strip()) <= 60:
                     out[tp].insert(-1, name.strip())
     except (LLMUnavailable, ValueError, TypeError):
+        # Safe fallback: if LLM category suggestion is unavailable or fails, use domain template categories
         pass
 
-    for tp, cap in [('pengeluaran', 10), ('pemasukan', 5)]:
+    for tp, cap in [('pengeluaran', 7), ('pemasukan', 7)]:
         seen = set()
         clean = []
         for n in out[tp]:

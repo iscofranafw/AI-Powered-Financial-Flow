@@ -47,7 +47,9 @@ def narrative(data):
         if all(abs(float(result.get('angka',{}).get(k,1e100))-v)<.005 for k,v in expected.items()):
             candidate=str(result['teks'])[:700]
             if not any(ch.isdigit() for ch in candidate):return candidate
-    except (LLMUnavailable,ValueError,KeyError,TypeError):pass
+    except (LLMUnavailable,ValueError,KeyError,TypeError):
+        # Safe fallback: if LLM generation fails or outputs invalid figures, return deterministic narrative backup
+        pass
     return backup
 
 def export_csv(rows,cats):

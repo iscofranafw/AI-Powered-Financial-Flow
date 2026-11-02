@@ -34,5 +34,18 @@ def verify_actor(token, allowed_roles=None, active=True):
         raise AccessError("Anda tidak memiliki izin")
     return profile
 
-def logout(token):
-    return None
+def logout(token=None):
+    """Invalidate authenticated session on server and client."""
+    if token:
+        try:
+            admin = privileged_client()
+            admin.auth.admin.sign_out(jwt=token, scope='global')
+        except Exception:
+            # Safe fallback: best-effort server token revocation; logout proceeds if network or token is invalid
+            pass
+    try:
+        public_client().auth.sign_out()
+    except Exception:
+        # Safe fallback: best-effort client sign out; logout proceeds if client session is already cleared
+        pass
+    return True

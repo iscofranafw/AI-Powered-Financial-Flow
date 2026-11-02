@@ -7,6 +7,7 @@ from repositories.profile_repository import cashier_profiles
 
 
 def create_cashier(token, nama, email, password):
+    """Securely provision a new store cashier account using an expiring single-use server ticket."""
     owner = verify_actor(token, {'pemilik_toko'})
     nama, email = nama.strip(), email.strip().lower()
     if not nama or not email or '@' not in email or len(password) < 8:
@@ -26,13 +27,21 @@ def create_cashier(token, nama, email, password):
         })
         if not created.user:
             raise RuntimeError('Supabase tidak mengembalikan pengguna baru')
+        # Immediately strip ticket from user-visible metadata and seal role inside server app_metadata
         admin.auth.admin.update_user_by_id(created.user.id, {
             'user_metadata': {'nama': nama},
             'app_metadata': {'bizflow_role': 'kasir', 'bizflow_toko_id': owner['toko_id']},
         })
         return created
+    except Exception as exc:
+        raise RuntimeError(f"Gagal mendaftarkan akun kasir: {exc}") from None
     finally:
-        admin.table('cashier_provisioning').delete().eq('token_hash', token_hash).execute()
+        # Guarantee single-use cleanup of server-side provisioning ticket
+        try:
+            admin.table('cashier_provisioning').delete().eq('token_hash', token_hash).execute()
+        except Exception:
+            # Safe fallback: ticket has 5-minute TTL; cleanup failure does not abort user creation
+            pass
 
 
 def list_cashiers(token):

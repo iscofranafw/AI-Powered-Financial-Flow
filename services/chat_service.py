@@ -1,4 +1,7 @@
+import logging
 from datetime import date
+
+logger = logging.getLogger(__name__)
 from decimal import Decimal
 import re
 
@@ -28,6 +31,7 @@ from ai.copilot_schema import (
     FilterParams,
 )
 from ai.copilot_planner import plan_intent
+from ai.copilot_tools import dispatch_tool
 from ai.copilot_knowledge import (
     get_feature_explanation,
     detect_feature_topic,
@@ -70,23 +74,58 @@ TOOL_TO_INTENT = {
     ToolName.EXPLAIN_CSV_IMPORT: Intent.EXPLAIN_APP_FEATURE,
     ToolName.EXPLAIN_AI_CLASSIFICATION: Intent.EXPLAIN_APP_FEATURE,
     ToolName.GET_AVAILABLE_FORECAST: Intent.QUERY_FORECAST,
+    ToolName.GET_EXPENSE_FORECAST: Intent.QUERY_FORECAST,
+    ToolName.GET_FORECAST_FOR_PERIOD: Intent.QUERY_FORECAST,
+    ToolName.GET_UPCOMING_RECURRING_EXPENSES: Intent.QUERY_FORECAST,
+    ToolName.GET_NEXT_PREDICTED_EXPENSE: Intent.QUERY_FORECAST,
+    ToolName.COMPARE_ACTUAL_VS_FORECAST: Intent.QUERY_FORECAST,
+    ToolName.GET_FORECAST_ACCURACY: Intent.QUERY_FORECAST,
+    ToolName.GET_EXPENSE_TREND: Intent.QUERY_FORECAST,
+    ToolName.GET_FORECAST_READINESS: Intent.QUERY_FORECAST,
+    ToolName.CHECK_FORECAST_AGAINST_CASH_BALANCE: Intent.QUERY_FORECAST,
 
     ToolName.CREATE_TRANSACTION_PROPOSAL: Intent.CREATE_INCOME,
     ToolName.UNSUPPORTED_MUTATION: Intent.UNSUPPORTED_MUTATION,
     ToolName.GENERAL_HELP: Intent.GENERAL_HELP,
-    ToolName.CLARIFICATION_NEEDED: Intent.UNKNOWN,
+    ToolName.CLARIFICATION_NEEDED: Intent.CLARIFICATION_NEEDED,
     ToolName.UNKNOWN: Intent.UNKNOWN,
 }
+
+
+def _angka_rp(teks):
+    """Extract Rp amounts as integers, e.g. 'Rp 200.000' -> {200000}."""
+    return {int(re.sub(r"\D", "", m)) for m in re.findall(r"Rp\s?-?([\d.]+)", teks) if re.sub(r"\D", "", m)}
 
 
 def _is_numeric_consistent(fact_text, candidate_text):
     if not candidate_text:
         return False
-    fact_nums = set(re.findall(r'\d+', fact_text.replace('.', '').replace(',', '')))
-    cand_nums = set(re.findall(r'\d+', candidate_text.replace('.', '').replace(',', '')))
-    # Reject candidate if it introduces multi-digit numbers not grounded in verified facts
-    hallucinated = [n for n in cand_nums if len(n) >= 3 and n not in fact_nums]
-    return len(hallucinated) == 0
+    # Extract clean numeric tokens from facts and candidate
+    fact_nums = set(re.findall(r'\b\d+(?:[\.,]\d+)*\b', fact_text))
+    # Normalized digits
+    fact_digits = set(re.findall(r'\d+', fact_text.replace('.', '').replace(',', '')))
+    cand_digits = set(re.findall(r'\d+', candidate_text.replace('.', '').replace(',', '')))
+
+    # Reject if candidate introduces multi-digit numbers not grounded in verified facts
+    hallucinated = [n for n in cand_digits if len(n) >= 2 and n not in fact_digits]
+    if hallucinated:
+        return False
+
+    # Check percentages: any percentage in candidate must appear in fact
+    cand_pcts = re.findall(r'\b\d+(?:[\.,]\d+)?\s*%', candidate_text)
+    fact_pcts = {p.replace(' ', '') for p in re.findall(r'\b\d+(?:[\.,]\d+)?\s*%', fact_text)}
+    for p in cand_pcts:
+        p_clean = p.replace(' ', '')
+        if p_clean not in fact_pcts:
+            return False
+
+    # Rp amounts in the candidate must be a subset of the Rp amounts in the facts.
+    # This closes the hole where a bare digit string appears in the facts as a
+    # count (e.g. "500 transaksi") while "Rp 500" is invented in the candidate.
+    if not _angka_rp(candidate_text) <= _angka_rp(fact_text):
+        return False
+
+    return True
 
 
 def _handle_category_listing(token, intent, actor):
@@ -97,7 +136,7 @@ def _handle_category_listing(token, intent, actor):
             'type': 'message',
             'message': (
                 "Belum ada kategori pembukuan yang terdaftar untuk toko Anda. "
-                "Pemilik toko dapat menyiapkan kategori dasar otomatis di menu **Kategori Pembukuan**."
+                "Pemilik toko dapat menyiapkan kategori dasar otomatis di menu **Kelola Kategori** (Kategori Pembukuan)."
             )
         }
 
@@ -115,7 +154,7 @@ def _handle_category_listing(token, intent, actor):
 
     lines = []
     if intent in (Intent.LIST_ALL_CATEGORIES, Intent.LIST_INCOME_CATEGORIES):
-        lines.append(f"### Kategori Pemasukan ({len(income_cats)}/5)")
+        lines.append(f"### Kategori Pemasukan ({len(income_cats)})")
         if income_cats:
             for c in income_cats:
                 lines.append(_fmt_cat(c))
@@ -124,7 +163,7 @@ def _handle_category_listing(token, intent, actor):
         lines.append("")
 
     if intent in (Intent.LIST_ALL_CATEGORIES, Intent.LIST_EXPENSE_CATEGORIES):
-        lines.append(f"### Kategori Pengeluaran ({len(expense_cats)}/10)")
+        lines.append(f"### Kategori Pengeluaran ({len(expense_cats)})")
         if expense_cats:
             for c in expense_cats:
                 lines.append(_fmt_cat(c))
@@ -136,7 +175,7 @@ def _handle_category_listing(token, intent, actor):
     lines.append("- **Kustom:** Pos penerimaan/pengeluaran operasional toko.")
     lines.append("- **Sistem (Others):** Kategori sistem wajib sebagai penampung transaksi yang belum teridentifikasi atau berkeyakinan rendah.")
     lines.append("- **Non-Operasional (Tambahan Modal):** Khusus setoran modal yang tidak dimasukkan ke dalam perhitungan omzet penjualan.")
-    lines.append("\nPengelolaan kategori (tambah, ubah, hapus, atau gabung) dapat dilakukan di menu **Kategori Pembukuan**.")
+    lines.append("\nPengelolaan kategori (tambah, ubah, hapus, atau gabung) dapat dilakukan di menu **Kelola Kategori** (Kategori Pembukuan).")
 
     return {
         'intent': intent,
@@ -188,8 +227,9 @@ def _handle_pending_approvals(token, raw_text, actor):
     try:
         cashiers = cashier_service.list_cashiers(token)
         cashier_map = {c['id']: c['nama'] for c in cashiers}
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Could not resolve cashier names; using default Kasir labels: %s", exc)
+        cashier_map = {}
 
     total_nominal = sum(Decimal(str(t['nominal'])) for t in pending)
     lines = [
@@ -690,7 +730,7 @@ def _handle_transaction_details(token, raw_text, actor):
     }
 
 
-def handle_chat_message(token, message_text, history=None):
+def handle_chat_message(token, message_text, history=None, page_context=None):
     actor = verify_actor(token, {'pemilik_toko', 'kasir'})
     is_owner = actor['role'] == 'pemilik_toko'
     raw_text = str(message_text or '').strip()
@@ -702,12 +742,42 @@ def handle_chat_message(token, message_text, history=None):
             'message': 'Silakan masukkan pertanyaan atau instruksi pencatatan keuangan Anda.'
         }
 
+    # Contextual inquiry about current page
+    s_lower = raw_text.lower()
+    if page_context and any(w in s_lower for w in ['halaman ini', 'menu ini', 'layar ini', 'di sini']):
+        page_explanations = {
+            "Ringkasan Bisnis": "Halaman **Ringkasan Bisnis** menyajikan visualisasi arus kas, metrik omzet, perbandingan pengeluaran, dan peramalan pengeluaran Prophet toko Anda.",
+            "Transaksi": "Halaman **Transaksi** menampilkan seluruh riwayat transaksi toko dengan status persetujuan, filter tanggal, pencarian, dan opsi hapus.",
+            "Pencatatan Cepat": "Halaman **Pencatatan Cepat** memungkinkan entri transaksi kilat dengan bantuan klasifikasi otomatis AI.",
+            "Persetujuan Kasir": "Halaman **Persetujuan Kasir** digunakan oleh Pemilik Toko untuk meninjau dan menyetujui transaksi yang dicatat kasir sebelum masuk ke laporan resmi.",
+            "Kelola Kategori": "Halaman **Kelola Kategori** digunakan untuk mengatur pos-pos anggaran pemasukan dan pengeluaran toko Anda.",
+            "Impor Data CSV": "Halaman **Impor Data CSV** memungkinkan impor massal berkas transaksi lama dengan pemetaan kolom otomatis dan penemuan kategori cerdas.",
+            "Akun Kasir": "Halaman **Akun Kasir** digunakan untuk mendaftarkan dan memantau akun kasir yang bertugas di toko Anda.",
+            "Status Sistem": "Halaman **Status Sistem** menyajikan diagnosa koneksi database Supabase dan kesiapan model AI Ollama.",
+        }
+        expl = page_explanations.get(page_context)
+        if expl:
+            return {
+                'intent': Intent.EXPLAIN_APP_FEATURE,
+                'tool': ToolName.EXPLAIN_FEATURE.value,
+                'type': 'message',
+                'message': f"Anda saat ini berada di halaman **{page_context}**.\n\n{expl}\n\nApakah ada hal spesifik yang ingin Anda tanyakan atau lakukan di halaman ini?"
+            }
+
     # Stage 1: Build context from conversation history
     prev_ctx = get_previous_context(history)
     conv_context = ConversationContext(
-        last_tool=prev_ctx.get('intent'),
+        last_tool=prev_ctx.get('tool') or prev_ctx.get('intent'),
         last_metric=prev_ctx.get('metric'),
         last_period_label=prev_ctx.get('period'),
+        last_start_date=prev_ctx.get('start_date'),
+        last_end_date=prev_ctx.get('end_date'),
+        last_forecast_period=prev_ctx.get('period'),
+        last_forecast_start_date=prev_ctx.get('start_date'),
+        last_forecast_end_date=prev_ctx.get('end_date'),
+        last_forecast_days=prev_ctx.get('days_ahead'),
+        last_forecast_category=prev_ctx.get('category'),
+        last_forecast_output_mode=prev_ctx.get('output_mode'),
         store_id=actor.get('toko_id'),
         user_id=actor.get('id')
     )
@@ -717,6 +787,20 @@ def handle_chat_message(token, message_text, history=None):
 
     # Map decision tool to legacy Intent for backward-compatibility with UI and tests
     intent = TOOL_TO_INTENT.get(decision.tool_name, Intent.UNKNOWN)
+
+    # 0. Clarification Needed / Inventory Withdrawal Inquiry
+    if decision.tool_name == ToolName.CLARIFICATION_NEEDED:
+        clarif_msg = decision.clarification_question or (
+            "Pengambilan barang dagangan (seperti barang stok etalase) memerlukan konfirmasi konteks: "
+            "apakah pengambilan ini untuk **keperluan operasional toko**, **prive (keperluan pribadi pemilik)**, "
+            "atau **barang rusak/hilang**? Aktivitas ini adalah mutasi fisik persediaan barang dagangan, bukan mutasi kas langsung."
+        )
+        return {
+            'intent': Intent.CLARIFICATION_NEEDED,
+            'tool': decision.tool_name.value,
+            'type': 'message',
+            'message': clarif_msg,
+        }
 
     # 1. Transaction Creation Proposal
     if decision.tool_name == ToolName.CREATE_TRANSACTION_PROPOSAL:
@@ -778,8 +862,12 @@ def handle_chat_message(token, message_text, history=None):
 
     # 3. General Help
     if decision.tool_name == ToolName.GENERAL_HELP:
+        from ai.store_context import get_store_business_context
+        store_ctx = get_store_business_context(actor.get('toko_id', ''))
+        store_name = store_ctx.get('nama') or store_ctx.get('nama_toko') or 'Toko Anda'
+
         help_text = (
-            "Halo! Saya **AI Financial Chat** (Asisten Keuangan AI), asisten dan copilot keuangan toko Anda. Berikut kapabilitas yang dapat saya bantu:\n\n"
+            f"Halo! Saya **AI Financial Chat** (Asisten Keuangan AI), asisten dan copilot keuangan **{store_name}**. Berikut kapabilitas yang dapat saya bantu:\n\n"
             "1. **Mencatat Transaksi Bahasa Alami:**\n"
             "   - *'Catat pemasukan penjualan roti Rp150.000 hari ini.'*\n"
             "   - *'Beli tepung terigu 2 karung Rp180.000 kemarin.'*\n\n"
@@ -859,12 +947,53 @@ def handle_chat_message(token, message_text, history=None):
         return res
 
     # 13. Forecast (Prophet)
-    if decision.tool_name == ToolName.GET_AVAILABLE_FORECAST:
+    forecast_tools = {
+        ToolName.GET_AVAILABLE_FORECAST,
+        ToolName.GET_EXPENSE_FORECAST,
+        ToolName.GET_FORECAST_FOR_PERIOD,
+        ToolName.GET_UPCOMING_RECURRING_EXPENSES,
+        ToolName.GET_NEXT_PREDICTED_EXPENSE,
+        ToolName.COMPARE_ACTUAL_VS_FORECAST,
+        ToolName.GET_FORECAST_ACCURACY,
+        ToolName.GET_EXPENSE_TREND,
+        ToolName.GET_FORECAST_READINESS,
+        ToolName.CHECK_FORECAST_AGAINST_CASH_BALANCE,
+    }
+    if decision.tool_name in forecast_tools:
+        if not is_owner:
+            return {
+                'intent': Intent.QUERY_FORECAST,
+                'tool': decision.tool_name.value,
+                'type': 'message',
+                'message': "Fitur peramalan pengeluaran (forecasting) Meta Prophet hanya dapat diakses oleh **Pemilik Toko** demi menjaga kerahasiaan proyeksi bisnis."
+            }
+        if decision.tool_name == ToolName.GET_AVAILABLE_FORECAST:
+            return {
+                'intent': Intent.QUERY_FORECAST,
+                'tool': decision.tool_name.value,
+                'type': 'message',
+                'message': get_forecast_explanation(is_owner=is_owner)
+            }
+        tool_res = dispatch_tool(token, decision)
+        out_mode = decision.filter_params.output_mode
+        out_mode_val = out_mode.value if hasattr(out_mode, 'value') else str(out_mode or 'summary')
+        meta = {
+            'intent': decision.tool_name.value,
+            'tool': decision.tool_name.value,
+            'period': decision.date_params.period_label,
+            'start_date': decision.date_params.start_date,
+            'end_date': decision.date_params.end_date,
+            'days_ahead': decision.filter_params.days_ahead,
+            'category': decision.filter_params.category_name,
+            'output_mode': out_mode_val,
+        }
         return {
             'intent': Intent.QUERY_FORECAST,
             'tool': decision.tool_name.value,
             'type': 'message',
-            'message': get_forecast_explanation(is_owner=is_owner)
+            'message': tool_res.get('message', ''),
+            'data': tool_res.get('data', {}),
+            'metadata': meta
         }
 
     # 14. App Feature Explanations
@@ -948,7 +1077,8 @@ def handle_chat_message(token, message_text, history=None):
             llm_text = ask_text(system_prompt, fact_text)
             if llm_text and len(llm_text) <= 600 and _is_numeric_consistent(fact_text, llm_text):
                 final_message = llm_text
-        except (LLMUnavailable, Exception):
+        except Exception as exc:
+            logger.warning("Chat summary generation failed; returning deterministic financial summary: %s", exc)
             final_message = fact_text
 
         return {
@@ -972,6 +1102,10 @@ def handle_chat_message(token, message_text, history=None):
     }
 
 
+_CONFIRMING_PROPOSALS = set()
+_CONFIRMED_PROPOSALS = {}
+
+
 def confirm_proposal(token, proposal_dict):
     actor = verify_actor(token, {'pemilik_toko', 'kasir'})
 
@@ -979,50 +1113,98 @@ def confirm_proposal(token, proposal_dict):
     if proposal_dict.get('toko_id') and proposal_dict['toko_id'] != actor['toko_id']:
         raise AccessError('Transaksi ini dibuat untuk toko lain dan tidak dapat dikonfirmasi.')
 
-    # Prevent double submissions for already executed proposals
+    prop_id = str(proposal_dict.get('id') or '')
+    if not prop_id:
+        return {'success': False, 'message': 'ID proposal wajib tersedia untuk konfirmasi.'}
+    cache_key = (str(actor['toko_id']), prop_id)
+
+    # Check session/in-memory confirmed cache
     if proposal_dict.get('status') == 'confirmed':
-        return proposal_dict.get('result', {'success': True, 'message': 'Transaksi sudah dikonfirmasi sebelumnya.'})
+        res = dict(proposal_dict.get('result') or {})
+        res['message'] = 'Transaksi ini sudah dikonfirmasi sebelumnya.'
+        res['already_confirmed'] = True
+        return res
+
+    if prop_id and cache_key in _CONFIRMED_PROPOSALS:
+        proposal_dict['status'] = 'confirmed'
+        res = dict(_CONFIRMED_PROPOSALS[cache_key])
+        res['message'] = 'Transaksi ini sudah dikonfirmasi sebelumnya.'
+        res['already_confirmed'] = True
+        proposal_dict['result'] = res
+        return res
 
     if proposal_dict.get('status') == 'cancelled':
         return {'success': False, 'message': 'Transaksi ini sudah dibatalkan sebelumnya.'}
 
-    tanggal = proposal_dict.get('tanggal')
-    deskripsi = proposal_dict.get('deskripsi')
-    nominal = proposal_dict.get('nominal')
-    tipe = proposal_dict.get('tipe')
-    kategori_id = proposal_dict.get('kategori_id')
-    status_kategori = proposal_dict.get('status_kategori', 'dikonfirmasi')
-    skor = proposal_dict.get('skor')
-    usulan = proposal_dict.get('usulan') or {}
+    if prop_id and cache_key in _CONFIRMING_PROPOSALS:
+        return {'success': False, 'message': 'Transaksi sedang diproses, harap tunggu.'}
 
-    # Strict structural validation before database mutation
-    if tipe not in ('pemasukan', 'pengeluaran'):
-        return {'success': False, 'message': 'Jenis transaksi tidak valid.'}
+    if prop_id:
+        _CONFIRMING_PROPOSALS.add(cache_key)
 
     try:
-        nom = Decimal(str(nominal))
-        if nom <= 0:
-            return {'success': False, 'message': 'Nominal transaksi harus lebih besar dari 0.'}
-    except Exception:
-        return {'success': False, 'message': 'Nominal transaksi tidak valid.'}
+        tanggal = proposal_dict.get('tanggal')
+        deskripsi = proposal_dict.get('deskripsi')
+        nominal = proposal_dict.get('nominal')
+        tipe = proposal_dict.get('tipe')
+        kategori_id = proposal_dict.get('kategori_id')
+        status_kategori = proposal_dict.get('status_kategori', 'dikonfirmasi')
+        skor = proposal_dict.get('skor')
+        usulan = dict(proposal_dict.get('usulan') or {})
+        if prop_id:
+            usulan['proposal_id'] = prop_id
 
-    if not str(deskripsi or '').strip():
-        return {'success': False, 'message': 'Keterangan transaksi tidak boleh kosong.'}
+        # Strict structural validation before database mutation
+        if tipe not in ('pemasukan', 'pengeluaran'):
+            return {'success': False, 'message': 'Jenis transaksi tidak valid.'}
 
-    try:
-        created = finance.add_transaction(
-            token,
-            tanggal=tanggal,
-            deskripsi=deskripsi,
-            nominal=nominal,
-            tipe=tipe,
-            kategori_id=kategori_id,
-            status_kategori=status_kategori,
-            skor=skor,
-            usulan=usulan
-        )
+        try:
+            nom = Decimal(str(nominal))
+            if nom <= 0:
+                return {'success': False, 'message': 'Nominal transaksi harus lebih besar dari 0.'}
+        except Exception:
+            return {'success': False, 'message': 'Nominal transaksi tidak valid.'}
+
+        if not str(deskripsi or '').strip():
+            return {'success': False, 'message': 'Keterangan transaksi tidak boleh kosong.'}
+
+        already_persisted = False
+        try:
+            created = finance.add_transaction(
+                token,
+                tanggal=tanggal,
+                deskripsi=deskripsi,
+                nominal=nominal,
+                tipe=tipe,
+                kategori_id=kategori_id,
+                status_kategori=status_kategori,
+                skor=skor,
+                usulan=usulan
+            )
+        except Exception as exc:
+            # The unique proposal index arbitrates concurrent workers. Only a
+            # uniqueness violation can be resolved by loading a persisted row.
+            if str(getattr(exc, 'code', '')) != '23505':
+                logger.error("Gagal menambahkan transaksi untuk proposal %s: %s", prop_id, exc)
+                raise
+            try:
+                existing_tx = (privileged_client().table('transaksi')
+                               .select('*').eq('toko_id', actor['toko_id'])
+                               .contains('usulan', {'proposal_id': prop_id})
+                               .limit(1).execute().data)
+            except Exception as db_err:
+                logger.error("Gagal memeriksa idempotensi proposal %s di database: %s", prop_id, db_err)
+                raise RuntimeError(f"Pemeriksaan idempotensi proposal ke database gagal: {db_err}") from db_err
+
+            if not existing_tx:
+                logger.error("Konflik proposal %s tidak dapat diverifikasi dari basis data: %s", prop_id, exc)
+                raise RuntimeError('Konflik penyimpanan proposal tidak dapat diverifikasi') from exc
+            created = existing_tx
+            already_persisted = True
 
         record = created[0] if isinstance(created, list) and created else created
+        if not isinstance(record, dict) or not record.get('id'):
+            raise RuntimeError('Database tidak mengonfirmasi penyimpanan transaksi')
         status_persetujuan = record.get('status_persetujuan', 'disetujui')
 
         res_msg = (
@@ -1035,11 +1217,14 @@ def confirm_proposal(token, proposal_dict):
         result_payload = {
             'success': True,
             'record': record,
+            'already_persisted': already_persisted,
             'status_persetujuan': status_persetujuan,
             'message': res_msg
         }
         proposal_dict['status'] = 'confirmed'
         proposal_dict['result'] = result_payload
+        if prop_id:
+            _CONFIRMED_PROPOSALS[cache_key] = result_payload
         return result_payload
 
     except Exception as exc:
@@ -1049,6 +1234,9 @@ def confirm_proposal(token, proposal_dict):
         }
         proposal_dict['result'] = err_payload
         return err_payload
+    finally:
+        if prop_id:
+            _CONFIRMING_PROPOSALS.discard(cache_key)
 
 
 def cancel_proposal(proposal_dict):
@@ -1059,3 +1247,4 @@ def cancel_proposal(proposal_dict):
     }
     proposal_dict['result'] = result_payload
     return result_payload
+

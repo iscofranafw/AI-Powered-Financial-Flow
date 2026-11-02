@@ -367,6 +367,90 @@ def apply_custom_styles():
         color: #334155;
         line-height: 1.6;
     }
+
+    /* =====================================================================
+       GLOBAL FLOATING FINANCIAL AI AGENT STYLES
+       ===================================================================== */
+    .st-key-floating_agent_launcher_container {
+        position: fixed !important;
+        bottom: 20px !important;
+        right: 20px !important;
+        z-index: 999990 !important;
+        width: auto !important;
+        pointer-events: auto !important;
+    }
+
+    .st-key-floating_agent_launcher_container button {
+        border-radius: 9999px !important;
+        padding: 0.625rem 1.25rem !important;
+        font-weight: 600 !important;
+        font-size: 0.875rem !important;
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35), 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.5rem !important;
+        border: 1px solid #0284C7 !important;
+        background-color: #0284C7 !important;
+        color: #FFFFFF !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        cursor: pointer !important;
+    }
+
+    .st-key-floating_agent_launcher_container button:hover {
+        background-color: #0369A1 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45) !important;
+    }
+
+    .st-key-floating_agent_launcher_container button:active {
+        transform: translateY(0) !important;
+    }
+
+    .st-key-floating_agent_panel_container {
+        position: fixed !important;
+        bottom: 76px !important;
+        right: 20px !important;
+        width: 440px !important;
+        max-width: calc(100vw - 32px) !important;
+        height: 620px !important;
+        max-height: calc(100vh - 96px) !important;
+        background-color: #FFFFFF !important;
+        border: 1px solid #CBD5E1 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.18), 0 10px 10px -5px rgba(15, 23, 42, 0.08) !important;
+        z-index: 999995 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+        padding: 0.75rem 1rem !important;
+        animation: floatingPanelSlideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    @keyframes floatingPanelSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px) scale(0.97);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .st-key-floating_agent_launcher_container {
+            bottom: 14px !important;
+            right: 14px !important;
+        }
+        .st-key-floating_agent_panel_container {
+            width: calc(100vw - 20px) !important;
+            right: 10px !important;
+            bottom: 68px !important;
+            height: calc(100vh - 84px) !important;
+            max-height: calc(100vh - 84px) !important;
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -415,3 +499,93 @@ def user_profile_sidebar(nama, role, shop_name=None):
         {shop_line}
     </div>
     """, unsafe_allow_html=True)
+
+
+def render_recurring_expense_reminders(rec_data):
+    """Render a compact, professional, interactive reminder component for upcoming recurring expenses.
+
+    Replaces repeated full-width information banners with a consolidated summary and
+    an expandable scrollable table (height constrained ~350px) without losing any records.
+    """
+    if not rec_data or not isinstance(rec_data, dict):
+        return
+
+    items = rec_data.get('upcoming_3_days_items') or []
+    if not items:
+        return
+
+    import pandas as pd
+
+    # Accurate aggregation from exact displayed records
+    total_count = len(items)
+    total_amount = sum(float(it.get('estimated_amount') or 0.0) for it in items)
+
+    dates = [str(it.get('next_expected_date') or '') for it in items if it.get('next_expected_date')]
+    if dates:
+        min_date = min(dates)
+        max_date = max(dates)
+        date_range_str = f"{min_date} s/d {max_date}" if min_date != max_date else min_date
+    else:
+        date_range_str = "-"
+
+    # 1. Compact Summary Section
+    st.markdown("""
+    <div style='background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0.875rem 1.125rem; margin-bottom: 0.75rem;'>
+        <div style='font-size: 0.875rem; font-weight: 600; color: #1E293B;'>
+            Pengingat Pengeluaran Rutin Mendatang
+        </div>
+        <div style='font-size: 0.8125rem; color: #64748B; margin-top: 2px;'>
+            Perkiraan beban operasional berulang yang diproyeksikan jatuh tempo dalam 3 hari ke depan untuk mitigasi likuiditas kas.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Pengeluaran Terdeteksi", f"{total_count} transaksi")
+    col2.metric("Rentang Tanggal", date_range_str)
+    col3.metric("Total Estimasi Beban", format_rupiah(total_amount))
+
+    # 2. Expandable Scrollable Table
+    expander_title = f"Lihat Rincian Pengeluaran Rutin ({total_count} Transaksi)"
+    with st.expander(expander_title, expanded=False):
+        table_rows = []
+        for it in items:
+            days = it.get('days_until', 0)
+            if days == 0:
+                days_label = "Hari ini (0 hari)"
+            elif days == 1:
+                days_label = "1 hari lagi (Besok)"
+            else:
+                days_label = f"{days} hari lagi"
+
+            r_type = it.get('reminder_type')
+            if not r_type:
+                r_type = (
+                    "Tagihan dengan jatuh tempo terkonfirmasi"
+                    if it.get('is_verified_due_date')
+                    else "Perkiraan pengeluaran rutin berdasarkan riwayat"
+                )
+
+            table_rows.append({
+                'Tanggal Estimasi': it.get('next_expected_date', '-'),
+                'Deskripsi': it.get('description', '-'),
+                'Kategori': it.get('category', '-'),
+                'Estimasi Nominal': format_rupiah(it.get('estimated_amount', 0)),
+                'Sisa Waktu': days_label,
+                'Jenis Pengingat': r_type,
+            })
+
+        df_reminders = pd.DataFrame(table_rows)
+
+        # Constrain table height to 350px with vertical scrolling, sorting, and search enabled
+        st.dataframe(
+            df_reminders,
+            height=350,
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        st.caption(
+            "Catatan: Kolom 'Jenis Pengingat' membedakan antara tagihan dengan jatuh tempo pasti vs. "
+            "perkiraan analitis deret waktu. Seluruh proyeksi ditujukan untuk persiapan likuiditas kas."
+        )

@@ -1,12 +1,15 @@
 import datetime
 from database.client import privileged_client
 from services.auth_service import verify_actor
+from services.validation_service import get_jakarta_today
 from services import finance_service as finance
 from ai.classifier import classify, detect_type
 from ai.category_suggester import recommend
 from ai.text_normalizer import extract_money, clean_text_for_storage
-from ai.ollama_client import diagnosis
+from ai.ollama_client import diagnosis, LLMUnavailable
 from ai.rag_engine import retrieve_context_for_actor, get_or_sync_index
+from ai.hybrid_classifier import hybrid_bulk_classify, clear_classification_cache
+from ai.store_context import get_store_business_context
 
 
 def prepare_categories(token):
@@ -15,20 +18,44 @@ def prepare_categories(token):
     return recommend(shop['bidang_usaha'])
 
 
-def save_initial_categories(token, selection):
+def discover_categories_for_import(token, rows):
+    """Discover relevant financial categories from uploaded transactions before classification."""
+    actor = verify_actor(token, {'pemilik_toko'})
+    shop_id = actor['toko_id']
+    shop_info = privileged_client().table('toko').select('nama,bidang_usaha').eq('id', shop_id).single().execute().data or {}
+    business_type = shop_info.get('bidang_usaha', 'Umum')
+    existing_categories = finance.list_categories(token)
+
+    from ai.category_discovery import discover_categories_from_transactions
+    try:
+        return discover_categories_from_transactions(
+            rows=rows,
+            existing_categories=existing_categories,
+            business_type=business_type,
+            max_recommendations_per_type=7,
+        )
+    except LLMUnavailable:
+        queued = bulk_classify(token, rows, categories=existing_categories)
+        return {'pengeluaran': [], 'pemasukan': [], 'coverage_stats': {},
+                'ai_pending_count': sum(r.get('_saved_ai_pending',False) for r in queued)}
+
+
+def save_initial_categories(token, selection, enforce_ai_limit=True):
     actor = verify_actor(token, {'pemilik_toko'})
     existing = finance.list_categories(token)
     if existing:
         raise ValueError('Kategori sudah ada, silakan gunakan kelola kategori')
-    for tp, cap in [('pengeluaran', 10), ('pemasukan', 5)]:
-        names = [str(x).strip() for x in selection.get(tp, [])]
-        if len(names) > cap or len(set(x.casefold() for x in names)) != len(names):
+    for tp, cap in [('pengeluaran', 7), ('pemasukan', 7)]:
+        names = [str(x).strip() for x in selection.get(tp, []) if str(x).strip()]
+        if enforce_ai_limit and (len(names) > cap or len(set(x.casefold() for x in names)) != len(names)):
             raise ValueError('Kategori melewati batas atau nama ganda')
-        if 'Others' not in names:
+        if len(set(x.casefold() for x in names)) != len(names):
+            raise ValueError('Nama kategori ganda')
+        if not any(x.casefold() == 'others' for x in names):
             names.append('Others')
-        if tp == 'pemasukan' and 'Tambahan Modal' not in names:
+        if tp == 'pemasukan' and not any(x.casefold() == 'tambahan modal' for x in names):
             names.append('Tambahan Modal')
-        if len(names) > cap:
+        if enforce_ai_limit and len(names) > cap:
             raise ValueError('Batas kategori tercapai setelah menambah kategori wajib')
         for name in names:
             finance.create_category(token, name, tp, system_seed=True)
@@ -37,109 +64,118 @@ def save_initial_categories(token, selection):
 
 def classify_preview(token, tipe, deskripsi):
     actor = verify_actor(token, {'pemilik_toko', 'kasir'})
-    return classify(tipe, deskripsi, finance.list_categories(token), toko_id=actor['toko_id'])
+    shop_id = actor['toko_id']
+    b_type = get_store_business_context(shop_id).get('bidang_usaha', 'Umum')
+    try:
+        return classify(tipe, deskripsi, finance.list_categories(token), toko_id=shop_id, business_type=b_type)
+    except LLMUnavailable as exc:
+        # This wrapper has no amount/date: the complete quick_preview below
+        # persists the row immediately, before returning it to the UI.
+        return _pending_decision(exc)
 
 
 def retrieve_semantic_context(token, tipe, text, top_k=5):
     return retrieve_context_for_actor(token, text, tipe, top_k=top_k)
 
 
-def bulk_classify(token, rows, progress=None):
+def _pending_decision(exc):
+    return {'kategori_id': None, 'status_kategori': 'perlu_tinjauan', 'skor': None,
+            'source': 'perlu_tinjauan', 'is_unresolved': True,
+            'usulan': {'ai_pending': True, 'ai_error': str(exc)[:300]},
+            'message': 'Ollama tidak tersedia - transaksi menunggu AI (llama3:8b).'}
+
+
+def bulk_classify(token, rows, progress=None, categories=None):
     if not rows:
         return []
-    actor = verify_actor(token, {'pemilik_toko', 'kasir'})
-    shop_id = actor['toko_id']
-    cats = finance.list_categories(token)
-    total = len(rows)
-
-    # Pre-sync FAISS indexes once per batch to avoid repetitive database version queries.
-    for tp in ('pengeluaran', 'pemasukan'):
-        try:
-            get_or_sync_index(shop_id, tp)
-        except Exception:
-            pass
-
-    other_cats = {
-        tp: next((c for c in cats if c['tipe'] == tp and c['nama'].casefold() == 'others'), None)
-        for tp in ('pengeluaran', 'pemasukan')
-    }
-
-    output = []
-    for idx, row in enumerate(rows):
-        row_res = dict(row)
-
-        if row.get('error'):
-            row_res['status_kategori'] = 'perlu_tinjauan'
-            output.append(row_res)
-            if progress:
-                progress((idx + 1) / total)
-            continue
-
-        raw_desc = str(row.get('deskripsi') or '')
-        clean_desc = clean_text_for_storage(raw_desc)
-        if not clean_desc.strip():
-            row_res['error'] = 'Deskripsi transaksi kosong'
-            row_res['status_kategori'] = 'perlu_tinjauan'
-            other = other_cats.get(row.get('tipe', 'pengeluaran'))
-            row_res['kategori_id'] = other['id'] if other else None
-            output.append(row_res)
-            if progress:
-                progress((idx + 1) / total)
-            continue
-
-        tp = (row.get('tipe') or '').strip().lower()
-        if not tp or tp not in ('pemasukan', 'pengeluaran'):
-            try:
-                tp = detect_type(clean_desc)
-            except Exception:
-                # Ambiguous transaction type defaults to expense and flags for user review.
-                tp = 'pengeluaran'
-                row_res['tipe'] = tp
-                row_res['error'] = 'Jenis transaksi tidak dapat ditentukan otomatis'
-                row_res['status_kategori'] = 'perlu_tinjauan'
-                other = other_cats['pengeluaran']
-                row_res['kategori_id'] = other['id'] if other else None
-                row_res['message'] = 'Jenis transaksi ambigu, disarankan untuk ditinjau'
-                output.append(row_res)
-                if progress:
-                    progress((idx + 1) / total)
+    actor = verify_actor(token, {'pemilik_toko','kasir'})
+    cats = categories if categories is not None else finance.list_categories(token)
+    context = get_store_business_context(actor['toko_id'])
+    try:
+        return hybrid_bulk_classify(actor['toko_id'], cats, rows, progress_callback=progress,
+                                    business_type=context.get('bidang_usaha','Umum'))
+    except LLMUnavailable as exc:
+        output = []
+        for row in rows:
+            if row.get('error'):
+                output.append(dict(row))
                 continue
+            decision = _pending_decision(exc)
+            output.append({**row, **decision, 'usulan': {**(row.get('usulan') or {}), **decision['usulan']}})
+        pending = [r for r in output if (r.get('usulan') or {}).get('ai_pending') and not r.get('error')]
+        if pending:
+            from services.import_service import execute_structured_import
+            result = execute_structured_import(token, pending)
+            if result['failed_count']:
+                raise RuntimeError('Penyimpanan antrean AI gagal: ' + str(result.get('error') or result.get('failed_batches')))
+            for row in pending:
+                row['_saved_ai_pending'] = True
+                row['message'] += ' Sudah tersimpan.'
+        return output
 
-        row_res['tipe'] = tp
 
+def pending_ai_transactions(token):
+    from repositories.finance_repository import transactions
+    actor = verify_actor(token, {'pemilik_toko','kasir'})
+    return [r for r in transactions(actor['toko_id'])
+            if (r.get('usulan') or {}).get('ai_pending') is True
+            and r.get('status_persetujuan') != 'disetujui'
+            and (actor['role'] == 'pemilik_toko' or r.get('dicatat_oleh') == actor['id'])]
+
+
+def retry_pending_ai_classifications(token, limit=20):
+    actor = verify_actor(token, {'pemilik_toko','kasir'})
+    rows = pending_ai_transactions(token)
+    cats = finance.list_categories(token)
+    done, errors = 0, []
+    for row in rows[:max(1,limit)]:
         try:
-            decision = classify(tp, clean_desc, cats, toko_id=shop_id)
-            row_res.update(decision)
+            decision = classify(row['tipe'], row['deskripsi'], cats, toko_id=actor['toko_id'])
+            if decision['source'] != 'llm' or not decision['kategori_id']:
+                continue  # Model abstained; keep the queue marker and null category.
+            saved = privileged_client().rpc('retry_pending_ai_classification', {
+                'p_actor': actor['id'], 'p_shop': actor['toko_id'], 'p_id': row['id'],
+                'p_category': decision['kategori_id'], 'p_updated_at': row.get('updated_at'),
+            }).execute().data
+            done += int(saved is True)
+        except LLMUnavailable as exc:
+            errors.append(str(exc))
+            break
         except Exception as exc:
-            other = other_cats.get(tp)
-            row_res['kategori_id'] = other['id'] if other else None
-            row_res['usulan'] = {}
-            row_res['skor'] = None
-            row_res['status_kategori'] = 'perlu_tinjauan'
-            row_res['message'] = f'Gagal klasifikasi: {exc}'
-            row_res['error'] = str(exc)
-
-        output.append(row_res)
-        if progress:
-            progress((idx + 1) / total)
-
-    return output
+            errors.append('Pembaruan antrean gagal: ' + str(exc))
+            break
+    if done:
+        clear_classification_cache(actor['toko_id'])
+        from ai.rag_engine import clear_memory_cache
+        clear_memory_cache(actor['toko_id'])
+    return {'processed': done, 'remaining': len(pending_ai_transactions(token)), 'errors': errors}
 
 
 def quick_preview(token, text, tipe=None):
     amount = extract_money(text)
     tp = tipe or detect_type(text)
     choice = classify_preview(token, tp, text)
-    return {
-        'tanggal': datetime.date.today().isoformat(),
+    result = {
+        'tanggal': get_jakarta_today().isoformat(),
         'deskripsi': clean_text_for_storage(text),
         'nominal': str(amount),
         'tipe': tp,
         **choice
     }
 
+    if (result.get('usulan') or {}).get('ai_pending'):
+        saved = finance.add_transaction(token, result['tanggal'], result['deskripsi'], result['nominal'],
+                                        result['tipe'], None, status_kategori='perlu_tinjauan', usulan=result['usulan'])
+        if not saved:
+            raise RuntimeError('Antrean AI tidak tersimpan')
+        result['_saved_ai_pending'] = True
+        result['transaction_id'] = saved[0]['id']
+    return result
+
 
 def commit_preview(token, row, kategori_id):
+    if row.get('_saved_ai_pending'):
+        return [{'id': row.get('transaction_id')}]
     kwargs = {}
     if 'status_kategori' in row:
         kwargs['status_kategori'] = row['status_kategori']

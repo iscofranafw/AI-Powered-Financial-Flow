@@ -186,9 +186,10 @@ def test_cross_intent_invariant_category_ranking_never_returns_store_profile():
 def test_cross_intent_invariant_pending_approvals_never_returns_approved_summary():
     """Pending approval queries must return pending transactions, not approved cash summaries."""
     fake_owner = {'id': 'o1', 'role': 'pemilik_toko', 'toko_id': 'shop1'}
+    today_str = date.today().isoformat()
     fake_tx = [
-        {'id': '1', 'tanggal': '2026-10-31', 'nominal': '50000', 'tipe': 'pemasukan', 'status_persetujuan': 'disetujui', 'kategori_id': 'cat_jual', 'dicatat_oleh': 'c1'},
-        {'id': '2', 'tanggal': '2026-10-31', 'nominal': '750000', 'tipe': 'pengeluaran', 'status_persetujuan': 'pending', 'deskripsi': 'Beli Mixer Baru', 'kategori_id': 'cat_ops', 'dicatat_oleh': 'c1'},
+        {'id': '1', 'tanggal': today_str, 'nominal': '50000', 'tipe': 'pemasukan', 'status_persetujuan': 'disetujui', 'kategori_id': 'cat_jual', 'dicatat_oleh': 'c1'},
+        {'id': '2', 'tanggal': today_str, 'nominal': '750000', 'tipe': 'pengeluaran', 'status_persetujuan': 'pending', 'deskripsi': 'Beli Mixer Baru', 'kategori_id': 'cat_ops', 'dicatat_oleh': 'c1'},
     ]
 
     with patch('services.chat_service.verify_actor', return_value=fake_owner), \
@@ -507,7 +508,7 @@ def test_application_knowledge_retrieval_and_no_fake_functionality():
 # 9. REAL MODEL INTEGRATION (OLLAMA LLM)
 # =====================================================================
 
-def test_live_ollama_intent_planning_and_schema_validation_if_available(ollama_env):
+def test_live_ollama_intent_planning_and_schema_validation_if_available():
     """Verify live Ollama model generates valid JSON adhering to PlannerDecision schema."""
     from ai.ollama_client import diagnosis, ask_json
 

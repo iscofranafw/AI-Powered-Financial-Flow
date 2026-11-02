@@ -50,7 +50,9 @@ models/
 vector_store/
 vector_indexes/
 
-# Local datasets and generated exports
+# Local datasets and real transaction records (exclude from distribution)
+data/Daftar_Transaksi_*.csv
+data/*.csv
 data/raw/
 data/private/
 data/exports/
@@ -89,3 +91,18 @@ test-results/
 playwright-report/
 
 /PRD.md
+
+
+# Test evidence and experiment artifacts (not source code, do not push)
+evidence/
+hasil_fewshot_aligned_index/
+hasil_fewshot_probe_index/
+hasil_fewshot_replication_index/
+tmp_v7_check2/
+*.zip
+/inventaris_model_perbandingan.json
+/profil_panggilan_pytest_repair.jsonl
+/status_pytest_repair.json
+/docs/
+/jalankan_uji_akurasi_baru.py
+/jalankan_uji_api_9router.py

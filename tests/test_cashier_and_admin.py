@@ -29,13 +29,20 @@ def test_list_cashiers():
 def test_change_owner_status_success_confirms_email():
     client = MagicMock()
     client.table.return_value.select.return_value.eq.return_value.single.return_value.execute.return_value.data = {
-        'role': 'pemilik_toko', 'status': 'pending'
+        'role': 'pemilik_toko', 'status': 'pending', 'toko_id': 'tok1'
     }
+    client.rpc.return_value.execute.return_value.data = [{'id': 'owner123'}]
     with patch('services.admin_service.verify_actor', return_value={'id': 'admin1', 'role': 'superadmin'}), \
          patch('services.admin_service.privileged_client', return_value=client):
         change_owner_status('tok', 'owner123', 'aktif')
         client.auth.admin.update_user_by_id.assert_called_once_with('owner123', {'email_confirm': True})
-        client.table.return_value.update.assert_called_once_with({'status': 'aktif'})
+        client.rpc.assert_called_once_with('mutate_finance_audited', {
+            'p_actor': 'admin1',
+            'p_shop': 'tok1',
+            'p_action': 'change_owner_status',
+            'p_ids': ['owner123'],
+            'p_values': {'status': 'aktif'},
+        })
 
 
 def test_shop_summary():

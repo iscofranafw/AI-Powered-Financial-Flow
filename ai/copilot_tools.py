@@ -13,6 +13,7 @@ from services.auth_service import verify_actor, AccessError
 from services import finance_service as finance
 from services import cashier_service
 from services.report_service import period_rows, metrics
+from services import forecast_service
 from utils.ui_components import format_rupiah
 from ai.copilot_schema import ToolName, PlannerDecision
 from ai.copilot_knowledge import (
@@ -76,11 +77,15 @@ def count_cashiers(token: str, decision: PlannerDecision) -> Dict[str, Any]:
     total_count = len(cashiers)
     active_count = len([c for c in cashiers if c.get('status') == 'aktif'])
 
+    from ai.store_context import get_store_business_context
+    store_ctx = get_store_business_context(actor.get('toko_id', ''))
+    store_name = store_ctx.get('nama') or store_ctx.get('nama_toko') or 'Toko Anda'
+
     if total_count == 0:
-        msg = "Saat ini belum ada akun kasir yang terdaftar untuk toko Anda. Anda dapat mendaftarkan kasir baru melalui menu **Akun Kasir**."
+        msg = f"Saat ini belum ada akun kasir yang terdaftar untuk **{store_name}**. Anda dapat mendaftarkan kasir baru melalui menu **Akun Kasir**."
     else:
         msg = (
-            f"Toko Anda saat ini memiliki total **{total_count} akun kasir terdaftar** "
+            f"**{store_name}** saat ini memiliki total **{total_count} akun kasir terdaftar** "
             f"(**{active_count} aktif**).\n\n"
             f"Anda dapat melihat rincian nama atau menambah staf baru melalui menu **Akun Kasir**."
         )
@@ -95,16 +100,20 @@ def count_cashiers(token: str, decision: PlannerDecision) -> Dict[str, Any]:
 
 def list_cashiers(token: str, decision: PlannerDecision) -> Dict[str, Any]:
     actor = verify_actor(token, {'pemilik_toko'})
+    from ai.store_context import get_store_business_context
+    store_ctx = get_store_business_context(actor.get('toko_id', ''))
+    store_name = store_ctx.get('nama') or store_ctx.get('nama_toko') or 'Toko Anda'
+
     cashiers = cashier_service.list_cashiers(token)
     if not cashiers:
         return {
             'tool': ToolName.LIST_CASHIERS,
             'success': True,
             'data': [],
-            'message': "Belum ada akun kasir terdaftar untuk toko ini. Buka menu **Akun Kasir** untuk mendaftarkan staf baru."
+            'message': f"Belum ada akun kasir terdaftar untuk **{store_name}**. Buka menu **Akun Kasir** untuk mendaftarkan staf baru."
         }
 
-    lines = [f"Daftar **{len(cashiers)} akun kasir terdaftar** di toko Anda:\n"]
+    lines = [f"Daftar **{len(cashiers)} akun kasir terdaftar** di **{store_name}**:\n"]
     for idx, c in enumerate(cashiers, start=1):
         status = "Aktif" if c.get('status') == 'aktif' else c.get('status', '-')
         lines.append(f"{idx}. **{c['nama']}** (`{c['email']}`) &bull; Status: **{status}**")
@@ -115,13 +124,17 @@ def list_cashiers(token: str, decision: PlannerDecision) -> Dict[str, Any]:
 
 def get_cashier_activity(token: str, decision: PlannerDecision) -> Dict[str, Any]:
     actor = verify_actor(token, {'pemilik_toko'})
+    from ai.store_context import get_store_business_context
+    store_ctx = get_store_business_context(actor.get('toko_id', ''))
+    store_name = store_ctx.get('nama') or store_ctx.get('nama_toko') or 'Toko Anda'
+
     cashiers = cashier_service.list_cashiers(token)
     if not cashiers:
         return {
             'tool': ToolName.GET_CASHIER_ACTIVITY,
             'success': True,
             'data': {},
-            'message': "Belum ada akun kasir yang terdaftar di toko Anda."
+            'message': f"Belum ada akun kasir yang terdaftar di **{store_name}**."
         }
 
     txs = finance.list_transactions(token)
@@ -198,7 +211,7 @@ def list_income_categories(token: str, decision: PlannerDecision) -> Dict[str, A
     categories = finance.list_categories(token)
     income_cats = [c for c in categories if c['tipe'] == 'pemasukan']
 
-    lines = [f"### Kategori Pemasukan Toko ({len(income_cats)}/5)\n"]
+    lines = [f"### Kategori Pemasukan Toko ({len(income_cats)}/7)\n"]
     if income_cats:
         for c in income_cats:
             lines.append(_format_cat_line(c))
@@ -206,7 +219,7 @@ def list_income_categories(token: str, decision: PlannerDecision) -> Dict[str, A
         lines.append("- *(Belum ada kategori pemasukan)*")
 
     lines.append("\n**Keterangan:**")
-    lines.append("- Kuota maksimal: 5 kategori pemasukan per toko.")
+    lines.append("- Kuota maksimal: 7 kategori pemasukan per toko.")
     lines.append("- Kelola pos pemasukan melalui menu **Kategori Pembukuan**.")
     return {'tool': ToolName.LIST_INCOME_CATEGORIES, 'success': True, 'data': income_cats, 'message': "\n".join(lines)}
 
@@ -216,7 +229,7 @@ def list_expense_categories(token: str, decision: PlannerDecision) -> Dict[str, 
     categories = finance.list_categories(token)
     expense_cats = [c for c in categories if c['tipe'] == 'pengeluaran']
 
-    lines = [f"### Kategori Pengeluaran Toko ({len(expense_cats)}/10)\n"]
+    lines = [f"### Kategori Pengeluaran Toko ({len(expense_cats)}/7)\n"]
     if expense_cats:
         for c in expense_cats:
             lines.append(_format_cat_line(c))
@@ -224,7 +237,7 @@ def list_expense_categories(token: str, decision: PlannerDecision) -> Dict[str, 
         lines.append("- *(Belum ada kategori pengeluaran)*")
 
     lines.append("\n**Keterangan:**")
-    lines.append("- Kuota maksimal: 10 kategori pengeluaran per toko.")
+    lines.append("- Kuota maksimal: 7 kategori pengeluaran per toko.")
     lines.append("- Kelola pos biaya melalui menu **Kategori Pembukuan**.")
     return {'tool': ToolName.LIST_EXPENSE_CATEGORIES, 'success': True, 'data': expense_cats, 'message': "\n".join(lines)}
 
@@ -236,9 +249,9 @@ def list_all_categories(token: str, decision: PlannerDecision) -> Dict[str, Any]
     expense_cats = [c for c in categories if c['tipe'] == 'pengeluaran']
 
     lines = [
-        f"### Kategori Pemasukan ({len(income_cats)}/5)\n" +
+        f"### Kategori Pemasukan ({len(income_cats)}/7)\n" +
         ("\n".join(_format_cat_line(c) for c in income_cats) if income_cats else "- *(Kosong)*"),
-        f"\n### Kategori Pengeluaran ({len(expense_cats)}/10)\n" +
+        f"\n### Kategori Pengeluaran ({len(expense_cats)}/7)\n" +
         ("\n".join(_format_cat_line(c) for c in expense_cats) if expense_cats else "- *(Kosong)*"),
         "\n**Struktur Pos Anggaran:**",
         "- **Kustom:** Pos harian operasional sesuai kebutuhan toko Anda.",
@@ -706,6 +719,95 @@ def get_available_forecast(token: str, decision: PlannerDecision) -> Dict[str, A
     return {'tool': ToolName.GET_AVAILABLE_FORECAST, 'success': True, 'data': {}, 'message': msg}
 
 
+def get_expense_forecast(token: str, decision: PlannerDecision) -> Dict[str, Any]:
+    actor = verify_actor(token, {'pemilik_toko'})
+    days = decision.filter_params.days_ahead or 30
+    cat = decision.filter_params.category_name
+    res = forecast_service.train_and_forecast_expenses(token, days_ahead=days, category_name=cat)
+    if not res.get('success'):
+        return {'tool': ToolName.GET_EXPENSE_FORECAST, 'success': False, 'message': res.get('message', 'Peramalan tidak tersedia.')}
+
+    store_name = res.get('store_name') or forecast_service.get_store_name(actor.get('toko_id'))
+    footer = forecast_service.get_dynamic_forecast_footer(store_name)
+    cat_str = f" untuk kategori **{res['category_filtered']}**" if res.get('category_filtered') else ""
+    msg = (
+        f"### Hasil Peramalan Pengeluaran (Meta Prophet){cat_str} — {store_name}\n\n"
+        f"- **Horizon Proyeksi:** {res['days_ahead']} hari ke depan\n"
+        f"- **Estimasi Total Pengeluaran:** **{format_rupiah(res['total_predicted_expense'])}**\n"
+        f"- **Rentang Ketidakpastian (80% CI):** {format_rupiah(res['total_predicted_lower'])} s.d. {format_rupiah(res['total_predicted_upper'])}\n"
+        f"- **Rata-rata Pengeluaran Harian:** {format_rupiah(res['average_daily_predicted'])}/hari\n"
+        f"- **Puncak Pengeluaran:** {res['peak_expense']['date']} ({format_rupiah(res['peak_expense']['amount'])})\n"
+        f"- **Cakupan Historis:** {res['historical_coverage']['start_date']} s.d. {res['historical_coverage']['end_date']} "
+        f"({res['historical_coverage']['total_days']} hari, {res['historical_coverage']['distinct_transaction_days']} hari aktif)\n\n"
+        f"> ℹ️ {footer}"
+    )
+    return {'tool': ToolName.GET_EXPENSE_FORECAST, 'success': True, 'data': res, 'message': msg}
+
+
+def get_forecast_for_period(token: str, decision: PlannerDecision) -> Dict[str, Any]:
+    actor = verify_actor(token, {'pemilik_toko'})
+    start_d = decision.date_params.start_date
+    end_d = decision.date_params.end_date
+    period_lbl = decision.date_params.period_label or "Bulan Depan"
+    out_mode = decision.filter_params.output_mode
+    if hasattr(out_mode, 'value'):
+        out_mode = out_mode.value
+    cat_name = decision.filter_params.category_name
+
+    res = forecast_service.get_forecast_for_period(
+        token,
+        start_date=start_d,
+        end_date=end_d,
+        period_label=period_lbl,
+        output_mode=str(out_mode or 'summary'),
+        category_name=cat_name
+    )
+    return {'tool': ToolName.GET_FORECAST_FOR_PERIOD, 'success': res.get('success', False), 'data': res, 'message': res.get('message', '')}
+
+
+def get_upcoming_recurring_expenses(token: str, decision: PlannerDecision) -> Dict[str, Any]:
+    actor = verify_actor(token, {'pemilik_toko'})
+    res = forecast_service.detect_recurring_expenses(token)
+    return {'tool': ToolName.GET_UPCOMING_RECURRING_EXPENSES, 'success': res.get('success', False), 'data': res, 'message': res.get('message', '')}
+
+
+def get_next_predicted_expense(token: str, decision: PlannerDecision) -> Dict[str, Any]:
+    actor = verify_actor(token, {'pemilik_toko'})
+    res = forecast_service.get_next_predicted_expense(token)
+    return {'tool': ToolName.GET_NEXT_PREDICTED_EXPENSE, 'success': res.get('success', False), 'data': res, 'message': res.get('message', '')}
+
+
+def compare_actual_vs_forecast(token: str, decision: PlannerDecision) -> Dict[str, Any]:
+    actor = verify_actor(token, {'pemilik_toko'})
+    res = forecast_service.compare_actual_vs_forecast(token)
+    return {'tool': ToolName.COMPARE_ACTUAL_VS_FORECAST, 'success': res.get('success', False), 'data': res, 'message': res.get('message', '')}
+
+
+def get_forecast_accuracy(token: str, decision: PlannerDecision) -> Dict[str, Any]:
+    actor = verify_actor(token, {'pemilik_toko'})
+    res = forecast_service.evaluate_forecast_accuracy(token)
+    return {'tool': ToolName.GET_FORECAST_ACCURACY, 'success': res.get('success', False), 'data': res, 'message': res.get('message', '')}
+
+
+def get_expense_trend(token: str, decision: PlannerDecision) -> Dict[str, Any]:
+    actor = verify_actor(token, {'pemilik_toko'})
+    res = forecast_service.get_expense_trend(token)
+    return {'tool': ToolName.GET_EXPENSE_TREND, 'success': res.get('success', False), 'data': res, 'message': res.get('message', '')}
+
+
+def get_forecast_readiness(token: str, decision: PlannerDecision) -> Dict[str, Any]:
+    actor = verify_actor(token, {'pemilik_toko'})
+    res = forecast_service.get_forecast_readiness_status(token)
+    return {'tool': ToolName.GET_FORECAST_READINESS, 'success': True, 'data': res, 'message': res.get('message', '')}
+
+
+def check_forecast_against_cash_balance(token: str, decision: PlannerDecision) -> Dict[str, Any]:
+    actor = verify_actor(token, {'pemilik_toko'})
+    days = decision.filter_params.days_ahead or 30
+    res = forecast_service.check_forecast_against_cash_balance(token, days_ahead=days)
+    return {'tool': ToolName.CHECK_FORECAST_AGAINST_CASH_BALANCE, 'success': res.get('success', False), 'data': res, 'message': res.get('message', '')}
+
+
 # =====================================================================
 # TOOL REGISTRY DISPATCH TABLE
 # =====================================================================
@@ -744,6 +846,15 @@ TOOL_REGISTRY = {
     ToolName.EXPLAIN_CSV_IMPORT: explain_csv_import,
     ToolName.EXPLAIN_AI_CLASSIFICATION: explain_ai_classification,
     ToolName.GET_AVAILABLE_FORECAST: get_available_forecast,
+    ToolName.GET_EXPENSE_FORECAST: get_expense_forecast,
+    ToolName.GET_FORECAST_FOR_PERIOD: get_forecast_for_period,
+    ToolName.GET_UPCOMING_RECURRING_EXPENSES: get_upcoming_recurring_expenses,
+    ToolName.GET_NEXT_PREDICTED_EXPENSE: get_next_predicted_expense,
+    ToolName.COMPARE_ACTUAL_VS_FORECAST: compare_actual_vs_forecast,
+    ToolName.GET_FORECAST_ACCURACY: get_forecast_accuracy,
+    ToolName.GET_EXPENSE_TREND: get_expense_trend,
+    ToolName.GET_FORECAST_READINESS: get_forecast_readiness,
+    ToolName.CHECK_FORECAST_AGAINST_CASH_BALANCE: check_forecast_against_cash_balance,
 }
 
 

@@ -44,6 +44,16 @@ ABBREVIATIONS = {
     'adm': 'administrasi',
     'bbm': 'bensin',
     'omset': 'omzet',
+    'inv': 'invoice',
+    'fktr': 'faktur',
+    'fkt': 'faktur',
+    'shft': 'shift',
+    'dist': 'distributor',
+    'distr': 'distributor',
+    'distrib': 'distributor',
+    'smbko': 'sembako',
+    'mnm': 'minuman',
+    'snk': 'snack',
 }
 
 MONEY_RE = re.compile(
@@ -64,8 +74,22 @@ def clean_text_for_storage(text):
 def normalize(text):
     text = str(text or '').lower().strip()
     text = re.sub(r'(?<!\w)(?:rp\.?\s*)?\d[\d.,]*\s*(?:juta|jt|ribu|rb|k|rupiah)?\b', ' ', text)
+    # Contextual disambiguation for 'pemb.' before punct removal
+    text = re.sub(r'\bpemb\.?\s+(?=sales|faktur|invoice|tempo|gaji|upah|listrik|air|supplier|supl|hutang|distributor|distr)', 'pembayaran ', text)
+    text = re.sub(r'\bpemb\.?\s+(?=barang|stok|bahan|rokok|sembako|mie|sabun|beras)', 'pembelian ', text)
     text = re.sub(r'[^\w\s]', ' ', text)
-    return ' '.join(ABBREVIATIONS.get(word, word) for word in text.split())
+    tokens = text.split()
+    res = []
+    for i, word in enumerate(tokens):
+        if word == 'pemb':
+            next_w = tokens[i+1] if i + 1 < len(tokens) else ''
+            if next_w in ('sales', 'faktur', 'invoice', 'tempo', 'gaji', 'upah', 'listrik', 'air', 'supplier', 'supl', 'hutang', 'distributor', 'distr'):
+                res.append('pembayaran')
+            else:
+                res.append('pembelian')
+        else:
+            res.append(ABBREVIATIONS.get(word, word))
+    return ' '.join(res)
 
 
 def extract_money(text):

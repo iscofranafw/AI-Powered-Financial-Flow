@@ -21,8 +21,11 @@ def test_create_category_validations():
 
         fake_cats = [{'id': f'c{i}', 'nama': f'Cat{i}', 'tipe': 'pengeluaran'} for i in range(10)]
         with patch('services.finance_service.categories', return_value=fake_cats):
-            with pytest.raises(ValueError, match='Batas kategori tercapai'):
-                fs.create_category('tok', 'NewCat', 'pengeluaran')
+            # Store owner can add unlimited categories beyond 7
+            with patch('services.finance_service.privileged_client') as mock_p:
+                mock_p.return_value.table.return_value.insert.return_value.execute.return_value.data = [{'id': 'c_new'}]
+                res = fs.create_category('tok', 'NewCat', 'pengeluaran')
+                assert res == [{'id': 'c_new'}]
 
         with patch('services.finance_service.categories', return_value=[{'id': 'c1', 'nama': 'Listrik', 'tipe': 'pengeluaran'}]):
             with pytest.raises(ValueError, match='Kategori sudah ada'):

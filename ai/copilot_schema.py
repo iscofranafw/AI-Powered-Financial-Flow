@@ -45,7 +45,17 @@ class ToolName(str, Enum):
     GET_CATEGORY_BREAKDOWN = "get_category_breakdown"
     GET_SPENDING_TRENDS = "get_spending_trends"
     GET_FINANCIAL_INSIGHTS = "get_financial_insights"
+    # FORECASTING (PROPHET)
     GET_AVAILABLE_FORECAST = "get_available_forecast"
+    GET_EXPENSE_FORECAST = "get_expense_forecast"
+    GET_FORECAST_FOR_PERIOD = "get_forecast_for_period"
+    GET_UPCOMING_RECURRING_EXPENSES = "get_upcoming_recurring_expenses"
+    GET_NEXT_PREDICTED_EXPENSE = "get_next_predicted_expense"
+    COMPARE_ACTUAL_VS_FORECAST = "compare_actual_vs_forecast"
+    GET_FORECAST_ACCURACY = "get_forecast_accuracy"
+    GET_EXPENSE_TREND = "get_expense_trend"
+    GET_FORECAST_READINESS = "get_forecast_readiness"
+    CHECK_FORECAST_AGAINST_CASH_BALANCE = "check_forecast_against_cash_balance"
     GET_PROFIT_ANALYSIS = "get_profit_analysis"
 
     # APPLICATION
@@ -63,6 +73,11 @@ class ToolName(str, Enum):
     UNKNOWN = "unknown"
 
 
+class ForecastOutputMode(str, Enum):
+    SUMMARY = "summary"
+    DAILY_BREAKDOWN = "daily_breakdown"
+
+
 class DateRangeParams(BaseModel):
     start_date: Optional[str] = Field(None, description="ISO format YYYY-MM-DD")
     end_date: Optional[str] = Field(None, description="ISO format YYYY-MM-DD")
@@ -75,7 +90,13 @@ class FilterParams(BaseModel):
     cashier_id: Optional[str] = None
     cashier_name: Optional[str] = None
     category_id: Optional[str] = None
+    category_name: Optional[str] = None
+    days_ahead: Optional[int] = Field(30, ge=1, le=365)
     limit: Optional[int] = Field(10, ge=1, le=50)
+    output_mode: Optional[ForecastOutputMode] = Field(ForecastOutputMode.SUMMARY, description="summary or daily_breakdown")
+    granularity: Optional[Literal["daily", "total"]] = "total"
+    target_period: Optional[str] = None
+    specific_date: Optional[str] = None
 
 
 class PlannerDecision(BaseModel):
@@ -96,5 +117,12 @@ class ConversationContext(BaseModel):
     last_start_date: Optional[str] = None
     last_end_date: Optional[str] = None
     last_transaction_type: Optional[str] = None
+    last_forecast_period: Optional[str] = None
+    last_forecast_amount: Optional[float] = None
+    last_forecast_start_date: Optional[str] = None
+    last_forecast_end_date: Optional[str] = None
+    last_forecast_days: Optional[int] = None
+    last_forecast_output_mode: Optional[str] = None
+    last_forecast_category: Optional[str] = None
     user_id: Optional[str] = None
     store_id: Optional[str] = None

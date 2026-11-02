@@ -12,7 +12,7 @@ def test_date_invalid():
  with pytest.raises(ValueError): _date('27/10/2026')
 def test_type_invalid():
  with pytest.raises(ValueError): _type('modal')
-def test_limits(): assert LIMITS=={'pengeluaran':10,'pemasukan':5}
+def test_limits(): assert LIMITS=={'pengeluaran':7,'pemasukan':7}
 def test_csv_preview():
  data=b'tanggal,deskripsi,nominal,tipe\n2026-10-27,Beli gula,10000,pengeluaran\n'
  data=data.replace(b'\\n',b'\n')

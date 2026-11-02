@@ -45,6 +45,19 @@ def test_type_expense():
 def test_type_income():
     assert detect_type('omzet hari ini 200rb') == 'pemasukan'
 
+@pytest.mark.parametrize('text,expected', [
+    ('modal dari istri buat tambah stok', 'pemasukan'),
+    ('tambah modal untuk beli stok', 'pemasukan'),
+    ('setor modal pemilik', 'pemasukan'),
+    ('modal dari arisan keluarga', 'pemasukan'),
+    ('beli stok pakai modal', 'pengeluaran'),
+    ('bayar modal pinjaman', 'pengeluaran'),
+    ('omzet hari ini 500rb', 'pemasukan'),
+    ('beli gas 2 tabung', 'pengeluaran'),
+])
+def test_detect_type_capital_and_rules(text, expected):
+    assert detect_type(text) == expected
+
 def test_llm_classification_success():
     with patch('ai.classifier.ask_json', return_value={'kategori_id': 'bahan', 'nama_baru': '', 'alasan': 'Cocok'}):
         res = classify('pengeluaran', 'beli telur ayam 250rb', CATS)
@@ -66,6 +79,6 @@ def test_initial_suggestions_respect_caps():
     for business in ('grosir sembako', 'bakery', 'bengkel motor', 'warung makan'):
         with patch('ai.category_suggester.ask_json', side_effect=LLMUnavailable('offline')):
             rec = recommend(business)
-        assert len(rec['pengeluaran']) <= 10 and len(rec['pemasukan']) <= 5
+        assert len(rec['pengeluaran']) <= 7 and len(rec['pemasukan']) <= 7
         assert 'Others' in rec['pengeluaran']
         assert 'Tambahan Modal' in rec['pemasukan']
