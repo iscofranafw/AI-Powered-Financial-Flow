@@ -178,6 +178,10 @@ Aplikasi menggunakan pendekatan modular dengan pemisahan antara antarmuka, logik
 | Ekspor Laporan | OpenPyXL | Pembuatan laporan spreadsheet Excel |
 | Pengujian | Pytest | Rangkaian pengujian unit dan integrasi otomatis |
 
+### Mode AI pada staging privat
+
+Di mode development lokal, aplikasi dapat memanggil Ollama pada komputer yang sama. Staging privat memakai provider `browser`: extension Chrome/Edge yang dipasangkan pada tab Financial Flow meneruskan AI ke Ollama pada perangkat pengguna; Llama tidak dijalankan di VPS. Untuk pemasangan dan troubleshooting, lihat [panduan AI lokal browser](browser-extension/README.md). Jangan membuka port Ollama ke jaringan.
+
 ---
 
 ## 4. Struktur Direktori
@@ -385,6 +389,7 @@ EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 | `SUPABASE_URL` | **Wajib** | URL endpoint REST API proyek Supabase Anda (ditemukan di menu *Project Settings* &rarr; *API* &rarr; *Project URL*). |
 | `SUPABASE_ANON_KEY` | **Wajib** | Kunci API publik anonim untuk otentikasi sesi klien (*Project Settings* &rarr; *API* &rarr; *Project API keys* &rarr; `anon / public`). |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Wajib** | Kunci API rahasia `service_role` untuk eksekusi mutasi atomik berhak khusus di lapisan backend server (*Project Settings* &rarr; *API* &rarr; *Project API keys* &rarr; `service_role`). |
+| `OLLAMA_PROVIDER` | Opsional | `local` (default) untuk development lokal atau `browser` untuk relay extension staging; staging wajib memakai `browser`. |
 | `OLLAMA_HOST` | Opsional | Alamat URL layanan Ollama lokal (nilai default: `http://127.0.0.1:11434`). |
 | `OLLAMA_MODEL` | Opsional | Nama model bahasa yang dijalankan melalui Ollama (nilai default: `llama3:8b`). |
 | `EMBEDDING_MODEL` | Opsional | Nama model sentence-transformers untuk kalkulasi embedding RAG (nilai default: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`). |

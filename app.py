@@ -13,7 +13,7 @@ st.set_page_config(
 apply_custom_styles()
 
 try:
-    get_settings()
+    app_settings = get_settings()
 except RuntimeError as exc:
     st.error(f"Konfigurasi sistem belum lengkap: {exc}")
     st.stop()
@@ -36,6 +36,14 @@ except Exception as exc:
     st.stop()
 
 user_profile_sidebar(profile["nama"], profile["role"])
+
+if profile.get("role") in ("pemilik_toko", "kasir") and app_settings.get("OLLAMA_PROVIDER") == "browser":
+    from ai.local_ai_bridge import render_status_widget
+    with st.sidebar:
+        st.divider()
+        startup_error = render_status_widget(app_settings)
+        if startup_error:
+            st.error(f"AI lokal belum siap: {startup_error}")
 
 if profile["role"] == "superadmin":
     superadmin.render(token)

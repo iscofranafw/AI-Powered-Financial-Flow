@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #0f172a; font-size: 12px; }
+    .card { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; background: #fff; }
+    .title { font-weight: 700; font-size: 12px; margin-bottom: 6px; }
+    .row { display: flex; align-items: flex-start; gap: 7px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; margin-top: 4px; flex: 0 0 auto; }
+    .dot.ready { background: #16a34a; }
+    .dot.error { background: #dc2626; }
+    .dot.wait { background: #d97706; }
+    #status { line-height: 1.4; color: #334155; }
+    #message { margin-top: 5px; color: #64748b; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+    button { margin-top: 8px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 5px 8px; background: #f8fafc; color: #0f172a; font: inherit; cursor: pointer; }
+    button:hover { background: #f1f5f9; }
+    details { margin-top: 8px; border-top: 1px solid #e2e8f0; padding-top: 7px; }
+    summary { cursor: pointer; color: #334155; font-weight: 600; }
+    ol { margin: 7px 0 0 17px; padding: 0; color: #475569; line-height: 1.45; }
+    li { margin: 4px 0; }
+    code { color: #0f172a; background: #f1f5f9; padding: 1px 3px; border-radius: 3px; overflow-wrap: anywhere; }
+    a { color: #1d4ed8; }
+    .safe { margin-top: 6px; color: #64748b; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <section class="card" aria-live="polite">
+    <div class="title">AI lokal · Llama 3 8B</div>
+    <div class="row"><span id="dot" class="dot wait"></span><div><div id="status">Menunggu pemeriksaan…</div><div id="message"></div></div></div>
+    <button id="check" type="button">Periksa lagi</button>
+    <details>
+      <summary>Petunjuk pemasangan dan koneksi</summary>
+      <ol>
+        <li>Pasang Ollama di komputer ini, jalankan <code>ollama pull llama3:8b</code>, dan pastikan Ollama tetap hanya mendengar di <code>127.0.0.1</code>.</li>
+        <li>Pasang extension Financial Flow dari repositori untuk Chrome/Edge. Sumbernya ada pada <a href="https://github.com/iscofranafw/AI-Powered-Financial-Flow/tree/main/browser-extension" target="_blank" rel="noreferrer">folder browser-extension</a>.</li>
+        <li>Di pengaturan Ollama, izinkan hanya origin extension <code id="ext-origin"></code> melalui <code>OLLAMA_ORIGINS</code>, lalu tutup dan buka kembali Ollama.</li>
+        <li>Kembali ke tab ini, klik ikon extension Financial Flow, pilih <strong>Pair</strong>, lalu tekan Periksa lagi.</li>
+      </ol>
+      <div class="safe">Model dan prompt diproses oleh Ollama pada perangkat ini. Tidak ada model atau port Ollama yang dijalankan/dibuka di VPS.</div>
+    </details>
+  </section>
+<script>
+(() => {
+  'use strict';
+  const CHANNEL = 'financial-flow-local-ai-v1';
+  const SOURCE = 'financial-flow-local-ai-component';
+  const ui = {
+    dot: document.getElementById('dot'),
+    status: document.getElementById('status'),
+    message: document.getElementById('message'),
+    check: document.getElementById('check'),
+    origin: document.getElementById('ext-origin')
+  };
+  let props = null;
+  let activeToken = null;
+  let pollRunning = false;
+  let probeTimer = null;
+  let currentState = 'checking';
+  let jobActive = false;
+
+  const copy = {
+    checking: ['Memeriksa extension dan Ollama lokal…', 'wait'],
+    ready: ['Llama 3 8B lokal siap', 'ready'],
+    extension_missing: ['Extension Financial Flow belum terdeteksi', 'error'],
+    not_paired: ['Pair tab ini melalui ikon extension', 'wait'],
+    ollama_unavailable: ['Ollama belum terjangkau atau origin extension belum diizinkan', 'error'],
+    model_missing: ['Model llama3:8b belum tersedia di komputer ini', 'error'],
+    origin_not_allowed: ['Ollama menolak origin extension', 'error'],
+    busy: ['Model lokal sedang memproses', 'wait'],
+    timeout: ['Permintaan model lokal melewati batas waktu', 'error'],
+    relay_unavailable: ['Relay staging belum tersedia', 'error'],
+    error: ['Koneksi AI lokal perlu diperiksa', 'error']
+  };
+
+  function setHeight() {
+    const height = Math.max(150, document.documentElement.scrollHeight + 4);
+    window.parent.postMessage({isStreamlitMessage: true, type: 'streamlit:setFrameHeight', height}, '*');
+  }
+
+  function showState(state, detail) {
+    currentState = copy[state] ? state : 'error';
+    const [label, dot] = copy[currentState];
+    ui.status.textContent = label;
+    ui.dot.className = 'dot ' + dot;
+    ui.message.textContent = typeof detail === 'string' ? detail : '';
+    setHeight();
+  }
+
+  function postMessageToPage(type, requestId, payload) {
+    window.parent.postMessage({source: SOURCE, channel: CHANNEL, type, requestId, payload}, window.location.origin);
+  }
+
+  function askExtension(type, requestId, payload, timeoutMs = 6000) {
+    return new Promise(resolve => {
+      let done = false;
+      const finish = value => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        window.removeEventListener('message', handler);
+        resolve(value);
+      };
+      const handler = event => {
+        if (event.source !== window.parent || event.origin !== window.location.origin) return;
+        const data = event.data;
+        if (!data || data.channel !== CHANNEL || data.type !== 'result' || data.requestId !== requestId) return;
+        finish(data.payload || null);
+      };
+      const timer = setTimeout(() => finish(null), timeoutMs);
+      window.addEventListener('message', handler);
+      postMessageToPage(type, requestId, payload || {});
+    });
+  }
+
+  async function bridgePost(path, body) {
+    if (!props || !props.session_token || !props.api_base) throw new Error('Sesi relay tidak tersedia.');
+    const response = await fetch(props.api_base + path, {
+      method: 'POST',
+      mode: 'same-origin',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + props.session_token
+      },
+      body: JSON.stringify(body)
+    });
+    if (!response.ok) throw new Error('Relay mengembalikan HTTP ' + response.status + '.');
+    return response.json();
+  }
+
+  async function reportStatus(status) {
+    try {
+      await bridgePost('/status', {
+        state: status.state || 'error',
+        message: status.message || '',
+        models: Array.isArray(status.models) ? status.models.slice(0, 64) : []
+      });
+    } catch (_) {
+      // Do not expose tokens, prompts, or response bodies in browser logs.
+    }
+  }
+
+  async function probeExtension() {
+    if (!props || jobActive) return;
+    showState('checking', 'Memeriksa koneksi extension.');
+    const id = 'status-' + Date.now() + '-' + Math.random().toString(16).slice(2);
+    const result = await askExtension('status', id, {}, 6000);
+    if (!result || !result.state) {
+      const status = {state: 'extension_missing', message: 'Pasang/aktifkan extension Financial Flow, lalu muat ulang tab ini.'};
+      showState(status.state, status.message);
+      await reportStatus(status);
+      return;
+    }
+    const status = {
+      state: result.state,
+      message: typeof result.message === 'string' ? result.message : '',
+      models: Array.isArray(result.models) ? result.models : []
+    };
+    if (status.state === 'model_missing') {
+      status.message = 'Jalankan `ollama pull ' + (props.model || 'llama3:8b') + '` pada komputer ini.';
+    } else if (status.state === 'ollama_unavailable') {
+      status.message = 'Pastikan Ollama berjalan dan OLLAMA_ORIGINS mengizinkan origin extension yang tercantum di bawah.';
+    } else if (status.state === 'origin_not_allowed') {
+      status.message = 'Set OLLAMA_ORIGINS ke origin extension yang tercantum di bawah, kemudian restart Ollama.';
+    } else if (status.state === 'not_paired') {
+      status.message = 'Buka ikon extension Financial Flow dan pilih “Pair”.';
+    }
+    showState(status.state, status.message);
+    await reportStatus(status);
+  }
+
+  async function completeJob(id, result) {
+    try {
+      await bridgePost('/complete', {id, result});
+    } catch (_) {
+      showState('relay_unavailable', 'Hasil lokal tidak dapat dikirim kembali ke aplikasi. Muat ulang lalu coba lagi.');
+    }
+  }
+
+  async function executeJob(request) {
+    if (!request || typeof request.id !== 'string' || !request.payload) return;
+    jobActive = true;
+    try {
+      showState('busy', 'Prompt diproses pada Ollama di komputer pengguna.');
+      const result = await askExtension('infer', request.id, request.payload, 250000);
+      if (!result) {
+        const failure = {ok: false, state: 'timeout', message: 'Extension lokal tidak merespons. Pastikan tab ini sudah dihubungkan dan Ollama aktif.'};
+        showState(failure.state, failure.message);
+        await completeJob(request.id, failure);
+        await reportStatus(failure);
+        return;
+      }
+      const clean = {
+        ok: result.ok === true,
+        state: typeof result.state === 'string' ? result.state : (result.ok ? 'ready' : 'error'),
+        message: typeof result.message === 'string' ? result.message : '',
+        content: typeof result.content === 'string' ? result.content : '',
+        models: Array.isArray(result.models) ? result.models.slice(0, 64) : []
+      };
+      if (clean.state === 'model_missing') clean.message = 'Jalankan `ollama pull ' + (props.model || 'llama3:8b') + '` pada perangkat ini.';
+      if (clean.state === 'origin_not_allowed') clean.message = 'Ollama belum mengizinkan origin extension. Atur OLLAMA_ORIGINS seperti petunjuk lalu restart Ollama.';
+      showState(clean.state, clean.message);
+      await completeJob(request.id, clean);
+      await reportStatus(clean);
+    } finally {
+      jobActive = false;
+    }
+  }
+
+  async function pollLoop() {
+    if (pollRunning) return;
+    pollRunning = true;
+    while (props && activeToken === props.session_token) {
+      try {
+        const response = await fetch(props.api_base + '/poll', {
+          method: 'GET',
+          mode: 'same-origin',
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: {'Authorization': 'Bearer ' + props.session_token}
+        });
+        if (!response.ok) throw new Error('relay-' + response.status);
+        const data = await response.json();
+        if (data && data.request) await executeJob(data.request);
+      } catch (_) {
+        showState('relay_unavailable', 'Relay lokal belum siap atau sesi Access berakhir. Coba muat ulang halaman.');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+    pollRunning = false;
+  }
+
+  function start(nextProps) {
+    props = nextProps;
+    if (!props || !props.session_token || !props.api_base) return;
+    ui.origin.textContent = props.extension_origin || 'chrome-extension://<ID-extension>';
+    if (activeToken !== props.session_token) {
+      activeToken = props.session_token;
+      if (probeTimer) clearInterval(probeTimer);
+      probeExtension();
+      probeTimer = setInterval(probeExtension, 20000);
+      pollLoop();
+    }
+    setHeight();
+  }
+
+  ui.check.addEventListener('click', () => probeExtension());
+  window.addEventListener('message', event => {
+    if (event.source !== window.parent || !event.data || event.data.type !== 'streamlit:render') return;
+    start(event.data.args || {});
+  });
+  window.parent.postMessage({isStreamlitMessage: true, type: 'streamlit:componentReady', apiVersion: 1}, '*');
+  if (window.ResizeObserver) new ResizeObserver(setHeight).observe(document.body);
+  setHeight();
+})();
+</script>
+</body>
+</html>

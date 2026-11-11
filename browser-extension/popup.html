@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Financial Flow Local AI</title>
+  <style>
+    body { font: 14px/1.45 system-ui, sans-serif; width: 300px; margin: 0; padding: 16px; color: #172033; }
+    h1 { font-size: 16px; margin: 0 0 10px; }
+    #state { font-weight: 650; margin-bottom: 6px; }
+    #detail { color: #4b5563; min-height: 42px; overflow-wrap: anywhere; }
+    button { margin-top: 12px; padding: 8px 14px; border: 0; border-radius: 6px; background: #2457d6; color: white; font-weight: 650; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .hint { color: #6b7280; font-size: 12px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Financial Flow Local AI</h1>
+  <div id="state">Memeriksa tab…</div>
+  <div id="detail" role="status" aria-live="polite"></div>
+  <button id="pair" disabled>Pair</button>
+  <div class="hint">Pair memberi izin pada tab aktif ini saja. Lepas pairing saat navigasi keluar atau tab ditutup.</div>
+  <script src="popup.js"></script>
+</body>
+</html>

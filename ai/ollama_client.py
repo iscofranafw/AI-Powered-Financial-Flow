@@ -3,12 +3,24 @@ import time
 import logging
 from config.settings import get_settings
 
+logger = logging.getLogger(__name__)
+
+
 class LLMUnavailable(RuntimeError):
     pass
+
 
 _CLIENT_INSTANCE = None
 _CIRCUIT_OPEN_UNTIL = 0.0
 CIRCUIT_COOLDOWN_SECONDS = 30.0
+
+
+def _settings():
+    return get_settings()
+
+
+def _provider():
+    return _settings().get('OLLAMA_PROVIDER', 'local')
 
 
 def _check_circuit_breaker():
@@ -30,6 +42,8 @@ def _record_success():
 
 def _client(timeout: float = 25.0):
     global _CLIENT_INSTANCE
+    if _provider() == 'browser':
+        raise LLMUnavailable('Ollama browser tidak dapat dipanggil langsung dari server.')
     if _CLIENT_INSTANCE is not None:
         return _CLIENT_INSTANCE
     try:
@@ -37,20 +51,51 @@ def _client(timeout: float = 25.0):
     except ImportError as exc:
         raise LLMUnavailable('Paket ollama belum diinstal. Jalankan pip install ollama') from exc
     try:
-        s = get_settings()
-        _CLIENT_INSTANCE = Client(host=s['OLLAMA_HOST'], timeout=timeout)
+        settings = _settings()
+        _CLIENT_INSTANCE = Client(host=settings['OLLAMA_HOST'], timeout=timeout)
         return _CLIENT_INSTANCE
     except Exception as exc:
         _record_failure()
         raise LLMUnavailable(f'Gagal menginisialisasi klien Ollama: {exc}') from exc
 
 
-def diagnosis():
-    """Lightweight availability check with short timeout to prevent UI freezes."""
+def _browser_chat(messages, response_format, options):
+    settings = _settings()
     try:
-        settings = get_settings()
+        from ai.local_ai_bridge import LocalAIBridgeError, request_chat
+        return request_chat(
+            messages=messages,
+            model=settings['OLLAMA_MODEL'],
+            response_format=response_format,
+            options=options,
+            timeout=settings.get('LOCAL_AI_BRIDGE_TIMEOUT_SECONDS', 240),
+        )
+    except LocalAIBridgeError as exc:
+        raise LLMUnavailable(str(exc)) from exc
+
+
+def diagnosis():
+    """Check the selected provider without ever probing VPS Ollama in browser mode."""
+    try:
+        settings = _settings()
     except Exception as exc:
-        return {'ok': False, 'models': [], 'message': f'Konfigurasi belum lengkap: {exc}'}
+        return {'ok': False, 'state': 'error', 'models': [], 'message': f'Konfigurasi belum lengkap: {exc}'}
+
+    if settings.get('OLLAMA_PROVIDER', 'local') == 'browser':
+        try:
+            from ai.local_ai_bridge import diagnosis as bridge_diagnosis
+            status = bridge_diagnosis()
+            status.setdefault('models', [])
+            status.setdefault('state', 'error')
+            status.setdefault('ok', status.get('state') == 'ready')
+            return status
+        except Exception:
+            return {
+                'ok': False,
+                'state': 'extension_missing',
+                'models': [],
+                'message': 'Extension AI lokal belum terhubung. Ikuti petunjuk koneksi pada panel AI lokal.',
+            }
 
     try:
         from ollama import Client
@@ -62,22 +107,40 @@ def diagnosis():
         _record_success()
         return {
             'ok': matched,
+            'state': 'ready' if matched else 'model_missing',
             'models': names,
             'message': 'Siap' if matched else f'Model {wanted} tidak ditemukan; jalankan ollama pull {wanted}'
         }
     except Exception as exc:
         _record_failure()
-        return {'ok': False, 'models': [], 'message': f'Ollama tidak dapat diakses (timeout/offline): {exc}'}
+        return {'ok': False, 'state': 'ollama_unavailable', 'models': [], 'message': f'Ollama tidak dapat diakses (timeout/offline): {exc}'}
 
 
 def ask_json(system, user, schema=None, num_predict=256):
+    settings = _settings()
+    messages = [{'role': 'system', 'content': system}, {'role': 'user', 'content': user}]
+    response_format = schema or 'json'
+    options = {'temperature': 0, 'num_predict': num_predict}
+
+    if settings.get('OLLAMA_PROVIDER', 'local') == 'browser':
+        try:
+            content = _browser_chat(messages, response_format, options)
+            result = json.loads(content)
+            if not isinstance(result, dict):
+                raise ValueError('Balasan model bukan objek')
+            return result
+        except LLMUnavailable:
+            raise
+        except Exception as exc:
+            raise LLMUnavailable(f'Balasan Llama lokal bukan JSON valid: {exc}') from exc
+
     _check_circuit_breaker()
     try:
         response = _client().chat(
-            model=get_settings()['OLLAMA_MODEL'],
-            messages=[{'role': 'system', 'content': system}, {'role': 'user', 'content': user}],
-            format=schema or 'json',
-            options={'temperature': 0, 'num_predict': num_predict},
+            model=settings['OLLAMA_MODEL'],
+            messages=messages,
+            format=response_format,
+            options=options,
             keep_alive='10m',
         )
         result = json.loads(response.message.content)
@@ -91,12 +154,19 @@ def ask_json(system, user, schema=None, num_predict=256):
 
 
 def ask_text(system, user, num_predict=512):
+    settings = _settings()
+    messages = [{'role': 'system', 'content': system}, {'role': 'user', 'content': user}]
+    options = {'temperature': 0.2, 'num_predict': num_predict}
+
+    if settings.get('OLLAMA_PROVIDER', 'local') == 'browser':
+        return _browser_chat(messages, None, options).strip()
+
     _check_circuit_breaker()
     try:
         response = _client().chat(
-            model=get_settings()['OLLAMA_MODEL'],
-            messages=[{'role': 'system', 'content': system}, {'role': 'user', 'content': user}],
-            options={'temperature': 0.2, 'num_predict': num_predict},
+            model=settings['OLLAMA_MODEL'],
+            messages=messages,
+            options=options,
             keep_alive='10m',
         )
         _record_success()
