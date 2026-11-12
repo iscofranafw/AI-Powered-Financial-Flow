@@ -45,11 +45,8 @@ def quick_entry(token, owner=True):
 
     st.divider()
     section_header('Hasil Analisis Transaksi')
-    badge = ''
-    if data.get('skor') is not None:
-        status_lbl = 'Otomatis' if data.get('status_kategori') == 'otomatis' else 'Perlu Tinjauan'
-        badge = f" &nbsp; <span style='display:inline-block; padding: 0.15rem 0.5rem; background-color: #F1F5F9; border-radius: 4px; font-size: 0.75rem; color: #475569;'>Tingkat Keyakinan: {data['skor']:.2f} ({status_lbl})</span>"
-    st.markdown(f"<div style='border: 1px solid #E2E8F0; background-color: #FFFFFF; border-radius: 6px; padding: 0.875rem 1rem; margin-bottom: 1.25rem; font-size: 0.875rem; color: #334155;'><strong>Rekomendasi Sistem:</strong> {data.get('message', '-')}{badge}</div>", unsafe_allow_html=True)
+    status_label = 'Perlu Tinjauan' if (data.get('is_unresolved') or data.get('status_kategori') == 'perlu_tinjauan' or not data.get('kategori_id')) else 'Terpetakan'
+    st.info(f"Status kategori: {status_label}. Tinjau kategori dan nominal sebelum menyimpan.")
 
     cats = [x for x in all_cats if x['tipe'] == data['tipe']]
     if not cats:
@@ -59,19 +56,14 @@ def quick_entry(token, owner=True):
     options = {x['nama']: x['id'] for x in cats}
     other_cat = next((c for c in cats if c['nama'].casefold() == 'others'), None)
 
-    can_create_new = owner  # Owners have unlimited category creation (see finance_service.check_category_quota)
     suggested_new = (data.get('usulan') or {}).get('nama_baru', '').strip()
-
-    cat_modes = []
-    if owner and can_create_new and suggested_new:
-        cat_modes = ['Buat kategori baru (sesuai rekomendasi)', 'Pilih kategori yang sudah ada', 'Masukkan ke Others']
-    elif owner and can_create_new:
-        cat_modes = ['Pilih kategori yang sudah ada', 'Buat kategori baru', 'Masukkan ke Others']
-    else:
-        cat_modes = ['Pilih kategori yang sudah ada', 'Masukkan ke Others']
+    cat_modes = ['Pilih kategori yang sudah ada', 'Masukkan ke Others']
 
     if suggested_new:
-        st.info(f"Rekomendasi nama kategori baru: {suggested_new}")
+        st.caption(
+            f"Saran teks sistem ('{suggested_new}') tidak membuat kategori otomatis. "
+            "Silakan koreksi manual hanya dari daftar kategori toko yang sudah ada atau Others."
+        )
 
     cat_choice = st.radio('Tindakan Kategori:', cat_modes, key='quick_cat_mode')
 

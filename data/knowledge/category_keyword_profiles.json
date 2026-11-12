@@ -1,0 +1,498 @@
+{
+  "bakery": [
+    {
+      "aliases": [
+        "bahan baku",
+        "bahan kue",
+        "bahan mentah",
+        "ingredients"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "tepung terigu",
+        "gula pasir",
+        "mentega",
+        "telur",
+        "cokelat",
+        "ragi",
+        "susu",
+        "keju",
+        "margarin",
+        "krim"
+      ],
+      "sources": [
+        "data/samples/bakery.csv",
+        "data/knowledge/bakery/panduan_operasional_bakery.md"
+      ]
+    },
+    {
+      "aliases": [
+        "kemasan",
+        "packing",
+        "pengemasan",
+        "packaging",
+        "pembungkus"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "dus kue",
+        "plastik kemasan roti",
+        "kardus"
+      ],
+      "sources": [
+        "data/samples/bakery.csv",
+        "data/knowledge/bakery/panduan_operasional_bakery.md"
+      ]
+    },
+    {
+      "aliases": [
+        "operasional",
+        "utilitas"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "listrik oven",
+        "sewa ruko",
+        "gas elpiji"
+      ],
+      "sources": [
+        "data/samples/bakery.csv",
+        "data/knowledge/bakery/panduan_operasional_bakery.md"
+      ]
+    },
+    {
+      "aliases": [
+        "gaji",
+        "upah",
+        "karyawan"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "gaji baker",
+        "upah penjaga toko"
+      ],
+      "sources": [
+        "data/samples/bakery.csv",
+        "data/knowledge/bakery/panduan_operasional_bakery.md"
+      ]
+    },
+    {
+      "aliases": [
+        "pemasaran",
+        "promosi"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "promosi instagram"
+      ],
+      "sources": [
+        "data/samples/bakery.csv",
+        "data/knowledge/bakery/panduan_operasional_bakery.md"
+      ]
+    },
+    {
+      "aliases": [
+        "logistik",
+        "pengiriman"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "pengantaran"
+      ],
+      "sources": [
+        "data/samples/bakery.csv",
+        "data/knowledge/bakery/panduan_operasional_bakery.md"
+      ]
+    },
+    {
+      "aliases": [
+        "penjualan",
+        "omzet",
+        "pesanan"
+      ],
+      "tipe": "pemasukan",
+      "keywords": [
+        "pesanan kue ulang tahun",
+        "omzet bakery hari ini",
+        "omzet pesanan online"
+      ],
+      "sources": [
+        "data/samples/bakery.csv",
+        "data/knowledge/bakery/panduan_operasional_bakery.md"
+      ]
+    }
+  ],
+  "retail": [
+    {
+      "aliases": [
+        "stok",
+        "barang dagangan",
+        "persediaan",
+        "kulakan"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "mie instan",
+        "deterjen",
+        "kopi sachet",
+        "sabun cuci",
+        "teh botol",
+        "beras"
+      ],
+      "sources": [
+        "data/samples/grosir.csv",
+        "data/knowledge/retail/panduan_operasional_retail.md"
+      ],
+      "grounding_sources": [
+        {
+          "path": "data/knowledge/retail/panduan_operasional_retail.md",
+          "line_prefixes": [
+            "  - **Kelas A",
+            "  - **Kelas B"
+          ]
+        }
+      ]
+    },
+    {
+      "aliases": [
+        "kemasan",
+        "packing",
+        "pengemasan",
+        "packaging",
+        "pembungkus"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "kantong plastik grosir"
+      ],
+      "sources": [
+        "data/samples/grosir.csv",
+        "data/knowledge/retail/panduan_operasional_retail.md"
+      ]
+    },
+    {
+      "aliases": [
+        "perlengkapan",
+        "furnitur"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "tisu",
+        "rak gondola",
+        "palet plastik"
+      ],
+      "sources": [
+        "data/samples/grosir.csv",
+        "data/knowledge/retail/panduan_operasional_retail.md"
+      ]
+    },
+    {
+      "aliases": [
+        "operasional",
+        "utilitas"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "listrik gudang",
+        "listrik"
+      ],
+      "sources": [
+        "data/samples/grosir.csv",
+        "data/knowledge/retail/panduan_operasional_retail.md"
+      ]
+    },
+    {
+      "aliases": [
+        "gaji",
+        "upah",
+        "karyawan"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "gaji pegawai gudang"
+      ],
+      "sources": [
+        "data/samples/grosir.csv",
+        "data/knowledge/retail/panduan_operasional_retail.md"
+      ]
+    },
+    {
+      "aliases": [
+        "pemasaran",
+        "promosi"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "spanduk promo"
+      ],
+      "sources": [
+        "data/samples/grosir.csv",
+        "data/knowledge/retail/panduan_operasional_retail.md"
+      ]
+    },
+    {
+      "aliases": [
+        "logistik",
+        "pengiriman",
+        "transportasi"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "bensin angkut",
+        "ekspedisi"
+      ],
+      "sources": [
+        "data/samples/grosir.csv",
+        "data/knowledge/retail/panduan_operasional_retail.md"
+      ]
+    },
+    {
+      "aliases": [
+        "administrasi",
+        "biaya lain"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "nota",
+        "faktur"
+      ],
+      "sources": [
+        "data/samples/grosir.csv",
+        "data/knowledge/retail/panduan_operasional_retail.md"
+      ]
+    },
+    {
+      "aliases": [
+        "penjualan",
+        "omzet"
+      ],
+      "tipe": "pemasukan",
+      "keywords": [
+        "penjualan eceran hari ini",
+        "penjualan grosir"
+      ],
+      "sources": [
+        "data/samples/grosir.csv",
+        "data/knowledge/retail/panduan_operasional_retail.md"
+      ]
+    }
+  ],
+  "warung_makan": [
+    {
+      "aliases": [
+        "bahan baku",
+        "dapur",
+        "masak"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "ayam dan beras",
+        "cabai dan bawang",
+        "minyak goreng"
+      ],
+      "sources": [
+        "data/samples/warung_makan.csv",
+        "data/knowledge/warung_makan/panduan_operasional_warung_makan.md"
+      ]
+    },
+    {
+      "aliases": [
+        "kemasan",
+        "packing",
+        "pengemasan",
+        "packaging",
+        "pembungkus"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "styrofoam nasi",
+        "plastik bungkus"
+      ],
+      "sources": [
+        "data/samples/warung_makan.csv",
+        "data/knowledge/warung_makan/panduan_operasional_warung_makan.md"
+      ]
+    },
+    {
+      "aliases": [
+        "operasional",
+        "utilitas"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "sewa tempat",
+        "gas elpiji"
+      ],
+      "sources": [
+        "data/samples/warung_makan.csv",
+        "data/knowledge/warung_makan/panduan_operasional_warung_makan.md"
+      ]
+    },
+    {
+      "aliases": [
+        "gaji",
+        "upah",
+        "karyawan"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "upah koki"
+      ],
+      "sources": [
+        "data/samples/warung_makan.csv",
+        "data/knowledge/warung_makan/panduan_operasional_warung_makan.md"
+      ]
+    },
+    {
+      "aliases": [
+        "pemasaran",
+        "promosi"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "iklan menu"
+      ],
+      "sources": [
+        "data/samples/warung_makan.csv",
+        "data/knowledge/warung_makan/panduan_operasional_warung_makan.md"
+      ]
+    },
+    {
+      "aliases": [
+        "penjualan",
+        "omzet",
+        "pesanan"
+      ],
+      "tipe": "pemasukan",
+      "keywords": [
+        "omzet makan siang",
+        "pesanan nasi kotak"
+      ],
+      "sources": [
+        "data/samples/warung_makan.csv",
+        "data/knowledge/warung_makan/panduan_operasional_warung_makan.md"
+      ]
+    },
+    {
+      "aliases": [
+        "logistik",
+        "pengiriman",
+        "transportasi"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "pesan antar"
+      ],
+      "sources": [
+        "data/knowledge/warung_makan/panduan_operasional_warung_makan.md"
+      ]
+    }
+  ],
+  "bengkel_motor": [
+    {
+      "aliases": [
+        "suku cadang",
+        "sparepart",
+        "stok",
+        "oli"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "stok oli mesin",
+        "busi motor",
+        "kampas rem"
+      ],
+      "sources": [
+        "data/samples/bengkel_motor.csv",
+        "data/knowledge/bengkel_motor/panduan_operasional_bengkel_motor.md"
+      ]
+    },
+    {
+      "aliases": [
+        "peralatan",
+        "perlengkapan"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "kompresor",
+        "kunci ring"
+      ],
+      "sources": [
+        "data/samples/bengkel_motor.csv",
+        "data/knowledge/bengkel_motor/panduan_operasional_bengkel_motor.md"
+      ]
+    },
+    {
+      "aliases": [
+        "operasional",
+        "utilitas"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "listrik bengkel",
+        "sewa bengkel"
+      ],
+      "sources": [
+        "data/samples/bengkel_motor.csv",
+        "data/knowledge/bengkel_motor/panduan_operasional_bengkel_motor.md"
+      ]
+    },
+    {
+      "aliases": [
+        "gaji",
+        "upah",
+        "karyawan"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "gaji mekanik"
+      ],
+      "sources": [
+        "data/samples/bengkel_motor.csv",
+        "data/knowledge/bengkel_motor/panduan_operasional_bengkel_motor.md"
+      ]
+    },
+    {
+      "aliases": [
+        "pemasaran",
+        "promosi"
+      ],
+      "tipe": "pengeluaran",
+      "keywords": [
+        "brosur servis"
+      ],
+      "sources": [
+        "data/samples/bengkel_motor.csv",
+        "data/knowledge/bengkel_motor/panduan_operasional_bengkel_motor.md"
+      ]
+    },
+    {
+      "aliases": [
+        "jasa",
+        "servis"
+      ],
+      "tipe": "pemasukan",
+      "keywords": [
+        "pendapatan servis motor"
+      ],
+      "sources": [
+        "data/samples/bengkel_motor.csv",
+        "data/knowledge/bengkel_motor/panduan_operasional_bengkel_motor.md"
+      ]
+    },
+    {
+      "aliases": [
+        "penjualan",
+        "omzet"
+      ],
+      "tipe": "pemasukan",
+      "keywords": [
+        "penjualan oli"
+      ],
+      "sources": [
+        "data/samples/bengkel_motor.csv",
+        "data/knowledge/bengkel_motor/panduan_operasional_bengkel_motor.md"
+      ]
+    }
+  ]
+}

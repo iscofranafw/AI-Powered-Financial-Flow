@@ -1,0 +1,143 @@
+{
+  "jenis_usaha": "bengkel_motor",
+  "built_at": "2026-11-11T14:17:12.588603+00:00",
+  "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
+  "embedding_dim": 384,
+  "chunk_count": 11,
+  "chunks": [
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "1. Model Usaha & Target Pelanggan",
+      "sumber_url": "https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart, https://kledo.com/blog/contoh-pembukuan-bengkel/",
+      "sumber_urls": [
+        "https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart",
+        "https://kledo.com/blog/contoh-pembukuan-bengkel/"
+      ],
+      "chunk_index": 0,
+      "text": "Usaha bengkel motor memadukan penjualan jasa keahlian mekanik dengan perdagangan barang suku cadang:\n- **Bengkel Servis Umum & Perawatan Berkala:** Melayani ganti oli, servis ringan/injeksi, penyetelan rem, rantai, ban, dan aki untuk pengguna motor harian, pekerja komuter, dan pelajar di sekitar lokasi.\n- **Bengkel dengan Armada/Pelanggan B2B & Komunitas Ojol:** Memberikan tarif atau paket servis rutin bagi pengemudi ojek online, kurir pengiriman, atau armada kurir toko sekitar guna menjaga volume kunjungan stabil di jam non-puncak (Senin–Jumat siang).\n- **Penjualan Sparepart Eceran (*Counter Sales*):** Selain penggantian langsung saat servis, bengkel dapat menjual oli, busi, kampas rem, dan ban bagi pengendara atau bengkel kecil sekitar."
+    },
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "2. Produk/Jasa Utama & Standar Kualitas",
+      "sumber_url": "https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart, https://turboly.com/blog/2026/08/panduan-manajemen-stok-spare-part-bengkel-efektif/",
+      "sumber_urls": [
+        "https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart",
+        "https://turboly.com/blog/2026/08/panduan-manajemen-stok-spare-part-bengkel-efektif/"
+      ],
+      "chunk_index": 0,
+      "text": "Kepercayaan pemilik motor ditentukan oleh kejujuran diagnosis, keaslian suku cadang, dan kerapian bengkel:\n- **Standarisasi Daftar Paket Servis:** Sediakan menu harga jasa yang jelas (misal paket servis ringan + pembersih injektor/CVT, paket ganti oli + cek pengereman) agar pelanggan tahu perkiraan biaya sebelum pekerjaan dimulai.\n- **Keaslian & Jaminan Sparepart:** Bedakan dan jelaskan kepada pelanggan antara komponen OEM/asli pabrikan dan komponen *aftermarket* berkualitas sebelum memasang; tunjukkan suku cadang bekas yang diganti agar transparansi terjaga.\n- **Tata Ruang & Kenyamanan Ruang Tunggu:** Pisahkan area kerja servis (pit mekanik beralas tahan oli dengan sirkulasi udara baik), rak penyimpanan sparepart tertata rapi, dan area tunggu pelanggan yang bersih serta sejuk."
+    },
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "3. Pengelolaan Stok & Supplier",
+      "sumber_url": "https://kelolabengkel.id/blog/cara-mengelola-inventori-sparepart-bengkel-dengan-efektif, https://turboly.com/blog/2026/08/panduan-manajemen-stok-spare-part-bengkel-efektif/, https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart",
+      "sumber_urls": [
+        "https://kelolabengkel.id/blog/cara-mengelola-inventori-sparepart-bengkel-dengan-efektif",
+        "https://turboly.com/blog/2026/08/panduan-manajemen-stok-spare-part-bengkel-efektif/",
+        "https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart"
+      ],
+      "chunk_index": 0,
+      "text": "Inventori bengkel mudah macet jika menyetok suku cadang jarang laku tanpa sistem penomoran:\n- **Klasifikasi Perputaran Sparepart (Fast / Medium / Slow Moving):**\n  1. **Fast Moving (Wajib Selalu Ready):** Oli mesin & oli gardan berbagai viskositas, busi, kampas rem depan/belakang, filter udara, bohlam, ban luar/dalam ukuran motor matic & bebek paling populer, aki umum, dan cairan pembersih. 2. **Medium Moving:** V-belt, roller CVT, rantai/gir set motor tertentu, kabel gas/kopling. 3. **Slow Moving:** Komponen internal mesin berat atau bodi motor — sebaiknya dipesan *by order* (DP pelanggan) ke distributor alih-alih menumpuk modal di rak."
+    },
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "3. Pengelolaan Stok & Supplier",
+      "sumber_url": "https://kelolabengkel.id/blog/cara-mengelola-inventori-sparepart-bengkel-dengan-efektif, https://turboly.com/blog/2026/08/panduan-manajemen-stok-spare-part-bengkel-efektif/, https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart",
+      "sumber_urls": [
+        "https://kelolabengkel.id/blog/cara-mengelola-inventori-sparepart-bengkel-dengan-efektif",
+        "https://turboly.com/blog/2026/08/panduan-manajemen-stok-spare-part-bengkel-efektif/",
+        "https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart"
+      ],
+      "chunk_index": 1,
+      "text": "berat atau bodi motor — sebaiknya dipesan *by order* (DP pelanggan) ke distributor alih-alih menumpuk modal di rak.\n\n- **Penandaan Part Number & Penyimpanan FIFO:** Labeli setiap kotak/laci rak dengan nama komponen, tipe motor kompatibel, dan kode *part number* untuk menghindari kesalahan pemasangan. Terapkan prinsip **FIFO** khususnya untuk oli, cairan pendingin, minyak rem, dan lem/sealant agar kualitas cairan tidak menurun. - **Stock Opname Terjadwal:** Lakukan pencocokan fisik mingguan untuk item paling rawan selisih atau paling laku (oli dan kampas rem) serta opname bulanan menyeluruh di gudang part."
+    },
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "4. HPP, Harga Jual & Margin",
+      "sumber_url": "https://turboly.com/blog/2026/08/panduan-manajemen-stok-spare-part-bengkel-efektif/, https://kledo.com/blog/contoh-pembukuan-bengkel/",
+      "sumber_urls": [
+        "https://turboly.com/blog/2026/08/panduan-manajemen-stok-spare-part-bengkel-efektif/",
+        "https://kledo.com/blog/contoh-pembukuan-bengkel/"
+      ],
+      "chunk_index": 0,
+      "text": "Struktur biaya bengkel tidak boleh mencampuradukkan nilai jasa dengan modal sparepart:\n- **Pemisahan HPP Dagang vs Pendapatan Jasa:**\n  - **Margin Sparepart:** Dihitung dari harga jual suku cadang dikurangi harga beli dari distributor (HPP barang keluar).\n  - **Margin Jasa Servis:** Dihitung dari biaya jasa mekanik dikurangi bagi hasil/komisi mekanik dan bahan habis pakai (*consumables*) seperti bensin cuci part, majun/lap, gemuk/grease, dan amplas yang sering terlupakan bila tidak dialokasikan ke tarif servis.\n- **Skema Upah / Komisi Mekanik:** Banyak bengkel menerapkan gaji pokok ditambah komisi persentase dari jasa servis atau target omzet agar mekanik termotivasi bekerja rapi dan cepat tanpa mengorbankan ketelitian."
+    },
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "5. Pencatatan Keuangan & Cash Flow Harian",
+      "sumber_url": "https://kledo.com/blog/contoh-pembukuan-bengkel/",
+      "sumber_urls": [
+        "https://kledo.com/blog/contoh-pembukuan-bengkel/"
+      ],
+      "chunk_index": 0,
+      "text": "Pembukuan bengkel yang tertib memisahkan kas bengkel dari uang kulakan suku cadang:\n- **Nota / Work Order (Perintah Kerja) sebagai Dokumen Kunci:** Setiap motor masuk harus tercatat di nota/WO berisi nomor polisi, keluhan, suku cadang terpakai, tarif jasa, serta nama mekanik pengerja. WO mencegah part keluar tanpa tercatat penjualan. - **Empat Catatan Dasar Bengkel:**\n  1. **Buku Kas Harian:** Memisahkan uang masuk dari **Pendapatan Jasa** dan **Penjualan Sparepart**, serta uang keluar untuk **Kulakan Part**, **Bahan Habis Pakai**, **Komisi/Gaji Mekanik**, dan **Operasional** (listrik kompresor, sewa, air). 2. **Kartu Stok Sparepart:** Mencatat part masuk dari nota distributor dan part keluar berdasar WO harian. 3."
+    },
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "5. Pencatatan Keuangan & Cash Flow Harian",
+      "sumber_url": "https://kledo.com/blog/contoh-pembukuan-bengkel/",
+      "sumber_urls": [
+        "https://kledo.com/blog/contoh-pembukuan-bengkel/"
+      ],
+      "chunk_index": 1,
+      "text": "air). 2. **Kartu Stok Sparepart:** Mencatat part masuk dari nota distributor dan part keluar berdasar WO harian. 3.\n\n**Buku Utang Supplier:** Mengawal tanggal jatuh tempo faktur distributor part/oli. 4. **Buku Piutang / Tempo:** Khusus bengkel yang menerima pembayaran bertahap dari armada perusahaan atau pengemudi langganan, catat limit dan tanggal pelunasan dengan disiplin."
+    },
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "6. Legalitas & Perizinan",
+      "sumber_url": "https://legalmp.id/artikel/legalitas/izin-usaha-bengkel-motor-syarat-kbli-dan-cara-daftar-oss-rba/, https://izin.co.id/blog/cara-daftar-oss-umkm/, https://oss.go.id",
+      "sumber_urls": [
+        "https://legalmp.id/artikel/legalitas/izin-usaha-bengkel-motor-syarat-kbli-dan-cara-daftar-oss-rba/",
+        "https://izin.co.id/blog/cara-daftar-oss-umkm/",
+        "https://oss.go.id"
+      ],
+      "chunk_index": 0,
+      "text": "Aspek legalitas bengkel motor meliputi perizinan usaha dan pengelolaan lingkungan:\n- **NIB via OSS-RBA & Pemilihan KBLI:** Daftarkan Nomor Induk Berusaha melalui [oss.go.id](https://oss.go.id). Bidang reparasi/perawatan sepeda motor umumnya menggunakan KBLI **95320** (atau pembaruan terkait klasifikasi reparasi kendaraan bermotor roda dua) dan KBLI **45406/45407** bila sekaligus melakukan perdagangan eceran suku cadang dan aksesori sepeda motor — selalu verifikasi kode KBLI terbaru langsung di sistem OSS-RBA saat pendaftaran. - **Pengelolaan Limbah Oli Bekas (Limbah B3):** Oli bekas, filter oli bekas, dan aki bekas termasuk kategori Limbah B3 (merujuk ketentuan pengelolaan limbah termasuk PP No. 22 Tahun 2021)."
+    },
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "6. Legalitas & Perizinan",
+      "sumber_url": "https://legalmp.id/artikel/legalitas/izin-usaha-bengkel-motor-syarat-kbli-dan-cara-daftar-oss-rba/, https://izin.co.id/blog/cara-daftar-oss-umkm/, https://oss.go.id",
+      "sumber_urls": [
+        "https://legalmp.id/artikel/legalitas/izin-usaha-bengkel-motor-syarat-kbli-dan-cara-daftar-oss-rba/",
+        "https://izin.co.id/blog/cara-daftar-oss-umkm/",
+        "https://oss.go.id"
+      ],
+      "chunk_index": 1,
+      "text": "bekas, dan aki bekas termasuk kategori Limbah B3 (merujuk ketentuan pengelolaan limbah termasuk PP No. 22 Tahun 2021).\n\nBengkel wajib menampung oli bekas dalam drum/wadah tertutup aman tidak bocor ke tanah/selokan dan menyerahkannya kepada pengumpul atau pengelola Limbah B3 berizin (dengan bukti serah terima/manifest), bukan dibuang sembarangan. Untuk persyaratan izin bengkel berskala besar atau bengkel resmi ATPM, **belum ada referensi terverifikasi** tambahan di luar OSS-RBA dan pengelolaan limbah dasar."
+    },
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "7. Operasional Harian & SOP Singkat",
+      "sumber_url": "https://kledo.com/blog/contoh-pembukuan-bengkel/, https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart",
+      "sumber_urls": [
+        "https://kledo.com/blog/contoh-pembukuan-bengkel/",
+        "https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart"
+      ],
+      "chunk_index": 0,
+      "text": "SOP harian menjaga kecepatan servis dan menghindari kehilangan peralatan:\n- **Pagi Sebelum Buka:** Cek tekanan udara kompresor, kelengkapan kunci/toolkit setiap pit mekanik, dan pastikan stok oli fast moving tersedia di rak display bengkel.\n- **Alur Penerimaan Motor (SOP 5 Langkah):** Catat keluhan & kilometer di WO -> Estimasi biaya jasa + sparepart & minta persetujuan pemilik motor sebelum ganti komponen tambahan -> Kerjakan servis -> Tes jalan/periksa akhir -> Serahkan motor beserta part bekas dan nota resmi di kasir.\n- **Penutupan Bengkel:** Kembalikan dan hitung ulang semua peralatan mekanik ke papan kunci, bersihkan lantai dari ceceran oli agar aman, amankan oli bekas ke drum tertutup, lalu rekonsiliasi laci kasir dengan WO hari itu."
+    },
+    {
+      "jenis_usaha": "bengkel_motor",
+      "nama_file": "panduan_operasional_bengkel_motor.md",
+      "judul_bagian": "8. Pemasaran & Pengembangan",
+      "sumber_url": "https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart, https://kelolabengkel.id/blog/cara-mengelola-inventori-sparepart-bengkel-dengan-efektif",
+      "sumber_urls": [
+        "https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart",
+        "https://kelolabengkel.id/blog/cara-mengelola-inventori-sparepart-bengkel-dengan-efektif"
+      ],
+      "chunk_index": 0,
+      "text": "Pertumbuhan bengkel ditopang oleh loyalitas servis ulang setiap 1–2 bulan:\n- **Pengingat Servis Berkala (Reminder):** Catat nomor WhatsApp dan tanggal ganti oli pelanggan; kirim pengingat sopan saat perkiraan waktu servis berikutnya (sekitar 1,5–2 bulan atau kelipatan jarak tempuh) disertai info pengecekan gratis angin ban atau rem.\n- **Paket Hari Sepi & Promo Komunitas:** Berikan diskon jasa ringan di hari kerja jam 09.00–14.00 untuk komunitas ojek daring atau karyawan perkantoran sekitar agar pit mekanik tetap terisi merata sepanjang pekan. Terkait skema program garansi servis lanjutan atau integrasi aplikasi *loyalty* khusus bengkel berbayar, **belum ada referensi terverifikasi** dalam panduan ini."
+    }
+  ]
+}

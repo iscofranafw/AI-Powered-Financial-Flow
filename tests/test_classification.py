@@ -258,14 +258,16 @@ def test_retry_never_touches_approved_transaction(queue_database):
 
 
 def test_no_rag_shortcut_and_prompt_contains_descriptions():
+    # Revisi 1 (Ralat): similarity gate stays active, while few-shot RAG examples are removed from Llama prompts.
     import json
     hits=[{'category_id':'c_bahan','category_name':'Bahan Baku','score':0.999,'type':'transaction','text':'beli bahan'}]
-    with patch('ai.classifier.retrieve_context',return_value=hits),patch('ai.classifier.ask_json',return_value={'kategori_id':'c_ops','nama_baru':'','alasan':'Context matters'}) as llm:
+    with patch('ai.classifier.retrieve_context',return_value=hits) as retrieve,patch('ai.classifier.ask_json',return_value={'kategori_id':'c_ops','nama_baru':'','alasan':'Context matters'}) as llm:
         result=classify('pengeluaran','beli tepung untuk acara kantor',SAMPLE_CATS,toko_id='unique-no-shortcut',business_type='Retail')
     assert result['kategori_id']=='c_ops' and result['source']=='llm'
     llm.assert_called_once()
+    assert all(call.kwargs.get('min_score') == -1.0 for call in retrieve.call_args_list)
     payload=json.loads(llm.call_args.args[1])
-    assert payload['few_shot_examples_only'][0]['label']=='FEW-SHOT EXAMPLE ONLY'
+    assert payload['few_shot_examples_only'] == []
     assert payload['daftar_kategori_tersedia'][0]['deskripsi']=='Bahan makanan dan mentah'
     assert 'kata_kunci' not in payload
 
@@ -550,3 +552,172 @@ def test_similarity_cached_single_revalidated_against_current_system_flag(simila
         assert classify('pengeluaran', 'Independent query', current, 'gate-store', 'Umum')['kategori_id'] == 'c_ops'
     llm.assert_called_once()
     assert all(c['kategori_id'] != 'foreign' for c in _CLASSIFICATION_CACHE.values())
+
+
+def test_revisi1_batch_llm_prompt_omits_few_shot_and_keeps_similarity_gate(similarity_gate_unit):
+    import json
+    from ai.hybrid_classifier import classify_ambiguous_batch_ai
+    with patch('ai.classifier._similarity_ranking', return_value=[]), \
+         patch('ai.hybrid_classifier.ask_json', return_value={
+             'klasifikasi': [{'item_id': 1, 'kategori_id': 'c_ops', 'nama_baru': '', 'alasan': 'Operasional'}]
+         }) as llm:
+        results = classify_ambiguous_batch_ai('pengeluaran', [(1, 'bayar listrik bulan ini')], SAMPLE_CATS, toko_id='store-rev1', business_type='Retail')
+    assert results[1]['kategori_id'] == 'c_ops'
+    sent_payload = json.loads(llm.call_args.kwargs['user'])
+    assert 'few_shot_examples_only' not in sent_payload['daftar_transaksi'][0]
+
+
+def test_revisi1_nama_baru_does_not_create_category_and_low_conf_goes_review(similarity_gate_unit):
+    cats_before = [dict(c) for c in SAMPLE_CATS]
+    with patch('ai.classifier.retrieve_context', return_value=[]), \
+         patch('ai.classifier.ask_json', return_value={
+             'kategori_id': '', 'nama_baru': 'Kategori Liar AI', 'alasan': 'Usul baru', 'keyakinan': 50
+         }):
+        res = classify('pengeluaran', 'transaksi tidak dikenali', cats_before, toko_id='store-rev1', business_type='Retail')
+    assert res['kategori_id'] is None
+    assert res['status_kategori'] == 'perlu_tinjauan'
+    assert len(cats_before) == len(SAMPLE_CATS)
+
+
+def test_revisi1_extract_csv_category_candidates():
+    from services.smart_import_engine import extract_csv_category_candidates
+    rows = [
+        {'tipe': 'pengeluaran', 'deskripsi': 'beli plastik packing', 'csv_category': 'Kemasan'},
+        {'tipe': 'pengeluaran', 'deskripsi': 'beli bensin', 'csv_category': 'Operasional'},  # already exists
+        {'tipe': 'pengeluaran', 'deskripsi': 'beli kotak kue', 'csv_category': 'kemasan'},  # duplicate case-insensitive
+        {'tipe': 'pemasukan', 'deskripsi': 'jual kue ultah', 'csv_category': 'Pesanan Khusus'},
+    ]
+    cands = extract_csv_category_candidates(rows, SAMPLE_CATS)
+    assert [c['nama'] for c in cands['pengeluaran']] == ['Kemasan']
+    assert [c['nama'] for c in cands['pemasukan']] == ['Pesanan Khusus']
+    assert cands['pengeluaran'][0]['source'] == 'csv_column'
+
+
+def test_perbaikan2_others_excluded_from_llm_context_and_coerced_to_abstain(similarity_gate_unit):
+    import json
+    from ai.classifier import _llm_context, _valid_cached_decision
+    from ai.hybrid_classifier import classify_ambiguous_batch_ai
+
+    enriched_cats = [
+        {**c, 'kata_kunci': ['tepung terigu', 'gula pasir']} if c['id'] == 'c_bahan' else dict(c)
+        for c in SAMPLE_CATS
+    ]
+    ctx = _llm_context('pengeluaran', 'beli gula pasir 10 kg', enriched_cats, toko_id=None, business_type='Bakery')
+    ctx_ids = {c['id'] for c in ctx['daftar_kategori_tersedia']}
+    assert 'c_exp_other' not in ctx_ids
+    bahan_entry = next(c for c in ctx['daftar_kategori_tersedia'] if c['id'] == 'c_bahan')
+    assert 'tepung terigu' in bahan_entry['deskripsi'] and 'gula pasir' in bahan_entry['deskripsi']
+
+    with patch('ai.classifier.retrieve_context', return_value=[]), \
+         patch('ai.classifier._similarity_ranking', return_value=[('c_bahan', 0.45), ('c_ops', 0.30)]), \
+         patch('ai.classifier.ask_json', return_value={'kategori_id': 'c_exp_other', 'nama_baru': '', 'alasan': 'Tidak yakin'}) as llm:
+        res = classify('pengeluaran', 'beli cokelat bubuk', enriched_cats, toko_id='store-p2', business_type='Bakery')
+    sent_payload = json.loads(llm.call_args.args[1])
+    assert all(c['id'] != 'c_exp_other' for c in sent_payload['daftar_kategori_tersedia'])
+    assert res['kategori_id'] is None
+    assert res['status_kategori'] == 'perlu_tinjauan'
+    assert res['source'] == 'perlu_tinjauan'
+    assert res['reason_code'] == 'MODEL_ABSTAINED'
+
+    batch_reply = {'klasifikasi': [{'item_id': 1, 'kategori_id': 'c_exp_other', 'nama_baru': '', 'alasan': 'Ragu'}]}
+    with patch('ai.classifier._similarity_ranking', return_value=[]), \
+         patch('ai.hybrid_classifier.ask_json', return_value=batch_reply) as batch_llm:
+        batch_out = classify_ambiguous_batch_ai('pengeluaran', [(1, 'transaksi ambigu')], enriched_cats, toko_id='store-p2', business_type='Bakery')
+    batch_sent = json.loads(batch_llm.call_args.kwargs['user'])
+    assert all(c['id'] != 'c_exp_other' for c in batch_sent['daftar_kategori_tersedia'])
+    assert batch_out[1]['kategori_id'] is None and batch_out[1]['status_kategori'] == 'perlu_tinjauan'
+
+    assert _valid_cached_decision({'kategori_id': 'c_exp_other', 'source': 'llm'}, 'pengeluaran', enriched_cats) is False
+
+
+def test_perbaikan4_similarity_diagnostics_and_logging_on_gate_pass_and_fail(similarity_gate_unit, caplog):
+    import logging
+    with caplog.at_level(logging.INFO, logger='ai.classifier'):
+        with patch('ai.classifier.retrieve_context', return_value=[]), \
+             patch('ai.classifier._similarity_ranking', return_value=[('c_bahan', 0.91), ('c_ops', 0.60)]), \
+             patch('ai.classifier.ask_json') as llm:
+            passed = classify('pengeluaran', 'beli terigu', SAMPLE_CATS, toko_id='store-p4', business_type='Bakery')
+        llm.assert_not_called()
+        assert passed['skor'] == 0.91
+        assert passed['usulan']['similarity_diag']['top_category'] == 'Bahan Baku'
+        assert passed['usulan']['similarity_diag']['gate_passed'] is True
+        assert 'gate=PASS' in caplog.text
+
+        caplog.clear()
+        with patch('ai.classifier.retrieve_context', return_value=[]), \
+             patch('ai.classifier._similarity_ranking', return_value=[('c_bahan', 0.65), ('c_ops', 0.50)]), \
+             patch('ai.classifier.ask_json', return_value={'kategori_id': 'c_bahan', 'nama_baru': '', 'alasan': 'Cocok'}) as llm:
+            failed = classify('pengeluaran', 'beli ragi', SAMPLE_CATS, toko_id='store-p4', business_type='Bakery')
+        llm.assert_called_once()
+        assert failed['skor'] == 0.65
+        assert failed['usulan']['similarity_diag']['top_score'] == 0.65
+        assert failed['usulan']['similarity_diag']['gate_passed'] is False
+        assert 'gate=FAIL' in caplog.text
+
+
+def test_perbaikan1_bakery_keywords_and_rag_corpus_entries():
+    from ai.category_discovery import suggest_default_keywords
+    from ai.rag_engine import build_corpus_entries
+
+    kws = suggest_default_keywords('Bahan baku', 'pengeluaran', business_type='Bakery')
+    for expected in ('tepung terigu', 'gula pasir', 'cokelat', 'ragi', 'mentega', 'telur', 'susu'):
+        assert expected in kws
+    assert len(kws) <= 20
+
+    mock_sb = MagicMock()
+    def table_side(name):
+        t = MagicMock()
+        if name == 'kategori':
+            t.select.return_value.eq.return_value.eq.return_value.execute.return_value.data = [
+                {'id': 'cat_b', 'nama': 'Bahan baku', 'deskripsi': 'Biaya Bahan Baku', 'kata_kunci': ['cokelat bubuk', 'ragi instan'], 'sistem': False},
+                {'id': 'cat_o', 'nama': 'Others', 'deskripsi': '', 'kata_kunci': ['x'], 'sistem': True},
+            ]
+        else:
+            t.select.return_value.eq.return_value.eq.return_value.eq.return_value.eq.return_value.order.return_value.limit.return_value.execute.return_value.data = []
+        return t
+    mock_sb.table.side_effect = table_side
+
+    with patch('ai.rag_engine.privileged_client', return_value=mock_sb), \
+         patch('ai.rag_engine.get_store_business_context', return_value={'bidang_usaha': 'Bakery'}):
+        entries = build_corpus_entries('shop-bakery', 'pengeluaran')
+
+    assert all(e['category_id'] != 'cat_o' for e in entries)
+    sources = {e['verification_source'] for e in entries}
+    assert 'category_definition' in sources and 'category_keyword' in sources
+    assert any('cokelat bubuk' in e['text'] for e in entries)
+
+
+def test_perbaikan3_others_reclassification_preview_and_real_postgres_confirm(queue_database, monkeypatch):
+    import uuid
+    q = queue_database
+    others_id = str(uuid.uuid4())
+    tx_id = str(uuid.uuid4())
+    q.sql(f"INSERT INTO kategori VALUES ('{others_id}','{q.shop}','pengeluaran');")
+    q.cats.append({'id': others_id, 'nama': 'Others', 'tipe': 'pengeluaran', 'sistem': True, 'toko_id': q.shop})
+    q.sql(
+        f"INSERT INTO transaksi(id,toko_id,tanggal,deskripsi,nominal,tipe,kategori_id,dicatat_oleh,status_persetujuan,status_kategori) "
+        f"VALUES ('{tx_id}','{q.shop}','2026-10-30','beli cokelat bubuk 2 kg','150000','pengeluaran','{others_id}','{q.owner}','disetujui','dikonfirmasi');"
+    )
+    monkeypatch.setattr('services.finance_service.category_by_id', lambda shop, cid: next((c for c in q.cats if c['id'] == cid), None))
+    monkeypatch.setattr('services.finance_service.transaction_by_id', lambda shop, tid: next((t for t in q.snapshot() if t['id'] == tid), None))
+    monkeypatch.setattr('repositories.finance_repository.transaction_by_id', lambda shop, tid: next((t for t in q.snapshot() if t['id'] == tid), None))
+
+    def fake_bulk(toko_id, cats, rep_rows, **kwargs):
+        return [{**r, 'kategori_id': q.cat, 'status_kategori': 'dikonfirmasi', 'source': 'llm', 'skor': 0.72, 'is_unresolved': False, 'message': 'Sesuai', 'usulan': {}} for r in rep_rows]
+
+    with patch('services.ai_service.hybrid_bulk_classify', side_effect=fake_bulk):
+        preview = ai_service.preview_others_reclassification('token')
+
+    assert preview['total_others'] == 1
+    assert preview['reclassified_count'] == 1
+    assert q.snapshot()[0]['kategori_id'] == others_id  # Preview must NOT modify DB!
+
+    with patch('ai.rag_engine.rebuild_store_index') as mock_rebuild:
+        res = ai_service.confirm_others_reclassification('token', preview['updates'])
+
+    assert res['updated_count'] == 1 and res['reapproved_count'] == 1
+    assert mock_rebuild.called
+    stored = q.snapshot()[0]
+    assert stored['kategori_id'] == q.cat
+    assert stored['status_persetujuan'] == 'disetujui'
+    assert int(q.sql(f"SELECT count(*) FROM audit_log WHERE toko_id='{q.shop}';")) >= 2

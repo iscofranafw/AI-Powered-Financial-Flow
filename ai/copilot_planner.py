@@ -62,7 +62,7 @@ def plan_stage_a_deterministic(text: str, context: Optional[ConversationContext]
 
     # 3. Forecast / Proyeksi (Prophet) Capabilities
     is_forecast_word = any(w in s for w in [
-        'forecast', 'forecasting', 'peramalan', 'ramalan', 'prediksi', 'proyeksi',
+        'forecast', 'forecasting', 'peramalan', 'ramal', 'ramalan', 'prediksi', 'proyeksi',
         'prophet', 'perkiraan', 'kiraan', 'diperkirakan', 'estimasi'
     ])
 
@@ -116,7 +116,15 @@ def plan_stage_a_deterministic(text: str, context: Optional[ConversationContext]
         return PlannerDecision(tool_name=ToolName.GET_NEXT_PREDICTED_EXPENSE, raw_query=text)
 
     # 3.7 Recurring Expenses and 3-Day Upcoming Reminders
-    if any(w in s for w in ['pengeluaran rutin', 'biaya rutin', 'tagihan rutin', 'pembayaran rutin', 'rutin apa saja', 'tiga hari ke depan', '3 hari ke depan']) or (re.search(r'\btagihan\b', s) and any(w in s for w in ['persiapkan', 'mendatang', 'akan datang', 'jadwal'])):
+    is_pure_short_horizon_forecast = (
+        is_forecast_word
+        and not any(w in s for w in ['rutin', 'tagihan', 'cicilan', 'berkala', 'langganan'])
+    )
+    if (
+        any(w in s for w in ['pengeluaran rutin', 'biaya rutin', 'tagihan rutin', 'pembayaran rutin', 'rutin apa saja'])
+        or (any(w in s for w in ['tiga hari ke depan', '3 hari ke depan']) and not is_pure_short_horizon_forecast)
+        or (re.search(r'\btagihan\b', s) and any(w in s for w in ['persiapkan', 'mendatang', 'akan datang', 'jadwal']))
+    ):
         return PlannerDecision(tool_name=ToolName.GET_UPCOMING_RECURRING_EXPENSES, raw_query=text)
 
     # 3.8 Conceptual Prophet questions (e.g. "bagaimana cara kerja prophet", "mekanisme peramalan", "bagaimana peramalan pengeluaran", "prediksi pengeluaran berikutnya")
@@ -130,6 +138,17 @@ def plan_stage_a_deterministic(text: str, context: Optional[ConversationContext]
 
     # 3.9 Forecast for Specific Future Period or Horizon or Category
     if is_forecast_word:
+        explicit_days = _extract_explicit_horizon_days(s)
+        if explicit_days is not None and (explicit_days < 3 or explicit_days > 90):
+            return PlannerDecision(
+                tool_name=ToolName.UNKNOWN,
+                clarification_question=(
+                    f"Horizon peramalan pengeluaran hanya mendukung rentang **3 hingga 90 hari ke depan** "
+                    f"(permintaan Anda: {explicit_days} hari). Silakan gunakan jumlah hari antara 3 sampai 90."
+                ),
+                raw_query=text,
+            )
+
         found_category = None
         for cat_kw in ['listrik', 'wifi', 'internet', 'sewa', 'gaji', 'air', 'pdam', 'bahan baku', 'operasional', 'belanja']:
             if cat_kw in s:
@@ -161,13 +180,16 @@ def plan_stage_a_deterministic(text: str, context: Optional[ConversationContext]
                 raw_query=text
             )
 
-        days = 30
-        if any(w in s for w in ['7 hari', 'tujuh hari', 'seminggu']):
-            days = 7
-        elif any(w in s for w in ['14 hari', 'dua minggu']):
-            days = 14
-        elif any(w in s for w in ['90 hari', 'tiga bulan']):
-            days = 90
+        days = explicit_days if (explicit_days is not None and 3 <= explicit_days <= 90) else 30
+        if explicit_days is None:
+            if any(w in s for w in ['7 hari', 'tujuh hari', 'seminggu']):
+                days = 7
+            elif any(w in s for w in ['14 hari', 'dua minggu']):
+                days = 14
+            elif any(w in s for w in ['60 hari', 'dua bulan']):
+                days = 60
+            elif any(w in s for w in ['90 hari', 'tiga bulan']):
+                days = 90
 
         return PlannerDecision(
             tool_name=ToolName.GET_EXPENSE_FORECAST,
@@ -186,7 +208,7 @@ def plan_stage_a_deterministic(text: str, context: Optional[ConversationContext]
         s
     ))
     is_fin_state_q = bool(re.search(r'bagaimana\s+(?:arus\s+kas|saldo|pemasukan|pengeluaran|kondisi\s+keuangan|keuntungan|laba)', s))
-    if is_feature_q and not is_fin_state_q:
+    if is_feature_q and not is_fin_state_q and not _is_business_guidance_query(s):
         topic = detect_feature_topic(s)
         if topic == 'persetujuan':
             return PlannerDecision(tool_name=ToolName.EXPLAIN_OWNER_APPROVAL_WORKFLOW, feature_topic=topic, raw_query=text)
@@ -408,7 +430,68 @@ def plan_stage_a_deterministic(text: str, context: Optional[ConversationContext]
         date_p = _extract_date_params(s)
         return PlannerDecision(tool_name=ToolName.GET_CASH_FLOW_SUMMARY, date_params=date_p, raw_query=text)
 
+    # Operational Business Guidance (Isolated Per-Business-Type Knowledge RAG)
+    if _is_business_guidance_query(s):
+        return PlannerDecision(
+            tool_name=ToolName.GET_BUSINESS_GUIDANCE,
+            raw_query=text,
+        )
+
     return None
+
+
+def _extract_explicit_horizon_days(s: str) -> Optional[int]:
+    '''Extract explicit multi-day horizon requests (e.g. '2 hari', '45 hari ke depan', '120 hari', 'setahun').'''
+    m_num = re.search(r'\b(\d+)\s*hari(?:\s*ke\s*depan)?\b', s)
+    if m_num:
+        return int(m_num.group(1))
+    word_days = {
+        'satu hari': 1,
+        'dua hari': 2,
+        'tiga hari': 3,
+        'empat hari': 4,
+        'lima hari': 5,
+        'enam hari': 6,
+        'tujuh hari': 7,
+        'sepuluh hari': 10,
+        'empat belas hari': 14,
+        'tiga puluh hari': 30,
+        'enam puluh hari': 60,
+        'sembilan puluh hari': 90,
+        'empat bulan': 120,
+        'enam bulan': 180,
+        'setahun': 365,
+        'satu tahun': 365,
+    }
+    for phrase, n_val in word_days.items():
+        if phrase in s:
+            return n_val
+    return None
+
+
+def _is_business_guidance_query(s: str) -> bool:
+    app_only_terms = (
+        'fitur', 'aplikasi', 'impor', 'import', 'csv', 'klasifikasi',
+        'persetujuan', 'approval', 'pencatatan cepat', 'halaman ',
+    )
+    if any(t in s for t in app_only_terms):
+        return False
+
+    guidance_phrases = (
+        'panduan usaha', 'panduan operasional', 'panduan bisnis', 'tips usaha', 'tips bisnis',
+        'panduan ', 'tips ', 'strategi pemasaran', 'tips pemasaran', 'strategi promosi',
+        'cara mengelola stok', 'pengelolaan stok', 'kelola stok', 'stock opname', 'overstock',
+        'dead stock', 'fifo', 'fefo', 'par stock', 'fast moving', 'slow moving',
+        'cara menghitung hpp', 'hitung hpp', 'perhitungan hpp', 'food cost', 'cogm', 'cogs',
+        'penetapan harga', 'harga jual', 'margin keuntungan', 'multi pricing', 'multi-pricing',
+        'legalitas', 'perizinan', 'nib', 'oss rba', 'oss-rba', 'pirt', 'spp-irt',
+        'sertifikasi halal', 'sertifikat halal', 'bpjph', 'kbli', 'limbah oli', 'limbah b3',
+        'sop harian', 'sop toko', 'sop buka', 'sop tutup', 'work order', 'nota servis',
+        'komisi mekanik', 'model usaha', 'standar kualitas', 'kelola supplier',
+        'manajemen supplier', 'stok bahan baku', 'roti sisa', 'barang sisa',
+        'pisahkan rekening', 'rekening pribadi', 'kas pribadi',
+    )
+    return any(phrase in s for phrase in guidance_phrases)
 
 
 def plan_stage_b_llm(text: str, context: Optional[ConversationContext] = None) -> Optional[PlannerDecision]:
@@ -436,15 +519,16 @@ def plan_stage_b_llm(text: str, context: Optional[ConversationContext] = None) -
         "- compare_financial_periods: membandingkan periode keuangan (misal bulan ini vs bulan lalu)\n"
         "- get_store_profile: informasi profil toko, nama toko, atau bidang usaha\n"
         "- explain_feature: panduan cara menggunakan fitur aplikasi\n"
-        "- get_available_forecast: penjelasan konsep dan cara kerja model Prophet\n"
-        "- get_expense_forecast: proyeksi pengeluaran umum toko atau kategori tertentu dengan Prophet\n"
-        "- get_forecast_for_period: prediksi pengeluaran untuk periode tertentu (bulan depan, minggu depan)\n"
+        "- get_business_guidance: panduan operasional, manajemen stok, HPP, SOP harian, legalitas (NIB/PIRT/Halal), dan pemasaran sesuai bidang usaha toko\n"
+        "- get_available_forecast: penjelasan konsep dan cara kerja peramalan multi-model (Prophet, ETS, ARIMA, Seasonal Naive, MA7, LinearRegression)\n"
+        "- get_expense_forecast: proyeksi pengeluaran umum toko atau kategori tertentu untuk horizon 3-90 hari\n"
+        "- get_forecast_for_period: prediksi pengeluaran untuk periode tertentu (besok, bulan depan, minggu depan)\n"
         "- get_upcoming_recurring_expenses: deteksi pengeluaran/tagihan rutin mendatang dan pengingat 3 hari\n"
         "- get_next_predicted_expense: estimasi jadwal dan nominal pengeluaran berikutnya\n"
         "- compare_actual_vs_forecast: perbandingan realisasi pengeluaran saat ini vs proyeksi mendatang\n"
-        "- get_forecast_accuracy: akurasi model peramalan Prophet (MAE, RMSE, MAPE)\n"
+        "- get_forecast_accuracy: perbandingan akurasi kandidat model peramalan (MAPE, MAE, RMSE, WAPE)\n"
         "- get_expense_trend: analisis arah tren pengeluaran (meningkat/menurun) dan faktor penggerak\n"
-        "- get_forecast_readiness: kesiapan dan kecukupan data historis toko untuk Prophet\n"
+        "- get_forecast_readiness: kesiapan dan kecukupan data historis toko untuk peramalan pengeluaran\n"
         "- check_forecast_against_cash_balance: pengecekan apakah saldo kas saat ini mencukupi prediksi pengeluaran\n"
         "- unknown: jika instruksi tidak jelas\n\n"
         "Kembalikan JSON dengan format:\n"

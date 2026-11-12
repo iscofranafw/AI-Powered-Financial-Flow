@@ -21,6 +21,7 @@ from ai.copilot_knowledge import (
     detect_feature_topic,
     get_forecast_explanation,
 )
+from ai.knowledge_rag import answer_guidance_for_actor
 
 
 # =====================================================================
@@ -713,6 +714,17 @@ def explain_ai_classification(token: str, decision: PlannerDecision) -> Dict[str
     return {'tool': ToolName.EXPLAIN_AI_CLASSIFICATION, 'success': True, 'data': {'topic': 'klasifikasi_ai'}, 'message': msg}
 
 
+def get_business_guidance(token: str, decision: PlannerDecision) -> Dict[str, Any]:
+    actor = verify_actor(token, {'pemilik_toko', 'kasir', 'superadmin'})
+    res = answer_guidance_for_actor(token, query=decision.raw_query or '')
+    return {
+        'tool': ToolName.GET_BUSINESS_GUIDANCE,
+        'success': bool(res.get('ok', True)),
+        'data': res,
+        'message': res.get('answer', ''),
+    }
+
+
 def get_available_forecast(token: str, decision: PlannerDecision) -> Dict[str, Any]:
     actor = verify_actor(token, {'pemilik_toko', 'kasir'})
     msg = get_forecast_explanation(is_owner=(actor['role'] == 'pemilik_toko'))
@@ -728,10 +740,14 @@ def get_expense_forecast(token: str, decision: PlannerDecision) -> Dict[str, Any
         return {'tool': ToolName.GET_EXPENSE_FORECAST, 'success': False, 'message': res.get('message', 'Peramalan tidak tersedia.')}
 
     store_name = res.get('store_name') or forecast_service.get_store_name(actor.get('toko_id'))
-    footer = forecast_service.get_dynamic_forecast_footer(store_name)
+    selected_model = res.get('selected_model') or res.get('best_model') or 'Multi-Model Terbaik'
+    footer = forecast_service.get_dynamic_forecast_footer(store_name, model_name=selected_model)
     cat_str = f" untuk kategori **{res['category_filtered']}**" if res.get('category_filtered') else ""
+    target_line = f"- **Evaluasi Target (<20% MAPE):** {res['target_status']}\n" if res.get('target_status') else ""
     msg = (
-        f"### Hasil Peramalan Pengeluaran (Meta Prophet){cat_str} — {store_name}\n\n"
+        f"### Hasil Peramalan Pengeluaran ({selected_model}){cat_str} — {store_name}\n\n"
+        f"- **Model Terpilih (MAPE Terendah):** **{selected_model}**\n"
+        f"{target_line}"
         f"- **Horizon Proyeksi:** {res['days_ahead']} hari ke depan\n"
         f"- **Estimasi Total Pengeluaran:** **{format_rupiah(res['total_predicted_expense'])}**\n"
         f"- **Rentang Ketidakpastian (80% CI):** {format_rupiah(res['total_predicted_lower'])} s.d. {format_rupiah(res['total_predicted_upper'])}\n"
@@ -845,6 +861,7 @@ TOOL_REGISTRY = {
     ToolName.EXPLAIN_OWNER_APPROVAL_WORKFLOW: explain_owner_approval_workflow,
     ToolName.EXPLAIN_CSV_IMPORT: explain_csv_import,
     ToolName.EXPLAIN_AI_CLASSIFICATION: explain_ai_classification,
+    ToolName.GET_BUSINESS_GUIDANCE: get_business_guidance,
     ToolName.GET_AVAILABLE_FORECAST: get_available_forecast,
     ToolName.GET_EXPENSE_FORECAST: get_expense_forecast,
     ToolName.GET_FORECAST_FOR_PERIOD: get_forecast_for_period,

@@ -1,8 +1,8 @@
 """Authoritative static knowledge base for application features, workflows, and business rules.
 
 This module provides accurate, verified explanations of the AI-Powered Financial Flow
-application capabilities for store owners and cashiers, derived directly from PRD.md
-and the active codebase implementation.
+application capabilities for store owners and cashiers, aligned with Project Plan
+DB15-I023 revisi 1 and the active codebase implementation.
 """
 
 TOPIC_EXPLANATIONS = {
@@ -49,7 +49,7 @@ TOPIC_EXPLANATIONS = {
             "Fitur **Impor Data CSV** (Menu: *Impor Data CSV*):\n\n"
             "1. **Unggah File:** Mendukung file CSV mutasi rekening bank atau rekap transaksi pembukuan lama.\n"
             "2. **Pratinjau & Pemetaan Kolom:** Memetakan kolom tanggal, keterangan, nominal, dan jenis transaksi (debit/kredit).\n"
-            "3. **Klasifikasi Otomatis:** Sistem menjalankan klasifikasi batch cerdas menggunakan Ollama dan FAISS RAG untuk memetakan kategori secara otomatis.\n"
+            "3. **Kunci Kategori Awal & Klasifikasi:** Pemilik toko menentukan serta mengonfirmasi daftar kategori yang diizinkan di awal. Transaksi baru kemudian dicocokkan lewat embedding + FAISS similarity gate; bila belum lolos, Llama 3 8B memilih HANYA dari daftar kategori toko yang telah dikonfirmasi tersebut (tanpa contoh few-shot RAG).\n"
             "4. **Simpan Aman:** Transaksi divalidasi dan disimpan langsung dengan status disetujui untuk pemilik toko."
         ),
         'cashier_guide': (
@@ -83,14 +83,14 @@ TOPIC_EXPLANATIONS = {
         )
     },
     'klasifikasi_ai': {
-        'title': 'Klasifikasi AI & Semantic Search (FAISS RAG)',
+        'title': 'Klasifikasi AI (Embedding + FAISS Similarity Gate & Llama 3)',
         'owner_guide': (
-            "Arsitektur **AI Transaksi & RAG**:\n\n"
+            "Arsitektur **Klasifikasi Kategori Transaksi**:\n\n"
             "1. **Normalisasi Teks:** Membersihkan input, mendeteksi mata uang Rupiah, dan memetakan tanggal Asia/Jakarta.\n"
-            "2. **Pencarian Semantik (FAISS RAG):** Mengambil contoh transaksi dan kategori serupa dari riwayat toko Anda menggunakan embeddings *SentenceTransformers*.\n"
-            "3. **Inferensi Model Lokal:** Menggunakan Llama 3 yang dijalankan secara lokal via **Ollama** dengan konteks ketat (*bounded context*).\n"
-            "4. **Validasi Kategori Ketat:** AI dilarang membuat kategori baru sembarangan; hanya kategori resmi toko yang dapat dipilih.\n"
-            "5. **Proteksi Others:** Jika skor keyakinan rendah (< threshold), transaksi otomatis dialokasikan ke kategori **Others** agar aman."
+            "2. **Similarity Gate (Embedding + FAISS):** Mencocokkan transaksi dengan vektor kategori dan transaksi toko terverifikasi di indeks FAISS (*SentenceTransformers*). Jika skor teratas >= 0,80 dan selisih margin >= 0,04, kategori langsung dikonfirmasi tanpa memanggil LLM.\n"
+            "3. **Inferensi Llama 3 8B Terkunci:** Jika belum lolos similarity gate, Llama 3 8B lokal (Ollama) memilih HANYA dari daftar kategori toko yang ditentukan di awal (*allowed categories*), **tanpa** contoh few-shot dari RAG.\n"
+            "4. **Validasi Kategori Ketat:** Kategori di luar daftar ditolak dan tidak ada pembuatan kategori otomatis; keyakinan di bawah 70 dialihkan ke antrean **perlu_tinjauan** / **Others** untuk koreksi manual pemilik toko.\n"
+            "5. **RAG Terpisah untuk Panduan Usaha:** Dokumen panduan operasional toko menggunakan indeks `knowledge_store/` terpisah, tidak tercampur dengan indeks klasifikasi transaksi."
         ),
         'cashier_guide': (
             "AI secara otomatis membantu memprediksi kategori transaksi yang Anda catat "
@@ -103,7 +103,7 @@ TOPIC_EXPLANATIONS = {
             "Fitur **Status Sistem** (Menu: *Status Sistem*):\n\n"
             "1. **Pemeriksaan Database:** Memverifikasi koneksi aktif ke Supabase PostgreSQL.\n"
             "2. **Pemeriksaan Ollama:** Menguji ketersediaan server Ollama lokal dan model Llama 3.\n"
-            "3. **Pemeriksaan FAISS Index:** Memeriksa kesiapan file indeks RAG toko untuk pemasukan dan pengeluaran.\n"
+            "3. **Pemeriksaan FAISS Index:** Memeriksa kesiapan indeks klasifikasi similarity gate per toko (`vector_store/`) dan indeks panduan usaha (`knowledge_store/`).\n"
             "4. **Pipeline Embedding:** Memverifikasi model sentence-transformers lokal untuk ekstraksi vektor semantik."
         ),
         'cashier_guide': (
@@ -161,7 +161,7 @@ def get_feature_explanation(topic, is_owner=True):
         "### Panduan Fitur Aplikasi AI-Powered Financial Flow\n\n"
         "Aplikasi ini menyediakan fitur pembukuan cerdas yang terintegrasi untuk UMKM:\n\n"
         "1. **Pencatatan Percakapan (AI Financial Chat):** Catat pemasukan dan pengeluaran secara alami dengan konfirmasi instan.\n"
-        "2. **Pencatatan Cepat & AI:** Klasifikasi kategori otomatis menggunakan model lokal Llama 3 dan semantic search FAISS RAG.\n"
+        "2. **Pencatatan Cepat & AI:** Klasifikasi memakai embedding + FAISS similarity gate; bila tidak lolos, Llama 3 8B lokal memilih dari daftar kategori toko tanpa few-shot RAG.\n"
         "3. **Persetujuan Kasir:** Tinjauan dan verifikasi massal untuk transaksi yang dicatat staf kasir toko.\n"
         "4. **Kategori Pembukuan:** Kelola hingga 7 kategori pemasukan dan 7 kategori pengeluaran dengan perlindungan kategori sistem `Others`.\n"
         "5. **Ringkasan Bisnis & Laporan:** Pantau omzet, arus kas operasional, dan grafik keuangan serta ekspor ke Excel/CSV.\n"
@@ -179,12 +179,12 @@ def get_forecast_explanation(is_owner=True):
         )
 
     return (
-        "### Forecasting Pengeluaran Toko (Prophet)\n\n"
-        "Fitur peramalan pengeluaran dirancang untuk membantu pemilik UMKM mengantisipasi beban kas di masa depan:\n\n"
-        "1. **Model Peramalan:** Menggunakan **Meta Prophet** untuk analisis deret waktu (*time-series analysis*) pada beban pengeluaran toko.\n"
+        "### Forecasting Pengeluaran Toko (Perbandingan Multi-Model)\n\n"
+        "Fitur peramalan pengeluaran dirancang untuk membantu pemilik UMKM mengantisipasi beban kas di masa depan secara objektif:\n\n"
+        "1. **Kandidat Model & Seleksi Otomatis:** Membandingkan **Meta Prophet**, **Seasonal Naive**, **MA7**, **ETS (Exponential Smoothing)**, **ARIMA**, dan **Linear Regression** pada uji *backtesting*, lalu memilih model dengan **MAPE terendah** untuk memproyeksikan **3 hingga 90 hari ke depan** (default 30 hari).\n"
         "2. **Fokus Beban Berulang:** Dirancang untuk mendeteksi dan memproyeksikan pengeluaran rutin operasional (seperti tagihan listrik, sewa tempat usaha, gaji staf, dan pasokan bahan pokok bulanan).\n"
-        "3. **Prasyarat Riwayat Data:** Model membutuhkan riwayat transaksi historis yang berkesinambungan agar dapat dilatih dan diuji (*backtesting*) secara valid.\n"
-        "4. **Standar Kinerja:** Target akurasi model adalah nilai **MAPE (Mean Absolute Percentage Error) di bawah 20%**.\n"
-        "5. **Tampilan Dashboard:** Proyeksi akan disajikan pada dashboard Pemilik Toko mulai **3 hari sebelum perkiraan tanggal pengeluaran**.\n\n"
-        "*Catatan Sistem:* Pembukuan Anda saat ini terus menghimpun riwayat transaksi valid agar estimasi peramalan deret waktu dapat dihitung secara akurat tanpa manipulasi angka."
+        "3. **Prasyarat Riwayat Data:** Model membutuhkan riwayat transaksi pengeluaran disetujui yang berkesinambungan agar dapat dilatih dan diuji (*backtesting*) secara valid.\n"
+        "4. **Standar Kinerja:** Target akurasi adalah nilai **MAPE (Mean Absolute Percentage Error) di bawah 20%**; bila model terbaik masih ≥ 20%, sistem menampilkan label transparansinya secara eksplisit.\n"
+        "5. **Tampilan Dashboard:** Proyeksi, tabel perbandingan model, dan pengingat tagihan rutin disajikan pada dashboard Pemilik Toko mulai **3 hari sebelum perkiraan tanggal pengeluaran**.\n\n"
+        "*Catatan Sistem:* Pembukuan Anda saat ini terus menghimpun riwayat transaksi valid agar estimasi peramalan deret waktu dapat dipilih dan dihitung secara akurat tanpa manipulasi angka."
     )

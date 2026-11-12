@@ -1,0 +1,90 @@
+[
+  {
+    "deskripsi": "bayar air PDAM",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "bayar internet wifi",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "bayar listrik toko",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli air mineral 5 galon",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli beras 50 kg",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli deterjen 1 dus",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli gula pasir 10 kg",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli kopi sachet 1 dus",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli mie instan 1 dus",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli minyak goreng 5 liter",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli plastik dan kantong kertas",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli rokok 10 slop",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli sabun mandi 1 lusin",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli sampo sachet 1 dus",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli snack 1 dus",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli susu UHT 1 dus",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli teh celup 1 dus",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "beli telur ayam 5 kg",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "biaya antar pesanan ojek",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "biaya promosi instagram",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "gaji kasir harian",
+    "tipe": "pengeluaran"
+  },
+  {
+    "deskripsi": "gaji pegawai gudang",
+    "tipe": "pengeluaran"
+  }
+]

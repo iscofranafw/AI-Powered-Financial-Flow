@@ -34,8 +34,10 @@ Repository ini mendokumentasikan pengembangan lengkap aplikasi. Seluruh fitur ut
 - Sistem persetujuan transaksi oleh Pemilik Toko (*owner approval workflow*).
 - Impor transaksi massal via CSV dengan validasi integritas, deteksi anomali, dan proteksi idempotensi penulisan atomik.
 - Klasifikasi transaksi berbasis kecerdasan buatan (*AI classification*) dengan ekstraksi nominal deterministik dan normalisasi teks.
-- *Retrieval-Augmented Generation* (RAG) menggunakan *vector store* lokal untuk klasifikasi kontekstual berbasis bidang usaha toko.
-- Peramalan pengeluaran kas usaha (*cash flow forecast*) menggunakan Prophet.
+- Embedding semantik (`paraphrase-multilingual-MiniLM-L12-v2`, 384 dimensi) + FAISS `IndexFlatIP` + *similarity gate* (`score >= 0.80`, `margin >= 0.04`) untuk klasifikasi cepat transaksi, diikuti Llama 3 8B terkunci pada daftar kategori toko (`allowed_categories`) tanpa *few-shot* RAG pada prompt.
+- Konfirmasi kategori awal toko saat pembuatan toko / unggah CSV sebelum klasifikasi berjalan (`allowed_categories` ketat; input di luar daftar ditolak ke `perlu_tinjauan`).
+- RAG Panduan Usaha terisolasi per `jenis_usaha` (`ai/knowledge_rag.py`, `data/knowledge/`, `knowledge_store/`) untuk tanya jawab operasional pemilik toko.
+- Peramalan pengeluaran kas usaha multi-model adaptif (`Prophet`, `Seasonal Naive`, `MA7`, `ETS`, `ARIMA`, `LinearRegression`) dengan seleksi otomatis model MAPE terendah dan horizon 3–90 hari.
 - Asisten keuangan percakapan berbasis AI (*AI financial chat assistant*) dengan floating agent dan konfirmasi perubahan data.
 
 Proyek saat ini berada pada tahap finalisasi dan pengujian komprehensif untuk pengajuan (*submission*) capstone project Dicoding. Aplikasi ini dirancang sebagai asisten operasional arus kas UMKM dan bukan pengganti sistem akuntansi formal untuk perpajakan maupun penggajian.
@@ -71,11 +73,11 @@ Sebagai contoh, deskripsi:
 
 dapat diproses untuk mengenali nominal **Rp250.000** dan menentukan kategori pengeluaran yang relevan secara otomatis.
 
-Klasifikasi diperkuat menggunakan **SentenceTransformers dan FAISS** untuk mengambil contoh transaksi dari dataset referensi yang telah divalidasi, dengan pembatasan kategori sesuai katalog toko.
+Klasifikasi diperkuat menggunakan **SentenceTransformers dan FAISS** sebagai *similarity gate* cepat sebelum fallback ke Llama 3 8B yang terkunci ke katalog kategori awal toko.
 
 ### Penyesuaian Model terhadap Data
 
-Model bahasa yang dipakai adalah Llama 3 8B (melalui Ollama) tanpa fine-tuning. Penyesuaian terhadap data usaha dilakukan melalui tiga mekanisme: (1) retrieval — klasifikasi mengambil contoh transaksi dari riwayat toko itu sendiri sebagai few-shot (RAG dengan FAISS); (2) prompt — instruksi klasifikasi dan skema jawaban dirancang khusus untuk kategori usaha toko; (3) skema kategori — setiap toko memiliki kategori dan kata kunci sendiri. Data transaksi yang dipakai selama pengembangan bersifat sintetis, karena data asli toko tidak tersedia.
+Model bahasa yang dipakai adalah Llama 3 8B (melalui Ollama) tanpa fine-tuning. Untuk klasifikasi transaksi: (1) jalur pertama menghitung embedding 384 dimensi + FAISS *similarity gate* (`score >= 0.80` dan margin peringkat ke-2 `>= 0.04`) memakai indeks kategori & transaksi terkonfirmasi milik toko (`vector_store/<toko_id>/`); (2) jika belum lolos *similarity gate*, Llama 3 8B dipanggil **tanpa** contoh *few-shot* RAG dan hanya memilih dari daftar kategori resmi toko yang telah ditetapkan di awal (`allowed_categories`); (3) hasil di luar daftar atau berkeyakinan `< 70` masuk status `perlu_tinjauan`. Secara terpisah, fitur tanya jawab panduan bisnis (`Panduan Usaha`) memakai RAG Markdown + FAISS terisolasi per `jenis_usaha` di `knowledge_store/<jenis_usaha>/`. Catatan: setiap dataset pengembangan sintetis di repositori dilabeli eksplisit sebagai **data sintetis**, bukan data toko asli.
 
 ### 2.3. Dashboard dan Analisis Arus Kas
 
@@ -171,8 +173,8 @@ Aplikasi menggunakan pendekatan modular dengan pemisahan antara antarmuka, logik
 | Autentikasi | Supabase Auth | Manajemen sesi dan identitas pengguna |
 | Model bahasa | Llama 3 8B | Pemrosesan bahasa alami dan penalaran klasifikasi |
 | Inferensi lokal | Ollama | Server inferensi model bahasa lokal |
-| Vector Engine | FAISS & SentenceTransformers | Embedding semantik dan pengambilan referensi (RAG) |
-| Peramalan Kas | Prophet | Time-series forecasting pengeluaran kas usaha |
+| Vector Engine | FAISS & SentenceTransformers | *Similarity gate* klasifikasi (`vector_store/`) dan RAG Panduan Usaha (`knowledge_store/`) |
+| Peramalan Kas | Prophet, Statsmodels (ETS/ARIMA), Scikit-Learn (LinearRegression), MA7, Seasonal Naive | Peramalan pengeluaran multi-model adaptif (horizon 3–90 hari) |
 | Pengolahan data | Pandas, NumPy | Transformasi data dan agregasi keuangan |
 | Visualisasi | Plotly | Grafik dan diagram interaktif laporan |
 | Ekspor Laporan | OpenPyXL | Pembuatan laporan spreadsheet Excel |
@@ -199,7 +201,8 @@ AI-Powered-Financial-Flow/
 │   ├── financial_chat.py
 │   ├── hybrid_classifier.py
 │   ├── ollama_client.py
-│   ├── rag_engine.py
+│   ├── rag_engine.py          # Embedding + FAISS similarity gate (vector_store/)
+│   ├── knowledge_rag.py       # RAG Panduan Usaha terisolasi per jenis_usaha (knowledge_store/)
 │   ├── store_context.py
 │   └── text_normalizer.py
 ├── config/
@@ -387,7 +390,7 @@ EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 | `SUPABASE_SERVICE_ROLE_KEY` | **Wajib** | Kunci API rahasia `service_role` untuk eksekusi mutasi atomik berhak khusus di lapisan backend server (*Project Settings* &rarr; *API* &rarr; *Project API keys* &rarr; `service_role`). |
 | `OLLAMA_HOST` | Opsional | Alamat URL layanan Ollama lokal (nilai default: `http://127.0.0.1:11434`). |
 | `OLLAMA_MODEL` | Opsional | Nama model bahasa yang dijalankan melalui Ollama (nilai default: `llama3:8b`). |
-| `EMBEDDING_MODEL` | Opsional | Nama model sentence-transformers untuk kalkulasi embedding RAG (nilai default: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`). |
+| `EMBEDDING_MODEL` | Opsional | Nama model sentence-transformers untuk embedding similarity gate dan Panduan Usaha (nilai default: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`). |
 
 > [!CAUTION]
 > Jangan pernah membagikan file `.env` atau menyertakan `SUPABASE_SERVICE_ROLE_KEY` ke repository publik. File `.env` telah tercatat di `.gitignore` dan wajib dijaga kerahasiaannya.
@@ -477,7 +480,7 @@ END $$;
 
 ### 5.10. Pemanfaatan Data Sampel (*Sample Datasets*)
 
-Untuk mencoba fitur analisis arus kas, peramalan Prophet, dan klasifikasi AI tanpa harus mencatat transaksi manual satu per satu, repositori telah menyertakan dataset sintetis siap pakai di direktori `data/samples/`:
+Untuk mencoba fitur analisis arus kas, peramalan pengeluaran multi-model, dan klasifikasi AI tanpa harus mencatat transaksi manual satu per satu, repositori telah menyertakan dataset **sintetis** (bukan data toko asli) di direktori `data/samples/`:
 
 - `data/samples/bakery.csv`: Dataset transaksi toko roti dan kue (pembelian bahan tepung, telur, mentega, penjualan harian, modal awal).
 - `data/samples/bengkel_motor.csv`: Dataset transaksi bengkel motor (suku cadang, oli mesin, jasa servis, peralatan montir).
@@ -518,8 +521,8 @@ Modul pengujian yang tersedia di direktori `tests/` mencakup:
 - `test_finance_service.py` & `test_stage2_rules.py`: Logika pencatatan transaksi, penyaringan tanggal, dan pemisahan modal.
 - `test_import_security.py` & `test_smart_import.py`: Validasi struktur CSV, batas baris, sanitasi payload, dan idempotensi impor.
 - `test_ai_rules.py`, `test_ai_service.py`, & `test_classification.py`: Ekstraksi nominal, normalisasi teks, dan pipeline Llama 3.
-- `test_rag.py`: Pembangunan index FAISS, pencarian vektor, dan penyuntikan referensi kontekstual.
-- `test_copilot_forecasting.py` & `test_copilot_validation.py`: Engine peramalan Prophet dan validasi input narasi keuangan.
+- `test_rag.py` & `test_knowledge_rag.py`: Indeks FAISS *similarity gate* klasifikasi (`vector_store/`) dan RAG Panduan Usaha terisolasi per `jenis_usaha` (`knowledge_store/`).
+- `test_copilot_forecasting.py` & `test_copilot_validation.py`: Engine peramalan multi-model (Prophet, Seasonal Naive, MA7, ETS, ARIMA, LinearRegression; horizon 3–90 hari) dan validasi input narasi keuangan.
 - `test_deletion_approval.py`: Alur pengajuan persetujuan penghapusan transaksi toko oleh superadmin.
 - `test_audit_remediation.py`: Verifikasi jejak audit atomik dan proteksi konkurensi.
 - `test_floating_agent.py` & `test_chat_assistant.py`: Interaksi agen asisten keuangan AI dan eksekusi instruksi percakapan.
@@ -541,12 +544,12 @@ Setiap fitur diimplementasikan, diuji, diperbaiki jika diperlukan, kemudian dido
 | Baseline | Fondasi aplikasi, autentikasi, transaksi, dashboard, integrasi AI awal | Selesai |
 | 1 | Dataset referensi dan preprocessing | Selesai |
 | 2 | SentenceTransformers dan FAISS Vector Indexing | Selesai |
-| 3 | Klasifikasi Llama 3 terintegrasi RAG | Selesai |
-| 4 | Deteksi kategori fallback dan isolasi bidang usaha | Selesai |
-| 5 | Klasifikasi transaksi massal berbasis RAG | Selesai |
-| 6 | RAG untuk tanya jawab riwayat transaksi | Selesai |
-| 7 | AI Financial Chat Assistant (Floating Agent) | Selesai |
-| 8 | Forecasting pengeluaran menggunakan Prophet | Selesai |
+| 3 | Klasifikasi embedding + FAISS similarity gate + Llama 3 terkunci | Selesai |
+| 4 | Konfirmasi kategori awal CSV & isolasi bidang usaha | Selesai |
+| 5 | Klasifikasi transaksi massal terkunci `allowed_categories` | Selesai |
+| 6 | RAG Panduan Usaha terisolasi per `jenis_usaha` (`knowledge_store/`) | Selesai |
+| 7 | AI Financial Chat Assistant (Floating Agent + Panduan Usaha) | Selesai |
+| 8 | Forecasting pengeluaran multi-model adaptif (Prophet, ETS, ARIMA, dll.) | Selesai |
 | 9 | Evaluasi performa model AI dan validasi numerik | Selesai |
 | 10 | Pengujian integrasi akhir, konsolidasi skema, dan dokumentasi | Selesai |
 
@@ -556,9 +559,9 @@ Sesuai tujuan proyek capstone, performa kecerdasan buatan dievaluasi berdasarkan
 
 - **Akurasi klasifikasi transaksi minimal 85%.**
 - **MAPE forecasting pengeluaran kas maksimal 20%.**
-- Evaluasi klasifikasi dengan dan tanpa RAG.
-- Pengujian transaksi di luar referensi menggunakan kategori fallback.
-- Pengukuran metrik MAE dan MAPE untuk forecasting deret waktu Prophet.
+- Evaluasi klasifikasi *embedding + FAISS similarity gate* + Llama 3 terkunci **tanpa** *few-shot* RAG pada prompt.
+- Pengujian transaksi di luar daftar kategori (`perlu_tinjauan` / `Others`) dan larangan pembuatan kategori liar.
+- Pengukuran metrik MAE, RMSE, WAPE, dan MAPE pada seleksi otomatis multi-model forecasting (horizon 3–90 hari) untuk data toko asli maupun dataset sintetis berlabel jelas.
 
 ### Fitur AI Financial Chat Assistant
 
@@ -660,7 +663,7 @@ Dokumentasi dan implementasi diperbarui mengikuti standar kurikulum Dicoding, ha
 
 - Model embedding: `paraphrase-multilingual-MiniLM-L12-v2` (SentenceTransformers) — https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 - Vector database: FAISS (Meta AI Research) — https://github.com/facebookresearch/faiss
-- Peramalan: Prophet (Meta) — https://github.com/meta/prophet
+- Peramalan: Prophet (Meta) — https://github.com/meta/prophet, Statsmodels (`ETS`, `ARIMA`) — https://www.statsmodels.org, dan Scikit-Learn (`LinearRegression`) — https://scikit-learn.org
 - Model bahasa: Llama 3 8B (Meta), dijalankan secara lokal melalui Ollama — https://ollama.com dan https://llama.meta.com/llama3/
 - Pustaka embedding: SentenceTransformers — https://www.sbert.net
 - Database: Supabase (PostgreSQL) — https://supabase.com

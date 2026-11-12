@@ -21,7 +21,7 @@ def render(token, profile):
         from pages import cashier
         cashier.render(token, profile)
 
-def render_ai_pending_queue(token):
+def render_ai_pending_queue(token, *, auto_retry=True):
     """One bounded retry on page load or button; never a background loop."""
     import time
     from services.ai_service import pending_ai_transactions, retry_pending_ai_classifications
@@ -33,7 +33,7 @@ def render_ai_pending_queue(token):
         st.warning(f"Klasifikasi tertunda - {len(pending)} transaksi menunggu AI. Transaksi sudah tersimpan.")
         requested = st.button(f"Klasifikasi ulang ({len(pending)} menunggu AI)", key='retry_pending_ai')
         key = 'last_ai_retry_' + str(pending[0].get('toko_id',''))
-        if requested or time.monotonic() - st.session_state.get(key, 0) > 30:
+        if requested or (auto_retry and time.monotonic() - st.session_state.get(key, 0) > 30):
             st.session_state[key] = time.monotonic()
             if diagnosis()['ok']:
                 result = retry_pending_ai_classifications(token, limit=20 if requested else 3)
@@ -46,10 +46,86 @@ def render_ai_pending_queue(token):
         st.warning(f'Antrean AI belum dapat diproses: {exc}')
 
 
+def _render_others_reclassification_panel(token, cats, key_prefix='cat'):
+    others_ids = {
+        str(c['id']) for c in cats
+        if c.get('sistem') or str(c.get('nama', '')).strip().casefold() == 'others'
+    }
+    if not others_ids:
+        return
+    all_tx = f.list_transactions(token)
+    others_txs = [
+        r for r in all_tx
+        if r.get('kategori_id') and str(r['kategori_id']) in others_ids
+        and r.get('status_persetujuan') != 'ditolak'
+    ]
+    st.caption(f"Transaksi saat ini pada kategori Others: **{len(others_txs):,} transaksi**.")
+    if not others_txs:
+        st.session_state.pop('others_reclass_preview', None)
+        return
+
+    if st.button('Klasifikasi ulang transaksi Others', type='primary', key=f'{key_prefix}_btn_reclassify_others'):
+        with st.spinner('Menganalisis ulang transaksi Others dengan Similarity Gate & AI...'):
+            try:
+                from services.ai_service import preview_others_reclassification
+                st.session_state['others_reclass_preview'] = preview_others_reclassification(token)
+            except Exception as exc:
+                st.error(f'Gagal memproses pratinjau klasifikasi ulang Others: {exc}')
+
+    preview = st.session_state.get('others_reclass_preview')
+    if preview and preview.get('total_others', 0) > 0:
+        mc1, mc2, mc3 = st.columns(3)
+        mc1.metric('Total Transaksi Others', f"{preview['total_others']:,}")
+        mc2.metric('Siap Dipindahkan', f"{preview['reclassified_count']:,}")
+        mc3.metric('Tetap Perlu Tinjauan', f"{preview['unresolved_count']:,}")
+
+        table_rows = [
+            {
+                'Deskripsi': g['deskripsi'],
+                'Jenis': str(g['tipe']).capitalize(),
+                'Jumlah': g['count'],
+                'Total Nominal': format_rupiah(g['total_nominal']),
+                'Usulan Kategori': g['suggested_kategori_nama'],
+                'Status': 'Terpetakan' if g.get('suggested_kategori_id') else 'Perlu Tinjauan',
+            }
+            for g in preview.get('groups', [])
+        ]
+        if table_rows:
+            st.dataframe(pd.DataFrame(table_rows), hide_index=True, use_container_width=True)
+
+        c_ok, c_cancel = st.columns([2, 1])
+        updates = preview.get('updates', [])
+        if updates and c_ok.button(
+            f"Konfirmasi & Terapkan ke {len(updates):,} Transaksi",
+            type='primary',
+            key=f'{key_prefix}_btn_confirm_others',
+        ):
+            with st.spinner('Menyimpan hasil klasifikasi ulang & memperbarui indeks FAISS...'):
+                try:
+                    from services.ai_service import confirm_others_reclassification
+                    res = confirm_others_reclassification(token, updates)
+                    st.session_state.pop('others_reclass_preview', None)
+                    st.success(
+                        f"Berhasil memindahkan {res['updated_count']:,} transaksi dari Others "
+                        f"({res['reapproved_count']:,} disetujui ulang dengan audit log)."
+                    )
+                    st.rerun()
+                except Exception as exc:
+                    st.error(f'Gagal menerapkan klasifikasi ulang: {exc}')
+        elif not updates:
+            st.info('Tidak ada transaksi Others yang mencapai keyakinan cukup; lengkapi kata kunci kategori terlebih dahulu.')
+        if c_cancel.button('Tutup Pratinjau', key=f'{key_prefix}_btn_cancel_others'):
+            st.session_state.pop('others_reclass_preview', None)
+            st.rerun()
+
+
 def transactions_ui(token, owner):
     page_header('Pencatatan Transaksi', 'Pencatatan mutasi kas pemasukan dan pengeluaran operasional toko.')
     render_ai_pending_queue(token)
     cats = _cats(token)
+    if owner and cats:
+        with st.expander('Klasifikasi Ulang Transaksi Others', expanded=False):
+            _render_others_reclassification_panel(token, cats, key_prefix='tx')
     if not cats:
         st.warning('Belum ada kategori terdaftar. Pemilik toko perlu menyiapkan kategori di menu Kelola Kategori terlebih dahulu.')
         return
@@ -294,9 +370,32 @@ def categories_ui(token):
                 'Nama Kategori': c['nama'],
                 'Jenis': c['tipe'].capitalize(),
                 'Deskripsi': c.get('deskripsi') or '-',
+                'Kata Kunci': ', '.join(c.get('kata_kunci') or []) or '-',
                 'Tipe Akun': tipe_tag
             })
         st.dataframe(pd.DataFrame(formatted_cats), use_container_width=True, hide_index=True)
+
+        missing_kw_count = sum(
+            1 for c in cats
+            if not c.get('sistem') and not c.get('bukan_operasional')
+            and str(c.get('nama', '')).strip().casefold() != 'others'
+            and not [k for k in (c.get('kata_kunci') or []) if str(k).strip()]
+        )
+        if missing_kw_count > 0:
+            st.warning(f"Terdapat {missing_kw_count} kategori aktif yang belum memiliki kata kunci pencocokan (Similarity Gate berpotensi rendah).")
+        if st.button('Lengkapi Kata Kunci Default Kategori (Sesuai Bidang Usaha)', key='btn_autofill_keywords'):
+            try:
+                res_kw = f.auto_fill_category_keywords(token, overwrite=False)
+                for warning in res_kw.get('warnings', []):
+                    st.warning(warning)
+                if res_kw['updated_count']:
+                    st.success(f"Kata kunci berhasil diisi pada {res_kw['updated_count']} kategori dan indeks FAISS diperbarui.")
+                    if not res_kw.get('warnings'):
+                        st.rerun()
+                else:
+                    st.info('Tidak ada kata kunci baru yang dapat diisi. Isi kata kunci kategori kosong secara manual lewat Kelola Kategori.')
+            except Exception as exc:
+                st.error(str(exc))
     else:
         st.info('Belum ada kategori yang terdaftar pada toko ini.')
 
@@ -306,11 +405,20 @@ def categories_ui(token):
         name = st.text_input('Nama Kategori')
         tp = st.selectbox('Jenis Kategori', ['pengeluaran', 'pemasukan'])
         desc = st.text_input('Deskripsi Singkat (Opsional)')
+        kw_new = st.text_input('Kata Kunci Pencocokan (Opsional, pisahkan koma, maks 20)', placeholder='Misal: tepung terigu, gula pasir, ragi instan')
+        auto_kw = st.checkbox('Gunakan kata kunci default usaha bila kolom kata kunci dikosongkan', value=True)
         create = st.form_submit_button('Simpan Kategori Baru')
 
     if create:
         try:
-            f.create_category(token, name, tp, desc)
+            parsed_kw = [k.strip()[:80] for k in kw_new.split(',') if k.strip()][:20]
+            if not parsed_kw and auto_kw:
+                from ai.category_discovery import suggest_default_keywords
+                from ai.store_context import get_store_business_context
+                shop_ctx = f._owner(token)
+                b_type = get_store_business_context(shop_ctx['toko_id']).get('bidang_usaha', 'Umum')
+                parsed_kw = suggest_default_keywords(name, tp, business_type=b_type)
+            f.create_category(token, name, tp, desc, keywords=parsed_kw)
             st.success('Kategori baru berhasil ditambahkan.')
             st.rerun()
         except Exception as exc:
@@ -327,12 +435,20 @@ def categories_ui(token):
         with st.form('edit_category'):
             name = st.text_input('Nama Baru', value=current['nama'])
             desc = st.text_input('Deskripsi Baru', value=current.get('deskripsi', ''))
+            kw_edit = st.text_input(
+                'Kata Kunci Pencocokan (pisahkan koma, maks 20)',
+                value=', '.join(current.get('kata_kunci') or []),
+                disabled=bool(current.get('sistem') or current.get('bukan_operasional')),
+            )
             save = st.form_submit_button('Perbarui Kategori')
 
         if save:
             try:
                 f.rename_category(token, cid, name, desc)
-                st.success('Kategori berhasil diubah.')
+                if not current.get('sistem') and not current.get('bukan_operasional'):
+                    parsed_kw = [k.strip()[:80] for k in kw_edit.split(',') if k.strip()]
+                    f.set_category_keywords(token, cid, parsed_kw)
+                st.success('Kategori berhasil diubah dan indeks diperbarui.')
                 st.rerun()
             except Exception as exc:
                 st.error(str(exc))
@@ -372,8 +488,10 @@ def categories_ui(token):
             st.info('Tidak ada kategori kustom yang dapat digabungkan.')
 
     st.divider()
-    section_header('Analisis Kategori Tidak Terpetakan (Others)', 'Menganalisis transaksi yang masuk ke kategori Others untuk menemukan peluang kategori baru.')
-    typ = st.selectbox('Jenis Transaksi untuk Dianalisis:', ['pengeluaran', 'pemasukan'])
+    section_header('Analisis Kategori Tidak Terpetakan (Others)', 'Klasifikasi ulang transaksi Others ke kategori aktif atau temukan peluang kategori baru.')
+    _render_others_reclassification_panel(token, cats, key_prefix='cat')
+    st.markdown("<div style='margin-top: 0.75rem;'></div>", unsafe_allow_html=True)
+    typ = st.selectbox('Jenis Transaksi untuk Usulan Kategori Baru:', ['pengeluaran', 'pemasukan'])
     if st.button('Analisis Pola Transaksi'):
         try:
             from services.ai_service import suggest_others

@@ -45,7 +45,7 @@ class ToolName(str, Enum):
     GET_CATEGORY_BREAKDOWN = "get_category_breakdown"
     GET_SPENDING_TRENDS = "get_spending_trends"
     GET_FINANCIAL_INSIGHTS = "get_financial_insights"
-    # FORECASTING (PROPHET)
+    # FORECASTING (MULTI-MODEL)
     GET_AVAILABLE_FORECAST = "get_available_forecast"
     GET_EXPENSE_FORECAST = "get_expense_forecast"
     GET_FORECAST_FOR_PERIOD = "get_forecast_for_period"
@@ -64,6 +64,7 @@ class ToolName(str, Enum):
     EXPLAIN_OWNER_APPROVAL_WORKFLOW = "explain_owner_approval_workflow"
     EXPLAIN_CSV_IMPORT = "explain_csv_import"
     EXPLAIN_AI_CLASSIFICATION = "explain_ai_classification"
+    GET_BUSINESS_GUIDANCE = "get_business_guidance"
 
     # MUTATIONS & SPECIAL
     CREATE_TRANSACTION_PROPOSAL = "create_transaction_proposal"
@@ -91,7 +92,7 @@ class FilterParams(BaseModel):
     cashier_name: Optional[str] = None
     category_id: Optional[str] = None
     category_name: Optional[str] = None
-    days_ahead: Optional[int] = Field(30, ge=1, le=365)
+    days_ahead: Optional[int] = Field(30, ge=3, le=90)
     limit: Optional[int] = Field(10, ge=1, le=50)
     output_mode: Optional[ForecastOutputMode] = Field(ForecastOutputMode.SUMMARY, description="summary or daily_breakdown")
     granularity: Optional[Literal["daily", "total"]] = "total"

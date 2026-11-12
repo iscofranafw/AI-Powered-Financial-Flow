@@ -257,17 +257,20 @@ def test_accuracy_holdout_backtest_metrics(owner_actor, synthetic_history):
         assert eval_res['rmse'] is not None and eval_res['rmse'] >= 0.0
         assert eval_res['mape'] is not None
 
-        # Verify strict target condition
+        # Verify strict target condition and multi-model comparison output
         assert "PRD" not in eval_res['message']
-        assert "- **Target (<20%):**" in eval_res['message']
-        if "Belum dapat disimpulkan" in eval_res['message']:
+        assert "- **Status Target (<20% MAPE):**" in eval_res['message']
+        assert eval_res.get('best_model') in fs.CANDIDATE_MODEL_ORDER
+        assert len(eval_res.get('model_comparison', [])) >= 4
+        msg_lower = eval_res['message'].lower()
+        if "belum dapat disimpulkan" in msg_lower:
             assert eval_res['target_met'] is False
         elif eval_res['mape'] < 20.0:
             assert eval_res['target_met'] is True
-            assert "Terpenuhi" in eval_res['message']
+            assert "tercapai" in msg_lower
         else:
             assert eval_res['target_met'] is False
-            assert "Belum Terpenuhi" in eval_res['message']
+            assert "belum tercapai" in msg_lower
 
 
 def test_accuracy_zero_division_safety(owner_actor):
@@ -349,7 +352,7 @@ def test_accuracy_target_met_requires_minimum_active_days(owner_actor):
         assert eval_res['mape'] is not None
         assert eval_res['mape'] < 20.0
         assert eval_res['target_met'] is False
-        assert "Belum dapat disimpulkan" in eval_res['message']
+        assert "belum dapat disimpulkan" in eval_res['message'].lower()
 
 
 # ---------------------------------------------------------------------------
@@ -595,7 +598,8 @@ def test_chat_message_forecasting_end_to_end(owner_actor, synthetic_history, moc
 
         res = handle_chat_message(token, "Berapa nilai MAPE model prediksi toko saya?")
         assert res['tool'] == ToolName.GET_FORECAST_ACCURACY.value
-        assert "Evaluasi Akurasi Model Peramalan Prophet" in res['message']
+        assert "Evaluasi & Perbandingan Model Peramalan" in res['message']
+        assert res['data'].get('best_model') in fs.CANDIDATE_MODEL_ORDER
         assert "MAE" in res['message']
         assert "RMSE" in res['message']
 
@@ -724,7 +728,7 @@ def test_recurring_expense_obligation_disclaimer(owner_actor, mock_categories):
 
 
 def test_prophet_model_failure_graceful_handling(owner_actor, synthetic_history):
-    """Ensure unexpected runtime failure during Prophet fitting returns a clean error state without crashing."""
+    """If one candidate fails, skip it and continue with remaining models; if all fail, return FIT_ERROR cleanly."""
     token = 'tok_owner'
     fs.invalidate_forecast_cache()
     mock_v = make_mock_verify(owner_actor)
@@ -734,9 +738,21 @@ def test_prophet_model_failure_graceful_handling(owner_actor, synthetic_history)
          patch('services.forecast_service.Prophet.fit', side_effect=RuntimeError("Stan engine allocation failed")):
 
         res = fs.train_and_forecast_expenses(token)
-        assert res['success'] is False
-        assert res['error'] == 'FIT_ERROR'
-        assert "kendala teknis" in res['message']
+        assert res['success'] is True
+        assert res['selected_model'] != 'Prophet'
+        assert any(s['model'] == 'Prophet' for s in res.get('skipped_models', []))
+
+    fs.invalidate_forecast_cache()
+    failing_fitters = {name: (lambda df, h: (_ for _ in ()).throw(RuntimeError("All failed"))) for name in fs.CANDIDATE_MODEL_ORDER}
+    with patch('services.forecast_service.verify_actor', side_effect=mock_v), \
+         patch('services.forecast_service.transactions', return_value=synthetic_history), \
+         patch('services.forecast_service.categories', return_value=[]), \
+         patch.dict('services.forecast_service._MODEL_FITTERS', failing_fitters, clear=True):
+
+        res_all_fail = fs.train_and_forecast_expenses(token)
+        assert res_all_fail['success'] is False
+        assert res_all_fail['error'] == 'FIT_ERROR'
+        assert "kendala teknis" in res_all_fail['message']
 
 
 def test_cross_store_isolation_in_prompts(owner_actor, synthetic_history):
@@ -825,7 +841,8 @@ def test_problem_a_tomorrow_one_day_forecast(owner_actor, synthetic_history, moc
         assert tomorrow in resp1['message']
         assert "30 hari" not in resp1['message']
         assert "Puncak Pengeluaran" not in resp1['message']
-        assert "Estimasi pengeluaran Toko Berkah dihitung menggunakan model Prophet" in resp1['message']
+        chosen_a = resp1['data']['selected_model']
+        assert f"Estimasi pengeluaran Toko Berkah dihitung menggunakan model terpilih **{chosen_a}**" in resp1['message']
 
         # Query variant 2
         resp2 = handle_chat_message(token, "Prediksi pengeluaran besok?")
@@ -866,7 +883,8 @@ def test_problem_b_seven_day_daily_breakdown_table(owner_actor, synthetic_histor
         # Total and average summary
         assert "Total Estimasi (7 Hari):" in msg
         assert "Rata-rata Harian:" in msg
-        assert "Estimasi pengeluaran Toko Roti Makmur dihitung menggunakan model Prophet" in msg
+        chosen_b = resp['data']['selected_model']
+        assert f"Estimasi pengeluaran Toko Roti Makmur dihitung menggunakan model terpilih **{chosen_b}**" in msg
 
 
 def test_problem_c_dynamic_store_name_footer_resolution(owner_actor, synthetic_history, mock_categories):
@@ -885,14 +903,16 @@ def test_problem_c_dynamic_store_name_footer_resolution(owner_actor, synthetic_h
             fs.invalidate_forecast_cache()
             resp1 = handle_chat_message(token, "Berapa prediksi pengeluaran bulan depan?")
             assert "Kedai Kopi Nusantara" in resp1['message']
-            assert "Estimasi pengeluaran Kedai Kopi Nusantara dihitung menggunakan model Prophet" in resp1['message']
+            chosen_1 = resp1['data']['selected_model']
+            assert f"Estimasi pengeluaran Kedai Kopi Nusantara dihitung menggunakan model terpilih **{chosen_1}**" in resp1['message']
             assert "Tewiwi Bakery" not in resp1['message']
 
         # Subtest 2: Fallback when store name is None / unavailable
         with patch('services.forecast_service.get_store_name', return_value='toko Anda'):
             fs.invalidate_forecast_cache()
             resp2 = handle_chat_message(token, "Berapa prediksi pengeluaran bulan depan?")
-            assert "Estimasi pengeluaran toko Anda dihitung menggunakan model Prophet" in resp2['message']
+            chosen_2 = resp2['data']['selected_model']
+            assert f"Estimasi pengeluaran toko Anda dihitung menggunakan model terpilih **{chosen_2}**" in resp2['message']
             assert "Tewiwi Bakery" not in resp2['message']
 
 
@@ -968,3 +988,132 @@ def test_conversational_follow_up_preserves_period_and_breaks_down(owner_actor, 
         assert t2_var['data']['output_mode'] == 'daily_breakdown'
         assert t2_var['data']['days_count'] == 7
         assert "| Tanggal | Prediksi Pengeluaran | Rentang Estimasi (80% CI) |" in t2_var['message']
+
+
+# =====================================================================
+# 10. REVISI 3: MULTI-MODEL SELECTION & 3-90 DAY HORIZON VALIDATION
+# =====================================================================
+
+def test_revisi3_compare_forecast_models_selects_lowest_mape_and_labels_target(owner_actor):
+    """Compare all 6 candidates on the same holdout; select lowest MAPE and show honest target label."""
+    from datetime import date, timedelta
+    token = 'tok_owner'
+    mock_v = make_mock_verify(owner_actor)
+    base = date(2026, 6, 1)
+
+    # Dense 120-day series with clean weekly seasonality + slight upward trend -> best MAPE < 20%
+    dense_txs = []
+    for i in range(120):
+        d = base + timedelta(days=i)
+        amt = 100000 + (i * 250) + (20000 if d.weekday() in (4, 5) else 0)
+        dense_txs.append({
+            'id': f'tx-d-{i}',
+            'toko_id': owner_actor['toko_id'],
+            'tanggal': d.isoformat(),
+            'nominal': amt,
+            'tipe': 'pengeluaran',
+            'status_persetujuan': 'disetujui',
+        })
+
+    fs.invalidate_forecast_cache()
+    with patch('services.forecast_service.verify_actor', side_effect=mock_v), \
+         patch('services.forecast_service.transactions', return_value=dense_txs), \
+         patch('services.forecast_service.categories', return_value=[]):
+        comp = fs.compare_forecast_models(token, test_days=28)
+
+    assert comp['success'] is True
+    assert comp['test_days'] == 28
+    evaluated_names = {r['model'] for r in comp['model_comparison']}
+    assert {'Prophet', 'Seasonal Naive', 'MA7', 'ETS', 'ARIMA', 'LinearRegression'} <= evaluated_names
+    assert comp['best_model'] == comp['model_comparison'][0]['model']
+    assert comp['best_mape'] < 20.0
+    assert comp['target_met'] is True
+    assert 'target <20% tercapai' in comp['target_status']
+
+    # Volatile/erratic series -> best MAPE >= 20%, still picks lowest MAPE and labels honestly
+    volatile_txs = []
+    for i in range(70):
+        d = base + timedelta(days=i)
+        amt = 500000 if i % 7 == 0 else (25000 if i % 2 == 0 else 180000)
+        volatile_txs.append({
+            'id': f'tx-v-{i}',
+            'toko_id': owner_actor['toko_id'],
+            'tanggal': d.isoformat(),
+            'nominal': amt,
+            'tipe': 'pengeluaran',
+            'status_persetujuan': 'disetujui',
+        })
+
+    fs.invalidate_forecast_cache()
+    with patch('services.forecast_service.verify_actor', side_effect=mock_v), \
+         patch('services.forecast_service.transactions', return_value=volatile_txs), \
+         patch('services.forecast_service.categories', return_value=[]):
+        comp_v = fs.compare_forecast_models(token, test_days=28)
+
+    assert comp_v['success'] is True
+    assert comp_v['best_model'] == comp_v['model_comparison'][0]['model']
+    assert comp_v['best_mape'] >= 20.0
+    assert comp_v['target_met'] is False
+    assert f"target <20% belum tercapai (MAPE terbaik {comp_v['best_mape']:.2f}%)" in comp_v['target_status']
+
+
+def test_revisi3_horizon_3_to_90_validation_across_service_schema_and_planner(owner_actor, synthetic_history):
+    """Enforce 3..90 days across validate_forecast_horizon, FilterParams, plan_intent, and service."""
+    from pydantic import ValidationError
+    from ai.copilot_schema import FilterParams
+    from ai.copilot_planner import plan_intent
+
+    assert fs.validate_forecast_horizon(None) == 30
+    assert fs.validate_forecast_horizon(3) == 3
+    assert fs.validate_forecast_horizon(45) == 45
+    assert fs.validate_forecast_horizon(90) == 90
+
+    for bad_days in (0, 1, 2, 91, 180, 365):
+        with pytest.raises(ValueError):
+            fs.validate_forecast_horizon(bad_days)
+        with pytest.raises(ValidationError):
+            FilterParams(days_ahead=bad_days)
+
+    assert FilterParams(days_ahead=3).days_ahead == 3
+    assert FilterParams(days_ahead=90).days_ahead == 90
+
+    # Planner rejects out-of-range explicit N hari requests clearly while preserving 'besok'
+    d_too_low = plan_intent("Prediksi pengeluaran 2 hari ke depan")
+    assert d_too_low.tool_name == ToolName.UNKNOWN
+    assert "3 hingga 90 hari" in (d_too_low.clarification_question or "")
+
+    d_too_high = plan_intent("Ramalkan pengeluaran 120 hari ke depan")
+    assert d_too_high.tool_name == ToolName.UNKNOWN
+    assert "3 hingga 90 hari" in (d_too_high.clarification_question or "")
+
+    d_three = plan_intent("Prediksi pengeluaran 3 hari ke depan")
+    assert d_three.tool_name in (ToolName.GET_EXPENSE_FORECAST, ToolName.GET_FORECAST_FOR_PERIOD)
+
+    d_45 = plan_intent("Ramalkan pengeluaran 45 hari")
+    assert d_45.tool_name == ToolName.GET_EXPENSE_FORECAST
+    assert d_45.filter_params.days_ahead == 45
+
+    d_besok = plan_intent("Prediksi pengeluaran untuk besok?")
+    assert d_besok.tool_name == ToolName.GET_FORECAST_FOR_PERIOD
+
+    # Service end-to-end validates 3..90 and returns exact requested projection length
+    token = 'tok_owner'
+    mock_v = make_mock_verify(owner_actor)
+    fs.invalidate_forecast_cache()
+    with patch('services.forecast_service.verify_actor', side_effect=mock_v), \
+         patch('services.forecast_service.transactions', return_value=synthetic_history), \
+         patch('services.forecast_service.categories', return_value=[]):
+        with pytest.raises(ValueError):
+            fs.train_and_forecast_expenses(token, days_ahead=2)
+        with pytest.raises(ValueError):
+            fs.train_and_forecast_expenses(token, days_ahead=91)
+
+        r3 = fs.train_and_forecast_expenses(token, days_ahead=3)
+        assert r3['success'] is True
+        assert r3['days_ahead'] == 3
+        assert len(r3['projections']) == 3
+
+        r45 = fs.train_and_forecast_expenses(token, days_ahead=45)
+        assert r45['success'] is True
+        assert r45['days_ahead'] == 45
+        assert len(r45['projections']) == 45

@@ -1,0 +1,190 @@
+{
+  "categories": [
+    {
+      "domain": "warung_makan",
+      "id": "w_bahan",
+      "nama": "Bahan Masakan Pilihan Pemilik",
+      "tipe": "pengeluaran",
+      "deskripsi": "Bahan pangan untuk memasak menu yang dijual, bukan alat atau tagihan.",
+      "contoh": [
+        "pengadaan fillet patin untuk menu dapur",
+        "belanja jamur tiram untuk dimasak",
+        "beli sawi untuk bahan tumisan"
+      ],
+      "sistem": false
+    },
+    {
+      "domain": "warung_makan",
+      "id": "w_ops",
+      "nama": "Tagihan Warung Pilihan Pemilik",
+      "tipe": "pengeluaran",
+      "deskripsi": "Biaya utilitas dan langganan tempat usaha, bukan bahan makanan.",
+      "contoh": [
+        "tagihan jaringan internet warung",
+        "pembayaran air bersih tempat makan",
+        "tagihan listrik ruang makan"
+      ],
+      "sistem": false
+    },
+    {
+      "domain": "warung_makan",
+      "id": "w_menu",
+      "nama": "Penerimaan Makan di Tempat",
+      "tipe": "pemasukan",
+      "deskripsi": "Hasil menjual hidangan dan minuman langsung di warung kepada pengunjung, bukan katering acara.",
+      "contoh": [
+        "penerimaan penjualan menu pengunjung warung",
+        "omzet hidangan meja makan",
+        "hasil menjual minuman ke pengunjung"
+      ],
+      "sistem": false
+    },
+    {
+      "domain": "warung_makan",
+      "id": "w_katering",
+      "nama": "Penerimaan Katering Acara",
+      "tipe": "pemasukan",
+      "deskripsi": "Pembayaran pelanggan untuk paket makanan katering acara rapat atau pesta, bukan makan langsung di warung.",
+      "contoh": [
+        "pembayaran katering rapat kantor",
+        "pelunasan paket konsumsi pesta",
+        "penerimaan pesanan katering seminar"
+      ],
+      "sistem": false
+    },
+    {
+      "domain": "bengkel_motor",
+      "id": "b_parts",
+      "nama": "Komponen Pengganti Pilihan Pemilik",
+      "tipe": "pengeluaran",
+      "deskripsi": "Pembelian suku cadang untuk dijual atau dipasang pada motor pelanggan, bukan peralatan bengkel.",
+      "contoh": [
+        "pengadaan sensor injeksi motor pelanggan",
+        "belanja kabel kopling pengganti",
+        "pembelian bearing roda motor"
+      ],
+      "sistem": false
+    },
+    {
+      "domain": "bengkel_motor",
+      "id": "b_tools",
+      "nama": "Alat Kerja Pilihan Pemilik",
+      "tipe": "pengeluaran",
+      "deskripsi": "Peralatan tahan lama untuk dipakai mekanik mengerjakan servis, bukan suku cadang yang dijual.",
+      "contoh": [
+        "pengadaan dongkrak bengkel untuk dipakai mekanik",
+        "pembelian tang mekanik untuk alat bengkel",
+        "beli multimeter alat diagnosis bengkel"
+      ],
+      "sistem": false
+    },
+    {
+      "domain": "bengkel_motor",
+      "id": "b_jasa",
+      "nama": "Penerimaan Tenaga Mekanik",
+      "tipe": "pemasukan",
+      "deskripsi": "Pembayaran pelanggan untuk jasa servis dan pekerjaan mekanik, bukan penjualan barang atau suku cadang.",
+      "contoh": [
+        "pendapatan jasa membersihkan injektor",
+        "pembayaran ongkos penyetelan rem",
+        "penerimaan jasa perbaikan kelistrikan motor"
+      ],
+      "sistem": false
+    },
+    {
+      "domain": "bengkel_motor",
+      "id": "b_sales",
+      "nama": "Penerimaan Penjualan Komponen",
+      "tipe": "pemasukan",
+      "deskripsi": "Hasil penjualan suku cadang tanpa ongkos jasa mekanik.",
+      "contoh": [
+        "hasil menjual kabel kopling tanpa pemasangan",
+        "penerimaan penjualan bearing roda",
+        "penjualan sensor injeksi tanpa jasa"
+      ],
+      "sistem": false
+    }
+  ],
+  "cases": [
+    {
+      "expected": "w_bahan",
+      "deskripsi": "pengadaan ikan nila segar untuk bahan menu dapur"
+    },
+    {
+      "expected": "w_bahan",
+      "deskripsi": "belanja tahu sutra untuk dimasak menjadi hidangan"
+    },
+    {
+      "expected": "w_bahan",
+      "deskripsi": "pembelian brokoli segar bahan tumisan warung"
+    },
+    {
+      "expected": "w_ops",
+      "deskripsi": "bayar tagihan jaringan internet ruang makan bulan ini"
+    },
+    {
+      "expected": "w_ops",
+      "deskripsi": "pelunasan rekening air bersih warung periode Oktober"
+    },
+    {
+      "expected": "b_parts",
+      "deskripsi": "pengadaan sensor oksigen pengganti motor pelanggan"
+    },
+    {
+      "expected": "b_parts",
+      "deskripsi": "pembelian bearing poros roda untuk dijual ke pelanggan"
+    },
+    {
+      "expected": "b_parts",
+      "deskripsi": "belanja kabel gas pengganti sepeda motor pelanggan"
+    },
+    {
+      "expected": "b_tools",
+      "deskripsi": "pembelian dongkrak hidrolik untuk alat kerja mekanik bengkel"
+    },
+    {
+      "expected": "b_tools",
+      "deskripsi": "pengadaan multimeter digital untuk alat diagnosis mekanik"
+    },
+    {
+      "expected": "w_menu",
+      "deskripsi": "penerimaan hasil menjual hidangan sup ikan ke pengunjung warung"
+    },
+    {
+      "expected": "w_menu",
+      "deskripsi": "omzet penjualan minuman jahe ke pengunjung meja makan"
+    },
+    {
+      "expected": "w_menu",
+      "deskripsi": "pembayaran menu tumis brokoli oleh pengunjung warung"
+    },
+    {
+      "expected": "w_katering",
+      "deskripsi": "pelunasan katering konsumsi rapat koperasi"
+    },
+    {
+      "expected": "w_katering",
+      "deskripsi": "pembayaran paket katering acara seminar kelurahan"
+    },
+    {
+      "expected": "b_jasa",
+      "deskripsi": "penerimaan jasa mekanik membersihkan throttle body motor"
+    },
+    {
+      "expected": "b_jasa",
+      "deskripsi": "pembayaran ongkos penyetelan kabel gas sepeda motor"
+    },
+    {
+      "expected": "b_jasa",
+      "deskripsi": "pendapatan jasa perbaikan lampu sein motor pelanggan"
+    },
+    {
+      "expected": "b_sales",
+      "deskripsi": "hasil menjual sensor oksigen motor tanpa pemasangan"
+    },
+    {
+      "expected": "b_sales",
+      "deskripsi": "penerimaan penjualan bearing poros roda tanpa jasa mekanik"
+    }
+  ]
+}

@@ -1,4 +1,6 @@
 import os
+from contextlib import contextmanager
+from contextvars import ContextVar
 import json
 import time
 import numpy as np
@@ -25,7 +27,11 @@ except ImportError:
 
 INDEX_ROOT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'vector_store')
 
+# Invalidate pre-ownership and history-first keyword indexes on next read.
+KEYWORD_TEXT_VERSION = 5
+
 _CACHE = {}
+_PREVIEW_INDEXES = ContextVar("import_preview_indexes", default=None)
 
 
 def _get_store_dir(toko_id):
@@ -74,13 +80,12 @@ def clear_memory_cache(toko_id=None, tipe=None):
         _CACHE.pop((str(toko_id), str(tipe)), None)
 
 
-def build_corpus_entries(toko_id, tipe):
+def build_corpus_entries(toko_id, tipe, *, category_rows=None, transaction_rows=None, business_type=None):
     entries = []
-    client = privileged_client()
-    store_info = get_store_business_context(toko_id)
-    business_type = store_info.get('bidang_usaha', 'Umum')
+    client = privileged_client() if category_rows is None or transaction_rows is None else None
+    business_type = business_type or get_store_business_context(toko_id).get('bidang_usaha', 'Umum')
 
-    cat_rows = (
+    cat_rows = category_rows if category_rows is not None else (
         client.table('kategori')
         .select('id, nama, deskripsi, kata_kunci, sistem')
         .eq('toko_id', str(toko_id))
@@ -88,6 +93,31 @@ def build_corpus_entries(toko_id, tipe):
         .execute()
         .data or []
     )
+
+    tx_rows = transaction_rows if transaction_rows is not None else (
+        client.table('transaksi')
+        .select('id, deskripsi, kategori_id, status_kategori')
+        .eq('toko_id', str(toko_id))
+        .eq('tipe', str(tipe))
+        .eq('status_persetujuan', 'disetujui')
+        .eq('status_kategori', 'dikonfirmasi')
+        .order('tanggal', desc=True)
+        .limit(1000)
+        .execute()
+        .data or []
+    )
+
+    # Reconcile keyword ownership with this shop/type's confirmed history before
+    # vectorizing. Raw database rows remain unchanged; conflicting aliases must
+    # not create score-1 duplicates in unrelated categories.
+    from ai.category_evidence import compile_keyword_plan
+    plan = compile_keyword_plan(
+        [{**c, 'tipe': str(tipe)} for c in cat_rows],
+        [{**r, 'tipe': str(tipe)} for r in tx_rows], business_type, prefer_existing=True,
+    )
+    cat_rows = plan['categories']
+    from ai.category_evidence import reconcile_purpose_rows
+    tx_rows = reconcile_purpose_rows([{**r, 'tipe': str(tipe)} for r in tx_rows], cat_rows, business_type)
 
     cat_names = {}
     for cat in cat_rows:
@@ -102,10 +132,9 @@ def build_corpus_entries(toko_id, tipe):
         if desc:
             parts.append(desc)
         keywords = cat.get('kata_kunci') or []
-        if isinstance(keywords, list) and keywords:
-            clean_kw = [str(k).strip() for k in keywords if str(k).strip()]
-            if clean_kw:
-                parts.append(' '.join(clean_kw))
+        clean_kw = [str(k).strip() for k in keywords if str(k).strip()] if isinstance(keywords, list) else []
+        if clean_kw:
+            parts.append(' '.join(clean_kw))
 
         text = '. '.join(parts)
         entries.append({
@@ -120,19 +149,20 @@ def build_corpus_entries(toko_id, tipe):
             'business_type': business_type,
             'verification_source': 'category_definition',
         })
-
-    tx_rows = (
-        client.table('transaksi')
-        .select('id, deskripsi, kategori_id, status_kategori')
-        .eq('toko_id', str(toko_id))
-        .eq('tipe', str(tipe))
-        .eq('status_persetujuan', 'disetujui')
-        .eq('status_kategori', 'dikonfirmasi')
-        .order('tanggal', desc=True)
-        .limit(1000)
-        .execute()
-        .data or []
-    )
+        for kw_idx, kw in enumerate(clean_kw):
+            kw_text = kw  # Keep the user keyword intact; category identity lives in metadata.
+            entries.append({
+                'id': f"cat_{cat_id}_kw_{kw_idx}",
+                'type': 'category',
+                'store_id': str(toko_id),
+                'transaction_type': str(tipe),
+                'category_id': cat_id,
+                'category_name': name,
+                'text': kw_text,
+                'normalized_desc': normalize(kw_text),
+                'business_type': business_type,
+                'verification_source': 'category_keyword',
+            })
 
     seen = set()
     for tx in tx_rows:
@@ -199,6 +229,7 @@ def build_and_save_index(toko_id, tipe, entries=None, version=None):
         'business_type': business_type,
         'embedding_model_version': get_model_name(),
         'embedding_dimension': dim,
+        'keyword_text_version': KEYWORD_TEXT_VERSION,
         'degraded_mode': not is_semantic_model_available(),
         'version': int(version),
         'count': len(entries),
@@ -218,7 +249,32 @@ def build_and_save_index(toko_id, tipe, entries=None, version=None):
     return index, meta
 
 
+@contextmanager
+def import_preview_indexes(toko_id, categories, history, business_type):
+    """Request-local, in-memory FAISS indexes; never publish staged categories."""
+    indexes = {}
+    for tipe in ('pengeluaran', 'pemasukan'):
+        entries = build_corpus_entries(
+            toko_id, tipe, category_rows=[c for c in categories if c.get('tipe') == tipe],
+            transaction_rows=[r for r in history if r.get('tipe') == tipe], business_type=business_type)
+        vectors = embed_batch([e['text'] for e in entries]) if entries else None
+        index = None
+        if entries and FAISS_AVAILABLE:
+            index = faiss.IndexFlatIP(vectors.shape[1])
+            index.add(vectors)
+        indexes[(str(toko_id), tipe)] = (index, {'entries': entries})
+    guard = _PREVIEW_INDEXES.set(indexes)
+    try:
+        yield
+    finally:
+        _PREVIEW_INDEXES.reset(guard)
+
+
 def get_or_sync_index(toko_id, tipe, force_rebuild=False):
+    preview = _PREVIEW_INDEXES.get()
+    if preview is not None and (str(toko_id), str(tipe)) in preview:
+        return preview[(str(toko_id), str(tipe))]
+
     toko_id = str(toko_id)
     tipe = str(tipe)
     cached = _CACHE.get((toko_id, tipe))
@@ -227,7 +283,7 @@ def get_or_sync_index(toko_id, tipe, force_rebuild=False):
 
     if not force_rebuild and cached is not None and cached['version'] == remote_version:
         idx = cached.get('index')
-        if idx is not None and hasattr(idx, 'd') and idx.d == current_dim:
+        if idx is not None and hasattr(idx, 'd') and idx.d == current_dim and cached.get('meta', {}).get('keyword_text_version') == KEYWORD_TEXT_VERSION:
             return cached['index'], cached['meta']
 
     faiss_path, meta_path = _get_file_paths(toko_id, tipe)
@@ -235,7 +291,7 @@ def get_or_sync_index(toko_id, tipe, force_rebuild=False):
         try:
             with open(meta_path, 'r', encoding='utf-8') as f:
                 meta = json.load(f)
-            if int(meta.get('version', 0)) == remote_version:
+            if int(meta.get('version', 0)) == remote_version and meta.get('keyword_text_version') == KEYWORD_TEXT_VERSION:
                 # Validate tenant isolation
                 if str(meta.get('store_id')) != toko_id and str(meta.get('toko_id')) != toko_id:
                     return build_and_save_index(toko_id, tipe, version=remote_version)

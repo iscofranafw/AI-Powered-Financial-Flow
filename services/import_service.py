@@ -122,9 +122,21 @@ def preview_csv(content: bytes, max_rows: int = MAX_IMPORT_ROW_LIMIT) -> List[Di
     return combined
 
 
-def enrich_rows(token: str, rows: List[Dict[str, Any]], progress: Optional[Any] = None, categories: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
+def enrich_rows(token: str, rows: List[Dict[str, Any]], progress: Optional[Any] = None, categories: Optional[List[Dict[str, Any]]] = None, *, preview_only=False) -> List[Dict[str, Any]]:
     """Categorize transactions using approved store categories and hybrid classification."""
     from services.ai_service import bulk_classify
+    if preview_only:
+        from services.import_session import confirmed_history
+        from ai.rag_engine import import_preview_indexes
+        from ai.store_context import get_store_business_context
+        from ai.hybrid_classifier import clear_classification_cache
+        actor = verify_actor(token, {'pemilik_toko', 'kasir'})
+        from services.finance_service import list_categories
+        cats = categories if categories is not None else list_categories(token)
+        business = get_store_business_context(actor['toko_id']).get('bidang_usaha', 'Umum')
+        clear_classification_cache(actor['toko_id'])
+        with import_preview_indexes(actor['toko_id'], cats, confirmed_history(token), business):
+            return bulk_classify(token, rows, progress=progress, categories=cats, persist_pending=False)
     if categories is not None:
         return bulk_classify(token, rows, progress=progress, categories=categories)
     return bulk_classify(token, rows, progress=progress)

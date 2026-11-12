@@ -1,15 +1,21 @@
 import hashlib
 import io
 import time
+import uuid
 from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 import streamlit as st
 
 from ai.classifier import detect_type
+from ai.category_discovery import suggest_default_keywords, matching_transaction_samples
+from services.import_session import (approval_signature, invalidate_approval, discard_draft,
+                                     stage_categories, materialize_categories)
+from services.import_category_policy import missing_category_types, preview_category_label, missing_allowed_types
+from ai.store_context import get_store_business_context
 from ai.text_normalizer import clean_text_for_storage, normalize
 from services import finance_service as finance
-from services.ai_service import discover_categories_for_import
+from services.ai_service import discover_categories_for_import, get_classification_index_status
 from services.import_service import (
     analyze_csv_upload,
     enrich_rows,
@@ -17,6 +23,7 @@ from services.import_service import (
 from services.smart_import_engine import (
     detect_duplicates,
     execute_scalable_import,
+    extract_csv_category_candidates,
     parse_and_validate_dataframe,
 )
 from utils.ui_components import page_header, section_header
@@ -39,7 +46,7 @@ def render(token: str):
     )
 
     from pages.finance import render_ai_pending_queue
-    render_ai_pending_queue(token)
+    render_ai_pending_queue(token, auto_retry=False)
 
     with st.expander('Format Berkas & Data Sampel'):
         sample_template = "tanggal,deskripsi,nominal,tipe\n2026-10-30,Beli bahan baku,250000,pengeluaran\n2026-10-30,Penjualan harian kasir,750000,pemasukan\n"
@@ -91,29 +98,34 @@ def render(token: str):
     file = st.file_uploader(
         'Pilih berkas CSV transaksi (Mendukung UTF-8, Windows CSV, hingga 25 MB):',
         type=['csv'],
-        key='upload_csv',
+        key=f"upload_csv_{st.session_state.get('import_upload_generation', 0)}",
     )
     if file is None:
+        if st.session_state.get('csv_commit_started'):
+            result = st.session_state.get('csv_import_result') or {}
+            saved = result.get('session_imported', result.get('total_imported'))
+            detail = f" {saved:,} transaksi terkonfirmasi tersimpan dalam sesi ini." if saved is not None else ''
+            st.warning('Berkas dilepas setelah penyimpanan akhir dimulai; ini tidak membatalkan data yang sudah tersimpan.' + detail + ' Periksa daftar transaksi dan kategori toko untuk hasilnya.')
+            return
         # Clear upload-related session state when file is removed
-        for key in list(st.session_state.keys()):
-            if key.startswith('csv_'):
-                st.session_state.pop(key, None)
+        discard_draft(st.session_state, reset_upload=False)
         return
+
+    if st.session_state.get('csv_commit_started'):
+        st.warning('Penyimpanan akhir telah dimulai. Data yang sudah tersimpan tidak dibatalkan. Periksa ringkasan di bawah; kegagalan dapat dicoba ulang dengan ID impor yang sama.')
+    else:
+        st.button('Batal Impor', key='btn_cancel_import', on_click=discard_draft, args=(st.session_state,))
 
     content = file.getvalue()
     content_hash = hashlib.sha256(content).hexdigest()
 
     # Reset cache when a different file is uploaded
     if st.session_state.get('csv_content_hash') != content_hash:
+        if st.session_state.get('csv_commit_started'):
+            st.error('Selesaikan atau periksa hasil impor sebelumnya sebelum mengganti berkas. Muat ulang halaman untuk memulai sesi baru.')
+            return
+        discard_draft(st.session_state, reset_upload=False)
         st.session_state['csv_content_hash'] = content_hash
-        st.session_state.pop('csv_analysis', None)
-        st.session_state.pop('csv_discovery_data', None)
-        st.session_state.pop('review_expense_cats', None)
-        st.session_state.pop('review_income_cats', None)
-        st.session_state.pop('csv_category_approved', None)
-        st.session_state.pop('csv_approved_categories', None)
-        st.session_state.pop('csv_proposals', None)
-        st.session_state.pop('csv_import_result', None)
 
     if 'csv_analysis' not in st.session_state:
         try:
@@ -203,6 +215,12 @@ def render(token: str):
                 index=_get_index(auto_map.get('notes'), header_options_with_none),
                 key='map_notes',
             )
+            sel_kategori = st.selectbox(
+                'Kolom Kategori Awal dari CSV (Opsional):',
+                header_options_with_none,
+                index=_get_index(auto_map.get('kategori'), header_options_with_none),
+                key='map_kategori',
+            )
 
     active_mappings = {
         'tanggal': sel_tanggal if 'sel_tanggal' in locals() else auto_map.get('tanggal'),
@@ -211,6 +229,7 @@ def render(token: str):
         'tipe': sel_tipe_col if ('sel_tipe_col' in locals() and sel_type_mode == 'Gunakan kolom tipe transaksi' and sel_tipe_col != '(Tidak ada)') else auto_map.get('tipe'),
         'source_id': sel_source_id if ('sel_source_id' in locals() and sel_source_id != '(Tidak ada)') else auto_map.get('source_id'),
         'notes': sel_notes if ('sel_notes' in locals() and sel_notes != '(Tidak ada)') else auto_map.get('notes'),
+        'kategori': sel_kategori if ('sel_kategori' in locals() and sel_kategori != '(Tidak ada)') else auto_map.get('kategori'),
         'staff': auto_map.get('staff'),
         'time': auto_map.get('time'),
     }
@@ -270,44 +289,51 @@ def render(token: str):
         return
 
     # ----------------------------------------------------
-    # TAHAP 2 — Penemuan Kategori Otomatis oleh AI (Category Discovery)
+    # TAHAP 2 — Tentukan Kategori Awal dari CSV & Discovery AI
     # ----------------------------------------------------
     st.divider()
-    section_header('Tahap 2: Penemuan Kategori Otomatis oleh AI (Category Discovery)')
+    section_header('Tahap 2: Penentuan & Penemuan Kategori Awal (dari CSV / AI)')
 
     if 'csv_discovery_data' not in st.session_state:
-        with st.spinner('Menganalisis deskripsi transaksi dan menemukan pos kategori yang relevan...'):
+        with st.spinner('Menganalisis kolom/isi CSV dan menemukan pos kategori yang relevan...'):
             t_disc_start = time.perf_counter()
+            existing_for_csv = finance.list_categories(token)
+            store_b_type = get_store_business_context(shop_id).get('bidang_usaha', 'Umum')
+            csv_col_cats = extract_csv_category_candidates(rows_to_import, existing_for_csv)
             discovery = discover_categories_for_import(token, rows_to_import)
             discovery['elapsed_time'] = time.perf_counter() - t_disc_start
             st.session_state['csv_discovery_data'] = discovery
 
-            # Initialize review lists
-            st.session_state['review_expense_cats'] = [
-                {
-                    'id': f'exp_rec_{i}',
-                    'nama': r['nama'],
-                    'tipe': 'pengeluaran',
-                    'deskripsi': r.get('deskripsi', ''),
-                    'contoh': r.get('contoh', []),
-                    'is_new': True,
-                    'source': r.get('source', 'ai_discovery'),
-                }
-                for i, r in enumerate(discovery.get('pengeluaran', []))
-            ]
+            def _merge_initial_candidates(tp, ai_items, csv_items, prefix):
+                merged = []
+                seen_names = set()
+                for idx_c, item in enumerate(csv_items + ai_items):
+                    nm = str(item.get('nama', '')).strip()
+                    if not nm or nm.casefold() in seen_names:
+                        continue
+                    seen_names.add(nm.casefold())
+                    contoh = matching_transaction_samples({**item, 'tipe': tp}, rows_to_import)
+                    kws = suggest_default_keywords(
+                        nm, tp, business_type=store_b_type, contoh=contoh, llm_keywords=item.get('kata_kunci')
+                    )
+                    merged.append({
+                        'id': f'{prefix}_rec_{idx_c}',
+                        'nama': nm,
+                        'tipe': tp,
+                        'deskripsi': item.get('deskripsi', ''),
+                        'contoh': contoh,
+                        'kata_kunci': list(kws)[:20],
+                        'is_new': True,
+                        'source': item.get('source', 'ai_discovery'),
+                    })
+                return merged
 
-            st.session_state['review_income_cats'] = [
-                {
-                    'id': f'inc_rec_{i}',
-                    'nama': r['nama'],
-                    'tipe': 'pemasukan',
-                    'deskripsi': r.get('deskripsi', ''),
-                    'contoh': r.get('contoh', []),
-                    'is_new': True,
-                    'source': r.get('source', 'ai_discovery'),
-                }
-                for i, r in enumerate(discovery.get('pemasukan', []))
-            ]
+            st.session_state['review_expense_cats'] = _merge_initial_candidates(
+                'pengeluaran', discovery.get('pengeluaran', []), csv_col_cats.get('pengeluaran', []), 'exp'
+            )
+            st.session_state['review_income_cats'] = _merge_initial_candidates(
+                'pemasukan', discovery.get('pemasukan', []), csv_col_cats.get('pemasukan', []), 'inc'
+            )
 
     discovery = st.session_state['csv_discovery_data']
     if discovery.get('ai_pending_count'):
@@ -382,6 +408,12 @@ def render(token: str):
                     if st.button('Hapus', key=f"btn_del_exp_{item['id']}"):
                         to_remove_exp = idx
 
+                kw_val = st.text_input(
+                    f"Kata Kunci Pengeluaran #{idx+1} (pisahkan koma):",
+                    value=', '.join(item.get('kata_kunci', [])),
+                    key=f"exp_kw_in_{item['id']}",
+                )
+                item['kata_kunci'] = [k.strip()[:80] for k in kw_val.split(',') if k.strip()][:20]
                 if item.get('contoh'):
                     st.caption(f"Contoh transaksi terkait: {', '.join(item['contoh'][:3])}")
                 st.markdown("<hr style='margin: 0.5rem 0; border: none; border-top: 1px dashed #E2E8F0;'>", unsafe_allow_html=True)
@@ -432,6 +464,12 @@ def render(token: str):
                     if st.button('Hapus', key=f"btn_del_inc_{item['id']}"):
                         to_remove_inc = idx
 
+                kw_val = st.text_input(
+                    f"Kata Kunci Pemasukan #{idx+1} (pisahkan koma):",
+                    value=', '.join(item.get('kata_kunci', [])),
+                    key=f"inc_kw_in_{item['id']}",
+                )
+                item['kata_kunci'] = [k.strip()[:80] for k in kw_val.split(',') if k.strip()][:20]
                 if item.get('contoh'):
                     st.caption(f"Contoh transaksi terkait: {', '.join(item['contoh'][:3])}")
                 st.markdown("<hr style='margin: 0.5rem 0; border: none; border-top: 1px dashed #E2E8F0;'>", unsafe_allow_html=True)
@@ -452,6 +490,7 @@ def render(token: str):
             with m_col2:
                 man_type = st.selectbox('Jenis Kategori:', ['pengeluaran', 'pemasukan'], format_func=lambda x: 'Pengeluaran' if x == 'pengeluaran' else 'Pemasukan')
             man_desc = st.text_input('Deskripsi Kategori (Opsional):')
+            man_kw = st.text_input('Kata Kunci Pencocokan (Opsional, pisahkan koma):', placeholder='Misal: tepung terigu, gula pasir, ragi instan')
             man_submit = st.form_submit_button('Tambahkan ke Daftar Kategori')
 
         if man_submit:
@@ -468,12 +507,17 @@ def render(token: str):
                 if man_name_clean.casefold() in existing_in_list or man_name_clean.casefold() in existing_in_db:
                     st.error(f"Kategori '{man_name_clean}' sudah ada dalam daftar {man_type}.")
                 else:
+                    store_b_type = get_store_business_context(shop_id).get('bidang_usaha', 'Umum')
+                    parsed_kw = [k.strip()[:80] for k in man_kw.split(',') if k.strip()][:20]
+                    if not parsed_kw:
+                        parsed_kw = suggest_default_keywords(man_name_clean, man_type, business_type=store_b_type)
                     new_item = {
                         'id': f"manual_{man_type}_{int(time.time()*1000)}",
                         'nama': man_name_clean,
                         'tipe': man_type,
                         'deskripsi': man_desc.strip(),
                         'contoh': [],
+                        'kata_kunci': parsed_kw,
                         'is_new': True,
                         'source': 'manual_owner',
                     }
@@ -485,32 +529,73 @@ def render(token: str):
     # TAHAP 4 — Persetujuan Pemilik Toko (Owner Approval)
     # ----------------------------------------------------
     st.divider()
-    section_header('Tahap 4: Persetujuan Konfigurasi Kategori')
+    section_header('Tahap 4: Konfirmasi & Penguncian Daftar Kategori yang Diizinkan')
 
     all_reviewed_exp = st.session_state.get('review_expense_cats', [])
     all_reviewed_inc = st.session_state.get('review_income_cats', [])
     total_new_cats = len(all_reviewed_exp) + len(all_reviewed_inc)
 
+    preview_allowed_exp = sorted(
+        {c['nama'] for c in existing_store_cats if c.get('tipe') == 'pengeluaran'}
+        | {c['nama'].strip() for c in all_reviewed_exp if c.get('nama', '').strip()}
+        | {'Others'}
+    )
+    preview_allowed_inc = sorted(
+        {c['nama'] for c in existing_store_cats if c.get('tipe') == 'pemasukan'}
+        | {c['nama'].strip() for c in all_reviewed_inc if c.get('nama', '').strip()}
+        | {'Others', 'Tambahan Modal'}
+    )
+
     st.markdown(
         f"<div style='border: 1px solid #CBD5E1; background-color: #F8FAFC; border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1rem;'>"
-        f"<strong>Ringkasan Persetujuan:</strong> Terdapat <strong>{total_new_cats} kategori baru</strong> yang akan disetujui dan didaftarkan ke toko "
-        f"({len(all_reviewed_exp)} pengeluaran, {len(all_reviewed_inc)} pemasukan). "
-        f"Kategori toko aktif saat ini: <strong>{len(existing_store_cats)} kategori</strong>. "
-        f"Setelah Anda menyetujui, sistem akan memulai klasifikasi massal menggunakan pos kategori yang telah disetujui."
+        f"<strong>Daftar Kategori yang Diizinkan (allowed_categories):</strong> Penambahan baru: <strong>{total_new_cats}</strong> "
+        f"({len(all_reviewed_exp)} pengeluaran, {len(all_reviewed_inc)} pemasukan) + kategori toko aktif (<strong>{len(existing_store_cats)}</strong>).<br>"
+        f"<small style='color:#334155;'><strong>Pengeluaran Diizinkan ({len(preview_allowed_exp)}):</strong> {', '.join(preview_allowed_exp)}</small><br>"
+        f"<small style='color:#334155;'><strong>Pemasukan Diizinkan ({len(preview_allowed_inc)}):</strong> {', '.join(preview_allowed_inc)}</small><br>"
+        f"<small style='color:#64748B;'>Klasifikasi otomatis hanya boleh memilih dari daftar kategori ini; transaksi di luar daftar atau keyakinan &lt; 70 masuk antrean tinjauan / Others tanpa membuat kategori liar.</small>"
         f"</div>",
         unsafe_allow_html=True,
     )
+    try:
+        idx_status = get_classification_index_status(token)
+        exp_st = idx_status['pengeluaran']
+        inc_st = idx_status['pemasukan']
+        st.caption(
+            f"Status Indeks Klasifikasi FAISS (Similarity Gate): "
+            f"Model Semantik={'Aktif' if idx_status['semantic_model_available'] else 'Fallback'} | "
+            f"Pengeluaran={'Siap (' + str(exp_st['doc_count']) + ' entri)' if exp_st['ready'] else 'Belum dibangun'} | "
+            f"Pemasukan={'Siap (' + str(inc_st['doc_count']) + ' entri)' if inc_st['ready'] else 'Belum dibangun'}"
+        )
+    except Exception:
+        pass
 
+    signature = approval_signature(existing_store_cats, all_reviewed_exp + all_reviewed_inc,
+                                   rows_to_import, st.session_state.get('chk_auto_fill_existing_kw', True))
+    if not st.session_state.get('csv_commit_started'):
+        invalidate_approval(st.session_state, signature)
     is_approved = st.session_state.get('csv_category_approved', False)
+
+    fill_existing_kw = st.checkbox(
+        'Otomatis lengkapi kata kunci kosong pada kategori toko yang sudah aktif (meningkatkan akurasi Similarity Gate)',
+        value=True,
+        key='chk_auto_fill_existing_kw',
+    )
+
+    missing_types = missing_category_types(
+        rows_to_import, existing_store_cats, all_reviewed_exp + all_reviewed_inc,
+    )
+    for missing_type in missing_types:
+        st.error(f'Belum ada kategori {missing_type}. Tambahkan minimal 1 kategori {missing_type} sebelum lanjut; semua transaksi jenis ini akan masuk Perlu Tinjauan bila kategori belum tersedia.')
 
     btn_approve = st.button(
         'Setujui Kategori & Lanjutkan',
         type='primary',
         use_container_width=True,
         key='btn_approve_and_continue',
+        disabled=bool(missing_types) or bool(st.session_state.get('csv_commit_started')),
     )
 
-    if btn_approve:
+    if btn_approve and not missing_types:
         # Validate category names
         validation_errors = []
         for tp_label, cat_list in [('Pengeluaran', all_reviewed_exp), ('Pemasukan', all_reviewed_inc)]:
@@ -530,48 +615,21 @@ def render(token: str):
                 st.error(err)
             return
 
-        with st.spinner('Menyimpan kategori yang disetujui ke database toko...'):
+        with st.spinner('Menyiapkan kategori draf untuk pratinjau (belum disimpan)...'):
             try:
-                # 1. Ensure system seed categories exist if store has zero categories
-                existing_now = finance.list_categories(token)
-                existing_map = {(c['tipe'], c['nama'].casefold()): c for c in existing_now}
-
-                # Ensure system categories
-                for tp in ('pengeluaran', 'pemasukan'):
-                    if (tp, 'others') not in existing_map:
-                        try:
-                            finance.create_category(token, 'Others', tp, system_seed=True)
-                        except Exception:
-                            pass
-                if ('pemasukan', 'tambahan modal') not in existing_map:
-                    try:
-                        finance.create_category(token, 'Tambahan Modal', 'pemasukan', system_seed=True)
-                    except Exception:
-                        pass
-
-                # Refresh existing
-                existing_now = finance.list_categories(token)
-                existing_map = {(c['tipe'], c['nama'].casefold()): c for c in existing_now}
-
-                # 2. Insert new approved categories
-                created_count = 0
-                for c in all_reviewed_exp + all_reviewed_inc:
-                    c_name = c['nama'].strip()
-                    tp = c['tipe']
-                    if (tp, c_name.casefold()) not in existing_map:
-                        finance.create_category(token, c_name, tp, description=c.get('deskripsi', ''))
-                        created_count += 1
-
-                # 3. Fetch final approved categories with valid UUIDs
-                final_approved_cats = finance.list_categories(token)
+                final_approved_cats = stage_categories(
+                    token, existing_store_cats, all_reviewed_exp + all_reviewed_inc,
+                    rows_to_import, fill_existing_kw)
+                still_missing = missing_category_types(rows_to_import, final_approved_cats, [])
+                if still_missing:
+                    raise ValueError('Kategori aktif belum tersedia untuk: ' + ', '.join(still_missing))
                 st.session_state['csv_approved_categories'] = final_approved_cats
-                st.session_state['csv_new_categories_created'] = created_count
+                st.session_state['csv_approval_signature'] = signature
                 st.session_state['csv_category_approved'] = True
-                st.session_state.pop('csv_proposals', None)  # Trigger fresh classification
+                st.session_state.pop('csv_proposals', None)
                 st.rerun()
-
             except Exception as exc:
-                st.error(f'Gagal mendaftarkan kategori yang disetujui: {exc}')
+                st.error(f'Gagal menyiapkan kategori draf: {exc}')
                 return
 
     # If categories have not been approved yet, stop here.
@@ -587,6 +645,7 @@ def render(token: str):
     section_header('Tahap 5: Klasifikasi Transaksi Otomatis')
 
     approved_categories = st.session_state['csv_approved_categories']
+    allowed_categories = approved_categories
 
     if 'csv_proposals' not in st.session_state:
         progress_bar = st.progress(0, text='Mengklasifikasikan seluruh transaksi...')
@@ -602,7 +661,8 @@ def render(token: str):
                 token=token,
                 rows=rows_to_import,
                 progress=_on_classify_progress,
-                categories=approved_categories,
+                categories=allowed_categories,
+                preview_only=True,
             )
             elapsed_classify = time.perf_counter() - t_classify_start
             st.session_state['csv_classify_elapsed'] = elapsed_classify
@@ -615,9 +675,11 @@ def render(token: str):
             return
 
     suggested = st.session_state['csv_proposals']
-    saved_pending = sum(r.get('_saved_ai_pending',False) for r in suggested)
-    if saved_pending:
-        st.warning(f'Ollama tidak tersedia - {saved_pending} transaksi sudah tersimpan dan menunggu AI.')
+    pending = sum(bool((r.get('usulan') or {}).get('ai_pending')) for r in suggested)
+    if pending:
+        save_state = ('Periksa ringkasan simpan untuk jumlah yang sudah tersimpan.'
+                      if st.session_state.get('csv_commit_started') else 'Pratinjau ini belum menyimpan data.')
+        st.warning(f'Ollama tidak tersedia — {pending} transaksi perlu tinjauan. {save_state}')
 
     # Transparency Metrics
     auto_cnt = sum(1 for r in suggested if r.get('status_kategori') == 'otomatis' and not r.get('is_unresolved'))
@@ -688,6 +750,9 @@ def render(token: str):
                                 suggested[row_idx]['kategori_id'] = target_cid
                                 suggested[row_idx]['status_kategori'] = 'dikonfirmasi'
                                 suggested[row_idx]['is_unresolved'] = False
+                                suggested[row_idx]['source'] = 'manual'
+                                suggested[row_idx]['usulan'] = {k: v for k, v in (suggested[row_idx].get('usulan') or {}).items()
+                                                               if k not in ('ai_pending', 'ai_error')}
                                 suggested[row_idx]['message'] = f"Diselesaikan manual oleh pemilik: {sel_cat_name}"
                             st.session_state['csv_proposals'] = suggested
                             st.success(f"Berhasil menerapkan ke {count_tx} transaksi.")
@@ -696,6 +761,8 @@ def render(token: str):
 
     # Preview classified transactions
     st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+    for missing_type in missing_allowed_types(suggested):
+        st.warning(f'Toko ini belum punya kategori {missing_type}. Transaksi menunggu kategori dibuat; tambahkan kategori lalu klasifikasi ulang.')
     st.caption('Pratinjau transaksi hasil klasifikasi:')
     preview_data = [
         {
@@ -704,7 +771,7 @@ def render(token: str):
             'Deskripsi': r.get('deskripsi', ''),
             'Nominal': f"Rp {float(r.get('nominal', 0) or 0):,.0f}",
             'Jenis': r.get('tipe', '').capitalize(),
-            'Kategori': cat_name_map.get(r.get('kategori_id'), 'Others'),
+            'Kategori': preview_category_label(r, cat_name_map),
             'Status': 'Perlu Tinjauan' if (r.get('is_unresolved') or r.get('status_kategori') == 'perlu_tinjauan') else 'Terpetakan',
         }
         for i, r in enumerate(suggested[:50])
@@ -722,9 +789,13 @@ def render(token: str):
         type='primary',
         use_container_width=True,
         key='btn_confirm_save_transactions',
+        disabled=(st.session_state.get('csv_import_result') or {}).get('completion_status') == 'completed',
     )
 
     if btn_confirm_save:
+        st.session_state['csv_commit_started'] = True
+        st.session_state.setdefault('csv_import_id', str(uuid.uuid4()))
+        st.session_state.setdefault('csv_categories_before_commit', [c['id'] for c in existing_store_cats])
         t_save_start = time.perf_counter()
         progress_bar = st.progress(0, text='Mempersiapkan batch penyimpanan database...')
         status_text = st.empty()
@@ -764,11 +835,15 @@ def render(token: str):
             )
 
         try:
+            mapping, created = materialize_categories(token, approved_categories)
+            st.session_state['csv_new_categories_created'] = st.session_state.get('csv_new_categories_created', 0) + created
+            items_to_save = [{**row, 'kategori_id': mapping.get(row.get('kategori_id'))} for row in items_to_save]
             result = execute_scalable_import(
                 token=token,
                 rows=items_to_save,
                 batch_size=500,
                 progress_callback=_on_save_progress,
+                import_id=st.session_state['csv_import_id'],
             )
             progress_bar.empty()
             status_text.empty()
@@ -782,13 +857,20 @@ def render(token: str):
             result['unresolved_count'] = sum(1 for r in items_to_save if r.get('status_kategori') == 'perlu_tinjauan')
             result['categories_used_count'] = len(set(r['kategori_id'] for r in items_to_save))
             result['new_categories_created_count'] = st.session_state.get('csv_new_categories_created', 0)
+            st.session_state['csv_session_imported'] = st.session_state.get('csv_session_imported', 0) + result['total_imported']
+            result['session_imported'] = st.session_state['csv_session_imported']
 
             st.session_state['csv_import_result'] = result
-            st.session_state.pop('csv_proposals', None)
             st.rerun()
 
         except Exception as exc:
-            st.error(f'Penyimpanan database gagal: {exc}')
+            st.error(f'Penyimpanan database gagal: {exc}. Kategori/kata kunci yang sudah tersimpan tetap ada; transaksi batch yang sudah dikonfirmasi database juga tetap tersimpan. Ini bukan pembatalan. Coba lagi dengan tombol simpan (ID impor tetap sama).')
+            try:
+                before_ids = set(st.session_state['csv_categories_before_commit'])
+                persisted_new = [c['nama'] for c in finance.list_categories(token) if c['id'] not in before_ids]
+                st.warning(f"Kategori baru yang sudah tersimpan: {len(persisted_new)} — {', '.join(persisted_new) or 'tidak ada'}. Perubahan kata kunci yang sudah berhasil juga tetap tersimpan.")
+            except Exception:
+                st.warning('Audit kategori belum dapat dibaca; periksa Kelola Kategori sebelum mencoba lagi.')
 
     # ----------------------------------------------------
     # TAHAP 7 — Ringkasan Penyelesaian (Completion Summary)
@@ -800,12 +882,12 @@ def render(token: str):
 
         if res.get('failed_batches'):
             st.warning(
-                f"Impor selesai sebagian: {res['total_imported']:,} dari {res['total_submitted']:,} transaksi berhasil disimpan. "
+                f"Impor selesai sebagian: {res.get('session_imported', res['total_imported']):,} dari {res['total_submitted']:,} transaksi berhasil disimpan dalam sesi ini. "
                 f"Batch {res['failed_batches'][0]['batch_index']} mengalami kendala: {res['failed_batches'][0]['error']}"
             )
         else:
             st.success(
-                f"Impor Berhasil: {res['total_imported']:,} transaksi telah berhasil disimpan ke database toko "
+                f"Impor Berhasil: {res.get('session_imported', res['total_imported']):,} transaksi telah berhasil disimpan ke database toko dalam sesi ini "
                 f"dalam {res['batches_completed']} batch aman."
             )
 
@@ -816,7 +898,7 @@ def render(token: str):
         row1_c4.metric('Duplikat Dilewati', f"{res.get('duplicate_rows_count', 0):,}")
 
         row2_c1, row2_c2, row2_c3, row2_c4 = st.columns(4)
-        row2_c1.metric('Berhasil Disimpan', f"{res['total_imported']:,}")
+        row2_c1.metric('Berhasil Disimpan (Sesi Ini)', f"{res.get('session_imported', res['total_imported']):,}")
         row2_c2.metric('Transaksi Unresolved', f"{res.get('unresolved_count', 0):,}")
         row2_c3.metric('Kategori Baru Dibuat', f"{res.get('new_categories_created_count', 0):,}")
         row2_c4.metric('Waktu Pemrosesan', f"{res.get('elapsed_time', 0.0):.2f} detik")
@@ -827,4 +909,4 @@ def render(token: str):
                 f"Setelah impor: {res['count_after']:,}."
             )
 
-        st.caption('Model peramalan keuangan (Prophet & statistik) serta indeks semantik telah diperbarui otomatis dengan data transaksi terbaru.')
+        st.caption('Mesin peramalan pengeluaran multi-model serta indeks semantik klasifikasi telah siap menggunakan data transaksi terbaru.')

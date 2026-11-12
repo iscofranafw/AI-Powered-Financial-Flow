@@ -1,11 +1,12 @@
-"""Prophet Forecasting Service for AI-Powered Financial Recording & Cash Flow Assistant.
+"""Multi-Model Expense Forecasting Service for AI-Powered Financial Recording & Cash Flow Assistant.
 
-Provides store-specific, owner-only expense forecasting, recurring-expense detection,
-accuracy backtesting (MAE, RMSE, MAPE), cash-sufficiency analysis, and trend evaluation
-using Meta Prophet, Pandas, and NumPy.
+Provides store-specific, owner-only expense forecasting, multi-model holdout selection
+(Prophet, Seasonal Naive, MA7, ETS, ARIMA, LinearRegression), recurring-expense detection,
+accuracy backtesting (MAE, RMSE, MAPE, WAPE), cash-sufficiency analysis, and trend evaluation.
 """
 
 import logging
+import warnings
 from typing import Dict, Any, List, Optional, Tuple
 from decimal import Decimal
 from datetime import date, datetime, timedelta
@@ -23,11 +24,46 @@ except (ImportError, ModuleNotFoundError):
     Prophet = None
     HAS_PROPHET = False
 
+try:
+    from statsmodels.tsa.holtwinters import ExponentialSmoothing
+    HAS_STATSMODELS_ETS = True
+except (ImportError, ModuleNotFoundError):
+    ExponentialSmoothing = None
+    HAS_STATSMODELS_ETS = False
+
+try:
+    from statsmodels.tsa.arima.model import ARIMA
+    HAS_STATSMODELS_ARIMA = True
+except (ImportError, ModuleNotFoundError):
+    ARIMA = None
+    HAS_STATSMODELS_ARIMA = False
+
+try:
+    from sklearn.linear_model import LinearRegression
+    HAS_SKLEARN = True
+except (ImportError, ModuleNotFoundError):
+    LinearRegression = None
+    HAS_SKLEARN = False
+
 from services.auth_service import verify_actor, AccessError
 from repositories.finance_repository import transactions, categories
 from services.report_service import period_rows, metrics
 from utils.ui_components import format_rupiah
 from ai.financial_chat import get_jakarta_now
+
+MIN_FORECAST_DAYS = 3
+MAX_FORECAST_DAYS = 90
+DEFAULT_FORECAST_DAYS = 30
+TARGET_MAPE_THRESHOLD = 20.0
+
+CANDIDATE_MODEL_ORDER = (
+    'Prophet',
+    'Seasonal Naive',
+    'MA7',
+    'ETS',
+    'ARIMA',
+    'LinearRegression',
+)
 
 # In-memory forecast cache keyed by (store_id, expense_count, latest_tx_id, days_ahead, category)
 _FORECAST_CACHE: Dict[Tuple[str, int, str, int, Optional[str]], Dict[str, Any]] = {}
@@ -40,6 +76,28 @@ def invalidate_forecast_cache(store_id: Optional[str] = None) -> None:
         _FORECAST_CACHE = {k: v for k, v in _FORECAST_CACHE.items() if k[0] != store_id}
     else:
         _FORECAST_CACHE.clear()
+
+
+def validate_forecast_horizon(days_ahead: Optional[int]) -> int:
+    """Enforce forecast horizon within 3..90 days (default 30)."""
+    if days_ahead is None:
+        return DEFAULT_FORECAST_DAYS
+    if isinstance(days_ahead, bool):
+        raise ValueError(
+            f"Horizon peramalan harus berupa angka antara {MIN_FORECAST_DAYS} hingga {MAX_FORECAST_DAYS} hari."
+        )
+    try:
+        days = int(days_ahead)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(
+            f"Horizon peramalan tidak valid ({days_ahead}). Gunakan angka antara {MIN_FORECAST_DAYS} hingga {MAX_FORECAST_DAYS} hari."
+        ) from exc
+    if days < MIN_FORECAST_DAYS or days > MAX_FORECAST_DAYS:
+        raise ValueError(
+            f"Horizon peramalan harus antara {MIN_FORECAST_DAYS} hingga {MAX_FORECAST_DAYS} hari "
+            f"(diminta: {days} hari)."
+        )
+    return days
 
 
 def _get_eligible_expense_rows(token: str) -> Tuple[Dict[str, Any], List[Dict[str, Any]], List[Dict[str, Any]]]:
@@ -74,18 +132,19 @@ def get_store_name(shop_id: Optional[str]) -> str:
     return "toko Anda"
 
 
-def get_dynamic_forecast_footer(store_name: str) -> str:
-    """Produce the dynamic disclaimer footer scoped to the authenticated store name."""
+def get_dynamic_forecast_footer(store_name: str, model_name: Optional[str] = None) -> str:
+    """Produce the dynamic disclaimer footer scoped to the authenticated store and selected model."""
     store_display = store_name if store_name and store_name != "toko Anda" else "toko Anda"
+    chosen = (model_name or "Prophet / Multi-Model Terbaik").strip()
     return (
-        f"Estimasi pengeluaran {store_display} dihitung menggunakan model Prophet berdasarkan "
-        f"riwayat transaksi pengeluaran yang telah disetujui pada toko tersebut. Hasil ini merupakan "
-        f"perkiraan statistik, bukan kepastian pengeluaran di masa mendatang."
+        f"Estimasi pengeluaran {store_display} dihitung menggunakan model terpilih **{chosen}** "
+        f"berdasarkan perbandingan akurasi pada riwayat transaksi pengeluaran yang telah disetujui "
+        f"pada toko tersebut. Hasil ini merupakan perkiraan statistik, bukan kepastian pengeluaran di masa mendatang."
     )
 
 
 def get_forecast_readiness_status(token: str) -> Dict[str, Any]:
-    """Check if the store has sufficient historical expense transactions to run Prophet."""
+    """Check if the store has sufficient historical expense transactions for forecasting."""
     actor, approved_expenses, _ = _get_eligible_expense_rows(token)
 
     total_count = len(approved_expenses)
@@ -101,10 +160,6 @@ def get_forecast_readiness_status(token: str) -> Dict[str, Any]:
         d_max = date.fromisoformat(max_date)
         date_span_days = (d_max - d_min).days + 1
 
-    # Requirements for reliable Prophet forecasting:
-    # 1. At least 5 approved expense transactions
-    # 2. At least 5 distinct transaction days
-    # 3. Date span of at least 7 days
     req_tx = 5
     req_days = 5
     req_span = 7
@@ -113,7 +168,7 @@ def get_forecast_readiness_status(token: str) -> Dict[str, Any]:
 
     if is_ready:
         msg = (
-            f"**Data Keuangan Siap untuk Forecasting Prophet**\n\n"
+            f"**Data Keuangan Siap untuk Peramalan Pengeluaran (Multi-Model)**\n\n"
             f"- **Jumlah Transaksi Pengeluaran:** {total_count} transaksi\n"
             f"- **Jumlah Hari Unik:** {distinct_days} hari\n"
             f"- **Rentang Tanggal:** {min_date} s.d. {max_date} ({date_span_days} hari)\n"
@@ -129,8 +184,8 @@ def get_forecast_readiness_status(token: str) -> Dict[str, Any]:
             missing_parts.append(f"rentang waktu historis ({date_span_days}/{req_span} hari)")
 
         msg = (
-            f"**Data Belum Mencukupi untuk Forecasting Prophet yang Andal**\n\n"
-            f"Model Prophet memerlukan riwayat data yang memadai untuk mengenali tren dan pola pengeluaran toko. "
+            f"**Data Belum Mencukupi untuk Peramalan Pengeluaran yang Andal**\n\n"
+            f"Mesin peramalan memerlukan riwayat data yang memadai untuk mengenali tren dan pola pengeluaran toko. "
             f"Saat ini data toko Anda:\n"
             f"- **Transaksi Pengeluaran Tercatat:** {total_count} transaksi (minimal {req_tx})\n"
             f"- **Hari Aktif dengan Transaksi:** {distinct_days} hari (minimal {req_days})\n"
@@ -155,71 +210,8 @@ def get_forecast_readiness_status(token: str) -> Dict[str, Any]:
     }
 
 
-def train_and_forecast_expenses(
-    token: str,
-    days_ahead: int = 30,
-    category_name: Optional[str] = None,
-    store_name: Optional[str] = None
-) -> Dict[str, Any]:
-    """Train Meta Prophet model on daily aggregated approved expenses and generate forecast."""
-    actor, approved_expenses, all_cats = _get_eligible_expense_rows(token)
-    shop_id = actor['toko_id']
-    resolved_store_name = store_name or actor.get('toko_nama') or get_store_name(shop_id)
-
-    if not HAS_PROPHET or Prophet is None:
-        return {
-            'success': False,
-            'error': 'PROPHET_UNAVAILABLE',
-            'message': (
-                "Pustaka peramalan deret waktu Meta Prophet belum terpasang di environment Python saat ini. "
-                "Silakan jalankan perintah: `pip install prophet` atau aktifkan virtual environment (.venv)."
-            )
-        }
-
-    readiness = get_forecast_readiness_status(token)
-    if not readiness['ready']:
-        return {
-            'success': False,
-            'readiness': readiness,
-            'error': 'INSUFFICIENT_DATA',
-            'message': readiness['message']
-        }
-
-    # Filter by category if requested
-    target_cat_id = None
-    target_cat_label = None
-    if category_name:
-        for c in all_cats:
-            if category_name.lower() in c.get('nama', '').lower():
-                target_cat_id = c['id']
-                target_cat_label = c.get('nama')
-                break
-
-        if target_cat_id:
-            approved_expenses = [t for t in approved_expenses if t.get('kategori_id') == target_cat_id]
-            if len(approved_expenses) < 3:
-                return {
-                    'success': False,
-                    'error': 'INSUFFICIENT_CATEGORY_DATA',
-                    'message': (
-                        f"Data pengeluaran untuk kategori **'{target_cat_label}'** baru memiliki {len(approved_expenses)} transaksi. "
-                        f"Dibutuhkan minimal 3 transaksi pada kategori ini untuk membuat peramalan khusus."
-                    )
-                }
-        else:
-            return {
-                'success': False,
-                'error': 'CATEGORY_NOT_FOUND',
-                'message': f"Kategori pengeluaran **'{category_name}'** tidak ditemukan di daftar kategori toko Anda."
-            }
-
-    # Cache key check
-    latest_id = str(approved_expenses[-1].get('id', '')) if approved_expenses else ''
-    cache_key = (shop_id, len(approved_expenses), latest_id, days_ahead, target_cat_label)
-    if cache_key in _FORECAST_CACHE:
-        return _FORECAST_CACHE[cache_key]
-
-    # Build daily aggregated series
+def _build_daily_expense_df(approved_expenses: List[Dict[str, Any]]) -> Tuple[pd.DataFrame, int, pd.Timestamp, pd.Timestamp]:
+    """Aggregate approved expense transactions to a continuous daily Pandas DataFrame."""
     records = []
     for t in approved_expenses:
         try:
@@ -231,16 +223,10 @@ def train_and_forecast_expenses(
             continue
 
     if not records:
-        return {
-            'success': False,
-            'error': 'NO_VALID_RECORDS',
-            'message': "Tidak ada catatan tanggal transaksi pengeluaran yang valid."
-        }
+        return pd.DataFrame(columns=['ds', 'y']), 0, pd.NaT, pd.NaT
 
     df_raw = pd.DataFrame(records)
     daily = df_raw.groupby('ds')['nominal'].sum()
-
-    # Reindex daily to fill zero-expense days between min_date and max_date
     min_d = daily.index.min()
     max_d = daily.index.max()
     full_idx = pd.date_range(start=min_d, end=max_d, freq='D')
@@ -249,36 +235,473 @@ def train_and_forecast_expenses(
         'ds': pd.to_datetime(daily_series.index),
         'y': daily_series.values.astype(float)
     })
+    return daily_indexed, len(daily), min_d, max_d
 
-    date_span = (max_d - min_d).days + 1
-    use_weekly = bool(date_span >= 14)
+
+def _filter_expenses_by_category(
+    approved_expenses: List[Dict[str, Any]],
+    all_cats: List[Dict[str, Any]],
+    category_name: Optional[str],
+) -> Tuple[List[Dict[str, Any]], Optional[str], Optional[Dict[str, Any]]]:
+    if not category_name:
+        return approved_expenses, None, None
+
+    target_cat_id = None
+    target_cat_label = None
+    for c in all_cats:
+        if category_name.lower() in c.get('nama', '').lower():
+            target_cat_id = c['id']
+            target_cat_label = c.get('nama')
+            break
+
+    if not target_cat_id:
+        return approved_expenses, None, {
+            'success': False,
+            'error': 'CATEGORY_NOT_FOUND',
+            'message': f"Kategori pengeluaran **'{category_name}'** tidak ditemukan di daftar kategori toko Anda."
+        }
+
+    filtered = [t for t in approved_expenses if t.get('kategori_id') == target_cat_id]
+    if len(filtered) < 3:
+        return filtered, target_cat_label, {
+            'success': False,
+            'error': 'INSUFFICIENT_CATEGORY_DATA',
+            'message': (
+                f"Data pengeluaran untuk kategori **'{target_cat_label}'** baru memiliki {len(filtered)} transaksi. "
+                f"Dibutuhkan minimal 3 transaksi pada kategori ini untuk membuat peramalan khusus."
+            )
+        }
+    return filtered, target_cat_label, None
+
+
+def _future_dates(max_dt: pd.Timestamp, horizon: int) -> pd.DatetimeIndex:
+    start = pd.to_datetime(max_dt) + pd.Timedelta(days=1)
+    return pd.date_range(start=start, periods=horizon, freq='D')
+
+
+def _empirical_bounds(y_hist: np.ndarray, yhat: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    if len(y_hist) >= 2:
+        spread = float(np.std(y_hist, ddof=1))
+    else:
+        spread = float(np.mean(y_hist)) * 0.2 if len(y_hist) else 0.0
+    margin = 1.28 * spread * 0.5
+    lower = np.clip(yhat - margin, 0.0, None)
+    upper = np.clip(yhat + margin, 0.0, None)
+    return lower, upper
+
+
+def _fit_predict_prophet(train_df: pd.DataFrame, horizon: int) -> pd.DataFrame:
+    if not HAS_PROPHET or Prophet is None:
+        raise RuntimeError("Prophet belum terpasang")
+    span = len(train_df)
+    model = Prophet(
+        daily_seasonality=False,
+        weekly_seasonality=bool(span >= 14),
+        yearly_seasonality=bool(span >= 365),
+        changepoint_prior_scale=0.05,
+        interval_width=0.80,
+    )
+    model.fit(train_df[['ds', 'y']])
+    future = model.make_future_dataframe(periods=horizon, freq='D')
+    fcst = model.predict(future)
+    max_dt = pd.to_datetime(train_df['ds'].max())
+    future_part = fcst[fcst['ds'] > max_dt].head(horizon).copy()
+    future_part['yhat'] = future_part['yhat'].clip(lower=0.0)
+    future_part['yhat_lower'] = future_part['yhat_lower'].clip(lower=0.0)
+    future_part['yhat_upper'] = future_part['yhat_upper'].clip(lower=0.0)
+    return future_part[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].reset_index(drop=True)
+
+
+def _fit_predict_seasonal_naive(train_df: pd.DataFrame, horizon: int) -> pd.DataFrame:
+    y = train_df['y'].to_numpy(dtype=float)
+    if len(y) == 0:
+        raise ValueError("Data latih kosong")
+    fut_dates = _future_dates(train_df['ds'].max(), horizon)
+    preds = np.zeros(horizon, dtype=float)
+    if len(y) >= 7:
+        pattern = y[-7:]
+        for i in range(horizon):
+            preds[i] = max(0.0, float(pattern[i % 7]))
+    else:
+        mean_val = max(0.0, float(np.mean(y)))
+        preds[:] = mean_val
+    low, up = _empirical_bounds(y, preds)
+    return pd.DataFrame({'ds': fut_dates, 'yhat': preds, 'yhat_lower': low, 'yhat_upper': up})
+
+
+def _fit_predict_ma7(train_df: pd.DataFrame, horizon: int) -> pd.DataFrame:
+    y = train_df['y'].to_numpy(dtype=float)
+    if len(y) == 0:
+        raise ValueError("Data latih kosong")
+    fut_dates = _future_dates(train_df['ds'].max(), horizon)
+    history = list(y.astype(float))
+    preds = np.zeros(horizon, dtype=float)
+    for i in range(horizon):
+        window = history[-7:] if len(history) >= 7 else history
+        val = max(0.0, float(np.mean(window)))
+        preds[i] = val
+        history.append(val)
+    low, up = _empirical_bounds(y, preds)
+    return pd.DataFrame({'ds': fut_dates, 'yhat': preds, 'yhat_lower': low, 'yhat_upper': up})
+
+
+def _fit_predict_ets(train_df: pd.DataFrame, horizon: int) -> pd.DataFrame:
+    if not HAS_STATSMODELS_ETS or ExponentialSmoothing is None:
+        raise RuntimeError("statsmodels ExponentialSmoothing belum terpasang")
+    y = train_df['y'].to_numpy(dtype=float)
+    if len(y) < 4:
+        raise ValueError("Data latih terlalu pendek untuk ETS")
+    fut_dates = _future_dates(train_df['ds'].max(), horizon)
+    if float(np.std(y)) < 1e-9:
+        preds = np.full(horizon, max(0.0, float(y[-1])), dtype=float)
+        low, up = _empirical_bounds(y, preds)
+        return pd.DataFrame({'ds': fut_dates, 'yhat': preds, 'yhat_lower': low, 'yhat_upper': up})
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        configs = []
+        if len(y) >= 14:
+            configs.append(dict(trend='add', damped_trend=True, seasonal='add', seasonal_periods=7))
+        configs.append(dict(trend='add', damped_trend=True, seasonal=None))
+        configs.append(dict(trend=None, seasonal=None))
+
+        last_err = None
+        for cfg in configs:
+            try:
+                fitted = ExponentialSmoothing(y, **cfg).fit(optimized=True)
+                raw_pred = np.asarray(fitted.forecast(horizon), dtype=float)
+                if np.all(np.isfinite(raw_pred)):
+                    preds = np.clip(raw_pred, 0.0, None)
+                    low, up = _empirical_bounds(y, preds)
+                    return pd.DataFrame({'ds': fut_dates, 'yhat': preds, 'yhat_lower': low, 'yhat_upper': up})
+            except Exception as exc:
+                last_err = exc
+                continue
+        raise RuntimeError(f"Semua konfigurasi ETS gagal fit: {last_err}")
+
+
+def _fit_predict_arima(train_df: pd.DataFrame, horizon: int) -> pd.DataFrame:
+    if not HAS_STATSMODELS_ARIMA or ARIMA is None:
+        raise RuntimeError("statsmodels ARIMA belum terpasang")
+    y = train_df['y'].to_numpy(dtype=float)
+    if len(y) < 6:
+        raise ValueError("Data latih terlalu pendek untuk ARIMA")
+    fut_dates = _future_dates(train_df['ds'].max(), horizon)
+    if float(np.std(y)) < 1e-9:
+        preds = np.full(horizon, max(0.0, float(y[-1])), dtype=float)
+        low, up = _empirical_bounds(y, preds)
+        return pd.DataFrame({'ds': fut_dates, 'yhat': preds, 'yhat_lower': low, 'yhat_upper': up})
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        last_err = None
+        for order in ((1, 0, 1), (1, 1, 1), (1, 0, 0)):
+            try:
+                model = ARIMA(
+                    y,
+                    order=order,
+                    enforce_stationarity=False,
+                    enforce_invertibility=False,
+                )
+                fitted = model.fit()
+                raw_pred = np.asarray(fitted.forecast(steps=horizon), dtype=float)
+                if np.all(np.isfinite(raw_pred)):
+                    preds = np.clip(raw_pred, 0.0, None)
+                    low, up = _empirical_bounds(y, preds)
+                    return pd.DataFrame({'ds': fut_dates, 'yhat': preds, 'yhat_lower': low, 'yhat_upper': up})
+            except Exception as exc:
+                last_err = exc
+                continue
+        raise RuntimeError(f"ARIMA gagal konvergen: {last_err}")
+
+
+def _design_matrix_lr(dates: pd.Series, start_ordinal: int) -> np.ndarray:
+    t_idx = (pd.to_datetime(dates) - pd.Timestamp.fromordinal(start_ordinal)).dt.days.to_numpy(dtype=float)
+    dows = pd.to_datetime(dates).dt.day_of_week.to_numpy()
+    feats = [t_idx]
+    for dow in range(6):
+        feats.append((dows == dow).astype(float))
+    return np.column_stack(feats)
+
+
+def _fit_predict_linear_regression(train_df: pd.DataFrame, horizon: int) -> pd.DataFrame:
+    if not HAS_SKLEARN or LinearRegression is None:
+        raise RuntimeError("scikit-learn LinearRegression belum terpasang")
+    if len(train_df) < 3:
+        raise ValueError("Data latih terlalu pendek untuk LinearRegression")
+    fut_dates = _future_dates(train_df['ds'].max(), horizon)
+    start_ord = pd.to_datetime(train_df['ds'].min()).date().toordinal()
+    X_train = _design_matrix_lr(train_df['ds'], start_ord)
+    y_train = train_df['y'].to_numpy(dtype=float)
+
+    reg = LinearRegression()
+    reg.fit(X_train, y_train)
+    X_fut = _design_matrix_lr(pd.Series(fut_dates), start_ord)
+    raw_pred = np.asarray(reg.predict(X_fut), dtype=float)
+    preds = np.clip(raw_pred, 0.0, None)
+    low, up = _empirical_bounds(y_train, preds)
+    return pd.DataFrame({'ds': fut_dates, 'yhat': preds, 'yhat_lower': low, 'yhat_upper': up})
+
+
+_MODEL_FITTERS = {
+    'Prophet': _fit_predict_prophet,
+    'Seasonal Naive': _fit_predict_seasonal_naive,
+    'MA7': _fit_predict_ma7,
+    'ETS': _fit_predict_ets,
+    'ARIMA': _fit_predict_arima,
+    'LinearRegression': _fit_predict_linear_regression,
+}
+
+
+def _compute_regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, Any]:
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.clip(np.asarray(y_pred, dtype=float), 0.0, None)
+
+    mae = float(np.mean(np.abs(y_true - y_pred)))
+    rmse = float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
+    sum_actual = float(np.sum(y_true))
+    wape = float(np.sum(np.abs(y_true - y_pred)) / sum_actual * 100.0) if sum_actual > 0 else None
+
+    non_zero_mask = y_true > 0
+    n_nonzero = int(np.sum(non_zero_mask))
+    if np.any(non_zero_mask):
+        mape = float(
+            np.mean(np.abs((y_true[non_zero_mask] - y_pred[non_zero_mask]) / y_true[non_zero_mask])) * 100.0
+        )
+    else:
+        mape = None
+
+    return {
+        'mae': round(mae, 2),
+        'rmse': round(rmse, 2),
+        'mape': round(mape, 2) if mape is not None else None,
+        'wape': round(wape, 2) if wape is not None else None,
+        'positive_holdout_days': n_nonzero,
+    }
+
+
+def evaluate_forecast_candidates_df(
+    daily_indexed: pd.DataFrame,
+    test_days: int = 28,
+    candidates: Optional[Tuple[str, ...]] = None,
+) -> Dict[str, Any]:
+    """Compare all candidate forecast models on an identical time-ordered holdout split."""
+    total_days = len(daily_indexed)
+    if total_days < 14:
+        return {
+            'success': False,
+            'ready': False,
+            'mae': None,
+            'rmse': None,
+            'mape': None,
+            'wape': None,
+            'best_model': None,
+            'target_met': False,
+            'models': [],
+            'model_comparison': [],
+            'skipped_models': [],
+            'message': (
+                f"Evaluasi multi-model memerlukan riwayat data minimal 14 hari berturut-turut untuk validasi holdout "
+                f"(saat ini {total_days} hari). Tambahkan catatan transaksi untuk mengaktifkan pengujian akurasi."
+            )
+        }
+
+    req_test = max(3, int(test_days))
+    eff_test = req_test if total_days >= (req_test + 14) else max(3, total_days // 3)
+    split_idx = total_days - eff_test
+    train_df = daily_indexed.iloc[:split_idx].copy().reset_index(drop=True)
+    test_df = daily_indexed.iloc[split_idx:].copy().reset_index(drop=True)
+    y_true = test_df['y'].to_numpy(dtype=float)
+
+    n_nonzero = int(np.sum(y_true > 0))
+    zero_count = int(len(y_true) - n_nonzero)
+    if n_nonzero > 0 and zero_count > 0:
+        mape_note = (
+            f"MAPE dihitung khusus pada {n_nonzero} hari dengan pengeluaran aktif "
+            f"(mengecualikan {zero_count} hari Rp0)."
+        )
+    elif n_nonzero == 0:
+        mape_note = (
+            "Seluruh hari pada periode uji memiliki pengeluaran Rp0, sehingga MAPE tidak dapat dihitung "
+            "(pembagian dengan nol dicegah)."
+        )
+    else:
+        mape_note = ""
+
+    candidate_names = candidates or CANDIDATE_MODEL_ORDER
+    comparison_rows: List[Dict[str, Any]] = []
+    skipped_models: List[Dict[str, str]] = []
+
+    for model_name in candidate_names:
+        fitter = _MODEL_FITTERS.get(model_name)
+        if fitter is None:
+            continue
+        try:
+            pred_df = fitter(train_df, eff_test)
+            y_pred = pred_df['yhat'].to_numpy(dtype=float)[:eff_test]
+            if len(y_pred) != len(y_true):
+                raise ValueError(f"Panjang prediksi {len(y_pred)} tidak cocok dengan uji {len(y_true)}")
+            m = _compute_regression_metrics(y_true, y_pred)
+            comparison_rows.append({
+                'model': model_name,
+                'mape': m['mape'],
+                'mae': m['mae'],
+                'rmse': m['rmse'],
+                'wape': m['wape'],
+                'target_met': bool(m['mape'] is not None and m['mape'] < TARGET_MAPE_THRESHOLD and n_nonzero >= 5),
+                'status': 'evaluated',
+            })
+        except Exception as exc:
+            logging.warning("Model peramalan '%s' dilewati saat evaluasi holdout: %s", model_name, exc)
+            skipped_models.append({'model': model_name, 'reason': str(exc)})
+
+    if not comparison_rows:
+        return {
+            'success': False,
+            'ready': False,
+            'mae': None,
+            'rmse': None,
+            'mape': None,
+            'wape': None,
+            'best_model': None,
+            'target_met': False,
+            'models': [],
+            'model_comparison': [],
+            'skipped_models': skipped_models,
+            'message': "Seluruh kandidat model peramalan gagal dihitung pada data toko saat ini."
+        }
+
+    comparison_rows.sort(
+        key=lambda row: (
+            float('inf') if row['mape'] is None else row['mape'],
+            row['mae'],
+            row['rmse'],
+        )
+    )
+    best = comparison_rows[0]
+    best_model = best['model']
+    best_mape = best['mape']
+    target_met = bool(best_mape is not None and best_mape < TARGET_MAPE_THRESHOLD and n_nonzero >= 5)
+
+    if best_mape is None:
+        target_status = "target <20% belum dapat dihitung (periode uji tanpa pengeluaran aktif)"
+    elif n_nonzero < 5:
+        target_status = (
+            f"target <20% belum dapat disimpulkan (hanya {n_nonzero} hari aktif dari {eff_test} hari uji; "
+            f"MAPE terbaik {best_mape:.2f}%)"
+        )
+    elif best_mape < TARGET_MAPE_THRESHOLD:
+        target_status = f"target <20% tercapai (MAPE terbaik {best_mape:.2f}%)"
+    else:
+        target_status = f"target <20% belum tercapai (MAPE terbaik {best_mape:.2f}%)"
+
+    return {
+        'success': True,
+        'ready': True,
+        'test_days': eff_test,
+        'train_days': len(train_df),
+        'positive_holdout_days': n_nonzero,
+        'best_model': best_model,
+        'selected_model': best_model,
+        'best_mape': best_mape,
+        'mae': best['mae'],
+        'rmse': best['rmse'],
+        'mape': best_mape,
+        'wape': best['wape'],
+        'target_met': target_met,
+        'target_status': target_status,
+        'mape_note': mape_note,
+        'models': comparison_rows,
+        'model_comparison': comparison_rows,
+        'skipped_models': skipped_models,
+    }
+
+
+def _select_and_forecast_full(
+    daily_indexed: pd.DataFrame,
+    days_ahead: int,
+    test_days: int = 28,
+) -> Tuple[str, pd.DataFrame, Dict[str, Any]]:
+    """Run holdout evaluation to select lowest-MAPE model, then refit winner on full history."""
+    eval_res = evaluate_forecast_candidates_df(daily_indexed, test_days=test_days)
+    ranked_candidates: List[str] = []
+    if eval_res.get('success') and eval_res.get('model_comparison'):
+        ranked_candidates = [row['model'] for row in eval_res['model_comparison']]
+
+    for fallback_name in ('Seasonal Naive', 'MA7', 'Prophet', 'LinearRegression', 'ETS', 'ARIMA'):
+        if fallback_name not in ranked_candidates:
+            ranked_candidates.append(fallback_name)
+
+    last_err = None
+    for candidate_name in ranked_candidates:
+        fitter = _MODEL_FITTERS.get(candidate_name)
+        if fitter is None:
+            continue
+        try:
+            proj_df = fitter(daily_indexed[['ds', 'y']], days_ahead)
+            return candidate_name, proj_df, eval_res
+        except Exception as exc:
+            logging.warning("Refit penuh model '%s' gagal, lanjut kandidat berikutnya: %s", candidate_name, exc)
+            last_err = exc
+            continue
+
+    raise RuntimeError(f"Semua kandidat model gagal melakukan peramalan penuh: {last_err}")
+
+
+def train_and_forecast_expenses(
+    token: str,
+    days_ahead: int = 30,
+    category_name: Optional[str] = None,
+    store_name: Optional[str] = None
+) -> Dict[str, Any]:
+    """Compare candidate time-series models on holdout, select lowest MAPE, and forecast 3..90 days ahead."""
+    validated_days = validate_forecast_horizon(days_ahead)
+
+    actor, approved_expenses, all_cats = _get_eligible_expense_rows(token)
+    shop_id = actor['toko_id']
+    resolved_store_name = store_name or actor.get('toko_nama') or get_store_name(shop_id)
+
+    readiness = get_forecast_readiness_status(token)
+    if not readiness['ready']:
+        return {
+            'success': False,
+            'readiness': readiness,
+            'error': 'INSUFFICIENT_DATA',
+            'message': readiness['message']
+        }
+
+    approved_expenses, target_cat_label, cat_err = _filter_expenses_by_category(
+        approved_expenses, all_cats, category_name
+    )
+    if cat_err is not None:
+        return cat_err
+
+    latest_id = str(approved_expenses[-1].get('id', '')) if approved_expenses else ''
+    cache_key = (shop_id, len(approved_expenses), latest_id, validated_days, target_cat_label)
+    if cache_key in _FORECAST_CACHE:
+        return _FORECAST_CACHE[cache_key]
+
+    daily_indexed, distinct_days_count, min_d, max_d = _build_daily_expense_df(approved_expenses)
+    if daily_indexed.empty:
+        return {
+            'success': False,
+            'error': 'NO_VALID_RECORDS',
+            'message': "Tidak ada catatan tanggal transaksi pengeluaran yang valid."
+        }
+
+    date_span = int((max_d - min_d).days + 1)
 
     try:
-        model = Prophet(
-            daily_seasonality=False,
-            weekly_seasonality=use_weekly,
-            yearly_seasonality=False,
-            interval_width=0.80
-        )
-        model.fit(daily_indexed[['ds', 'y']])
+        chosen_model, future_forecast, eval_res = _select_and_forecast_full(daily_indexed, validated_days)
 
-        future = model.make_future_dataframe(periods=days_ahead, freq='D')
-        forecast = model.predict(future)
-
-        # Clip predictions at 0 because expenses cannot be negative
-        forecast['yhat'] = forecast['yhat'].clip(lower=0.0)
-        forecast['yhat_lower'] = forecast['yhat_lower'].clip(lower=0.0)
-        forecast['yhat_upper'] = forecast['yhat_upper'].clip(lower=0.0)
-
-        # Extract only future projection days
-        max_dt = pd.to_datetime(max_d)
-        future_mask = forecast['ds'] > max_dt
-        future_forecast = forecast[future_mask].copy()
+        future_forecast['yhat'] = future_forecast['yhat'].clip(lower=0.0)
+        future_forecast['yhat_lower'] = future_forecast['yhat_lower'].clip(lower=0.0)
+        future_forecast['yhat_upper'] = future_forecast['yhat_upper'].clip(lower=0.0)
 
         daily_projections = []
         for _, row in future_forecast.iterrows():
             daily_projections.append({
-                'ds': row['ds'].strftime('%Y-%m-%d'),
+                'ds': pd.to_datetime(row['ds']).strftime('%Y-%m-%d'),
                 'yhat': round(float(row['yhat']), 2),
                 'yhat_lower': round(float(row['yhat_lower']), 2),
                 'yhat_upper': round(float(row['yhat_upper']), 2)
@@ -291,11 +714,10 @@ def train_and_forecast_expenses(
 
         peak_row = future_forecast.loc[future_forecast['yhat'].idxmax()] if len(future_forecast) > 0 else None
         peak_info = {
-            'date': peak_row['ds'].strftime('%Y-%m-%d') if peak_row is not None else None,
+            'date': pd.to_datetime(peak_row['ds']).strftime('%Y-%m-%d') if peak_row is not None else None,
             'amount': round(float(peak_row['yhat']), 2) if peak_row is not None else 0.0
         }
 
-        # Historical baseline
         hist_total = float(daily_indexed['y'].sum())
         hist_avg_daily = float(daily_indexed['y'].mean())
 
@@ -303,8 +725,18 @@ def train_and_forecast_expenses(
             'success': True,
             'store_id': shop_id,
             'store_name': resolved_store_name,
-            'days_ahead': days_ahead,
+            'days_ahead': validated_days,
             'category_filtered': target_cat_label,
+            'selected_model': chosen_model,
+            'best_model': chosen_model,
+            'best_mape': eval_res.get('best_mape'),
+            'best_mae': eval_res.get('mae'),
+            'best_rmse': eval_res.get('rmse'),
+            'best_wape': eval_res.get('wape'),
+            'target_met': bool(eval_res.get('target_met', False)),
+            'target_status': eval_res.get('target_status', ''),
+            'model_comparison': eval_res.get('model_comparison', []),
+            'skipped_models': eval_res.get('skipped_models', []),
             'total_predicted_expense': total_predicted,
             'total_predicted_lower': total_lower,
             'total_predicted_upper': total_upper,
@@ -313,10 +745,10 @@ def train_and_forecast_expenses(
             'historical_daily_average': hist_avg_daily,
             'peak_expense': peak_info,
             'historical_coverage': {
-                'start_date': str(min_d),
-                'end_date': str(max_d),
+                'start_date': str(min_d)[:10],
+                'end_date': str(max_d)[:10],
                 'total_days': date_span,
-                'distinct_transaction_days': len(daily)
+                'distinct_transaction_days': distinct_days_count,
             },
             'projections': daily_projections
         }
@@ -325,25 +757,23 @@ def train_and_forecast_expenses(
         return result
 
     except Exception as exc:
-        logging.error(f"Prophet fitting error: {exc}")
+        logging.error(f"Forecast fitting error: {exc}")
         return {
             'success': False,
             'error': 'FIT_ERROR',
-            'message': f"Terjadi kendala teknis saat memproses deret waktu Prophet: {str(exc)}"
+            'message': f"Terjadi kendala teknis saat memproses deret waktu peramalan: {str(exc)}"
         }
 
 
-def evaluate_forecast_accuracy(token: str, test_days: int = 7) -> Dict[str, Any]:
-    """Perform time-ordered holdout backtesting to evaluate Prophet accuracy (MAE, RMSE, MAPE)."""
-    actor, approved_expenses, _ = _get_eligible_expense_rows(token)
+def compare_forecast_models(
+    token: str,
+    test_days: int = 28,
+    category_name: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Compare all candidate forecast models on an identical time-ordered holdout split."""
+    actor, approved_expenses, all_cats = _get_eligible_expense_rows(token)
     shop_id = actor['toko_id']
-
-    if not HAS_PROPHET or Prophet is None:
-        return {
-            'success': False,
-            'ready': False,
-            'message': "Pustaka Meta Prophet belum terpasang di environment Python saat ini."
-        }
+    store_name = actor.get('toko_nama') or get_store_name(shop_id)
 
     readiness = get_forecast_readiness_status(token)
     if not readiness['ready']:
@@ -353,133 +783,65 @@ def evaluate_forecast_accuracy(token: str, test_days: int = 7) -> Dict[str, Any]
             'message': readiness['message']
         }
 
-    # Extract daily series
-    records = []
-    for t in approved_expenses:
-        try:
-            records.append({
-                'ds': pd.Timestamp(str(t['tanggal'])[:10]),
-                'nominal': float(t['nominal'])
-            })
-        except (ValueError, TypeError):
-            continue
+    approved_expenses, target_cat_label, cat_err = _filter_expenses_by_category(
+        approved_expenses, all_cats, category_name
+    )
+    if cat_err is not None:
+        return cat_err
 
-    df_raw = pd.DataFrame(records)
-    daily = df_raw.groupby('ds')['nominal'].sum()
+    daily_indexed, _, _, _ = _build_daily_expense_df(approved_expenses)
+    eval_res = evaluate_forecast_candidates_df(daily_indexed, test_days=test_days)
+    if not eval_res.get('success'):
+        return eval_res
 
-    min_d = daily.index.min()
-    max_d = daily.index.max()
-    full_idx = pd.date_range(start=min_d, end=max_d, freq='D')
-    daily_series = daily.reindex(full_idx, fill_value=0.0)
-    daily_indexed = pd.DataFrame({
-        'ds': pd.to_datetime(daily_series.index),
-        'y': daily_series.values.astype(float)
-    })
+    rows = eval_res['model_comparison']
+    eff_test = eval_res['test_days']
+    best_model = eval_res['best_model']
+    best_mape = eval_res['best_mape']
+    best_mae = eval_res['mae']
+    best_rmse = eval_res['rmse']
+    best_wape = eval_res['wape']
+    target_status = eval_res['target_status']
+    mape_note = eval_res.get('mape_note', '')
 
-    total_days = len(daily_indexed)
-    if total_days < 14:
-        return {
-            'success': True,
-            'ready': False,
-            'mae': None,
-            'rmse': None,
-            'mape': None,
-            'target_met': False,
-            'message': (
-                f"Evaluasi akurasi Prophet memerlukan riwayat data minimal 14 hari berturut-turut untuk validasi holdout "
-                f"(saat ini {total_days} hari). Tambahkan catatan transaksi untuk mengaktifkan pengujian akurasi."
-            )
-        }
-
-    # Holdout split: last `test_days` as test set
-    split_idx = total_days - test_days
-    train_df = daily_indexed.iloc[:split_idx].copy()
-    test_df = daily_indexed.iloc[split_idx:].copy()
-
-    try:
-        model = Prophet(
-            daily_seasonality=False,
-            weekly_seasonality=bool(len(train_df) >= 14),
-            yearly_seasonality=False,
-            interval_width=0.80
+    table_lines = [
+        "| Model | MAPE | MAE | RMSE | WAPE | Status |",
+        "| :--- | :---: | ---: | ---: | :---: | :--- |"
+    ]
+    for r in rows:
+        mape_str = f"{r['mape']:.2f}%" if r['mape'] is not None else "N/A"
+        wape_str = f"{r['wape']:.2f}%" if r['wape'] is not None else "N/A"
+        badge = "**Terpilih (Terbaik)**" if r['model'] == best_model else "Kandidat"
+        table_lines.append(
+            f"| {r['model']} | {mape_str} | {format_rupiah(r['mae'])} | {format_rupiah(r['rmse'])} | {wape_str} | {badge} |"
         )
-        model.fit(train_df[['ds', 'y']])
+    table_md = "\n".join(table_lines)
 
-        future = model.make_future_dataframe(periods=test_days, freq='D')
-        forecast = model.predict(future)
+    cat_hdr = f" (Kategori: {target_cat_label})" if target_cat_label else ""
+    msg = (
+        f"### Evaluasi & Perbandingan Model Peramalan{cat_hdr} — {store_name}\n\n"
+        f"- **Metode Evaluasi:** Time-Ordered Holdout Backtesting ({eff_test} hari terakhir sebagai data uji)\n"
+        f"- **Model Terpilih (MAPE Terendah):** **{best_model}**\n"
+        f"- **Status Target (<20% MAPE):** {target_status}\n"
+        f"- **MAE Terbaik:** {format_rupiah(best_mae)} | **RMSE Terbaik:** {format_rupiah(best_rmse)}\n"
+    )
+    if best_mape is not None:
+        msg += f"- **MAPE Terbaik ({best_model}):** {best_mape:.2f}%\n"
+    if best_wape is not None:
+        msg += f"- **WAPE Terbaik:** {best_wape:.2f}%\n"
+    msg += f"\n{table_md}\n"
+    if mape_note:
+        msg += f"\n*Catatan Metrik:* {mape_note}"
 
-        # Merge actual and predicted
-        test_forecast = forecast.iloc[split_idx:].copy()
-        y_true = test_df['y'].to_numpy(dtype=float)
-        y_pred = test_forecast['yhat'].clip(lower=0.0).to_numpy(dtype=float)
+    eval_res['store_name'] = store_name
+    eval_res['category_filtered'] = target_cat_label
+    eval_res['message'] = msg
+    return eval_res
 
-        mae = float(np.mean(np.abs(y_true - y_pred)))
-        rmse = float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
 
-        # Weighted Absolute Percentage Error (WAPE)
-        sum_actual = float(np.sum(y_true))
-        wape = float(np.sum(np.abs(y_true - y_pred)) / sum_actual * 100) if sum_actual > 0 else None
-
-        # Mean Absolute Percentage Error (MAPE) computed only on non-zero actual days
-        non_zero_mask = y_true > 0
-        n_nonzero = int(np.sum(non_zero_mask))
-        mape_note = ""
-        if np.any(non_zero_mask):
-            mape = float(np.mean(np.abs((y_true[non_zero_mask] - y_pred[non_zero_mask]) / y_true[non_zero_mask])) * 100)
-            zero_count = int(np.sum(~non_zero_mask))
-            if zero_count > 0:
-                mape_note = f"MAPE dihitung khusus pada {n_nonzero} hari dengan pengeluaran aktif (mengecualikan {zero_count} hari Rp0)."
-        else:
-            mape = None
-            mape_note = "Seluruh hari pada periode uji memiliki pengeluaran Rp0, sehingga MAPE tidak dapat dihitung (pembagian dengan nol dicegah)."
-
-        # Target rule: target MAPE < 20% ONLY when strictly measured
-        target_met = bool(mape is not None and mape < 20.0 and n_nonzero >= 5)
-
-        msg = (
-            f"### Evaluasi Akurasi Model Peramalan Prophet\n\n"
-            f"- **Metode Evaluasi:** Holdout Backtesting ({test_days} hari terakhir sebagai data uji)\n"
-            f"- **MAE (Mean Absolute Error):** {format_rupiah(mae)}\n"
-            f"- **RMSE (Root Mean Squared Error):** {format_rupiah(rmse)}\n"
-        )
-        if mape is not None:
-            msg += f"- **MAPE (Mean Absolute Percentage Error):** {mape:.2f}%\n"
-            if target_met:
-                msg += f"- **Target (<20%):** Terpenuhi (Akurasi model tergolong sangat baik)\n"
-            elif n_nonzero < 5:
-                msg += f"- **Target (<20%):** Belum dapat disimpulkan (hanya {n_nonzero} hari aktif dari {test_days} hari uji — butuh minimal 5 hari aktif)\n"
-            else:
-                msg += f"- **Target (<20%):** Belum Terpenuhi ({mape:.2f}% ≥ 20.0%)\n"
-        else:
-            msg += f"- **MAPE:** Tidak dapat dihitung karena tidak ada pengeluaran pada hari uji.\n"
-
-        if wape is not None:
-            msg += f"- **WAPE (Weighted APE):** {wape:.2f}%\n"
-
-        if mape_note:
-            msg += f"\n*Catatan Metrik:* {mape_note}"
-
-        return {
-            'success': True,
-            'ready': True,
-            'test_days': test_days,
-            'train_days': len(train_df),
-            'mae': round(mae, 2),
-            'rmse': round(rmse, 2),
-            'mape': round(mape, 2) if mape is not None else None,
-            'wape': round(wape, 2) if wape is not None else None,
-            'target_met': target_met,
-            'mape_note': mape_note,
-            'message': msg
-        }
-
-    except Exception as exc:
-        logging.error(f"Prophet evaluation error: {exc}")
-        return {
-            'success': False,
-            'error': str(exc),
-            'message': f"Gagal menghitung metrik evaluasi model Prophet: {str(exc)}"
-        }
+def evaluate_forecast_accuracy(token: str, test_days: int = 28) -> Dict[str, Any]:
+    """Evaluate accuracy across candidate models on holdout backtesting (MAPE, MAE, RMSE, WAPE)."""
+    return compare_forecast_models(token, test_days=test_days)
 
 
 def _backtest_series(dates: List[date], amounts: List[float]) -> Dict[str, Any]:
@@ -740,9 +1102,13 @@ def get_forecast_for_period(
     end_date: Optional[str] = None,
     period_label: str = "Bulan Depan",
     output_mode: str = "summary",
-    category_name: Optional[str] = None
+    category_name: Optional[str] = None,
+    days_ahead: Optional[int] = None,
 ) -> Dict[str, Any]:
-    """Retrieve Prophet expense forecast for a specific future period, single day, or daily breakdown."""
+    """Retrieve expense forecast for a specific future period, single day, or daily breakdown."""
+    if days_ahead is not None:
+        validate_forecast_horizon(days_ahead)
+
     actor, approved_expenses, _ = _get_eligible_expense_rows(token)
     shop_id = actor['toko_id']
     store_name = actor.get('toko_nama') or get_store_name(shop_id)
@@ -756,7 +1122,6 @@ def get_forecast_for_period(
             start = today + timedelta(days=7 - today.weekday())
             end = start + timedelta(days=6)
         else:
-            # Default to next calendar month
             if today.month == 12:
                 start = date(today.year + 1, 1, 1)
                 end = date(today.year + 1, 1, 31)
@@ -779,16 +1144,22 @@ def get_forecast_for_period(
 
     needed_from_hist = (end - max_hist).days + 1 if end > max_hist else 1
     needed_from_today = (end - today).days + 1 if end > today else 1
-    days_ahead = max(needed_from_hist, needed_from_today, 30)
+    horizon_days = (
+        validate_forecast_horizon(days_ahead)
+        if days_ahead is not None
+        else min(MAX_FORECAST_DAYS, max(MIN_FORECAST_DAYS, needed_from_hist, needed_from_today, DEFAULT_FORECAST_DAYS))
+    )
 
     fcst = train_and_forecast_expenses(
         token,
-        days_ahead=days_ahead,
+        days_ahead=horizon_days,
         category_name=category_name,
         store_name=store_name
     )
     if not fcst.get('success'):
         return fcst
+
+    selected_model = fcst.get('selected_model') or fcst.get('best_model')
 
     # Filter projections in the specific window [start, end]
     start_str = start.isoformat()
@@ -822,7 +1193,7 @@ def get_forecast_for_period(
             )
         }
 
-    footer = get_dynamic_forecast_footer(store_name)
+    footer = get_dynamic_forecast_footer(store_name, model_name=selected_model)
     is_single_day = (start == end)
 
     # CASE A: Single-Day Forecast (e.g. "Besok" or specific date)
@@ -838,9 +1209,11 @@ def get_forecast_for_period(
         else:
             title_period = f"Tanggal {period_label}"
 
+        model_line = f"- **Model Terpilih:** **{selected_model}**\n" if selected_model else ""
         msg = (
             f"### Prediksi Pengeluaran {title_period} — {store_name}\n\n"
             f"- **Tanggal:** {date_val}\n"
+            f"{model_line}"
             f"- **Estimasi Pengeluaran:** **{format_rupiah(pred_val)}**\n"
             f"- **Rentang Ketidakpastian (80% CI):** {format_rupiah(low_val)} s.d. {format_rupiah(up_val)}\n"
             f"- **Dasar Prediksi:** Riwayat transaksi pengeluaran disetujui toko\n\n"
@@ -849,6 +1222,7 @@ def get_forecast_for_period(
         return {
             'success': True,
             'store_name': store_name,
+            'selected_model': selected_model,
             'period_label': period_label,
             'output_mode': 'single_day',
             'start_date': start_str,
@@ -866,6 +1240,7 @@ def get_forecast_for_period(
     total_low = sum(p['yhat_lower'] for p in period_projections)
     total_up = sum(p['yhat_upper'] for p in period_projections)
     avg_pred = total_pred / len(period_projections) if period_projections else 0.0
+    model_line = f"- **Model Terpilih:** **{selected_model}**\n" if selected_model else ""
 
     # CASE B: Daily Breakdown Table (e.g. "rincian 7 hari ke depan")
     normalized_mode = str(output_mode).lower().replace("forecastoutputmode.", "").strip()
@@ -883,6 +1258,7 @@ def get_forecast_for_period(
         msg = (
             f"### Rincian Prediksi Pengeluaran Harian ({period_label}) — {store_name}\n\n"
             f"{table_md}\n\n"
+            f"{model_line}"
             f"- **Total Estimasi ({len(period_projections)} Hari):** **{format_rupiah(total_pred)}**\n"
             f"- **Rata-rata Harian:** {format_rupiah(avg_pred)}/hari\n\n"
             f"> ℹ️ {footer}"
@@ -890,6 +1266,7 @@ def get_forecast_for_period(
         return {
             'success': True,
             'store_name': store_name,
+            'selected_model': selected_model,
             'period_label': period_label,
             'output_mode': 'daily_breakdown',
             'start_date': start_str,
@@ -907,6 +1284,7 @@ def get_forecast_for_period(
     msg = (
         f"### Prediksi Pengeluaran Toko ({period_label}) — {store_name}\n\n"
         f"- **Periode Proyeksi:** {start_str} s.d. {end_str} ({len(period_projections)} hari)\n"
+        f"{model_line}"
         f"- **Estimasi Total Pengeluaran:** **{format_rupiah(total_pred)}**\n"
         f"- **Rentang Ketidakpastian (80% CI):** {format_rupiah(total_low)} s.d. {format_rupiah(total_up)}\n"
         f"- **Rata-rata Pengeluaran Harian:** {format_rupiah(avg_pred)}/hari\n\n"
@@ -916,6 +1294,7 @@ def get_forecast_for_period(
     return {
         'success': True,
         'store_name': store_name,
+        'selected_model': selected_model,
         'period_label': period_label,
         'output_mode': 'summary',
         'start_date': start_str,
@@ -931,11 +1310,8 @@ def get_forecast_for_period(
 
 
 def get_next_predicted_expense(token: str) -> Dict[str, Any]:
-    """Retrieve the nearest expected future expense from recurring schedules and Prophet daily peaks."""
-    # Check recurring expenses first
+    """Retrieve the nearest expected future expense from recurring schedules or daily forecast."""
     rec_result = detect_recurring_expenses(token)
-    now_dt = get_jakarta_now()
-    today = now_dt.date()
 
     if rec_result.get('recurring_items'):
         nearest = rec_result['recurring_items'][0]
@@ -955,24 +1331,25 @@ def get_next_predicted_expense(token: str) -> Dict[str, Any]:
             'message': msg
         }
 
-    # Fallback to Prophet 7-day forecast
     fcst = train_and_forecast_expenses(token, days_ahead=7)
     if not fcst.get('success'):
         return fcst
 
+    selected_model = fcst.get('selected_model', 'Multi-Model Terbaik')
     projections = fcst.get('projections', [])
     if projections:
         first_day = projections[0]
         msg = (
-            f"### Estimasi Pengeluaran Berikutnya (Prophet)\n\n"
+            f"### Estimasi Pengeluaran Berikutnya ({selected_model})\n\n"
             f"- **Tanggal:** **{first_day['ds']}**\n"
             f"- **Estimasi Nominal Harian:** **{format_rupiah(first_day['yhat'])}**\n"
             f"- **Rentang Estimasi:** {format_rupiah(first_day['yhat_lower'])} - {format_rupiah(first_day['yhat_upper'])}\n\n"
-            f"*Berdasarkan model time-series Prophet harian.*"
+            f"*Berdasarkan model peramalan terpilih {selected_model}.*"
         )
         return {
             'success': True,
             'type': 'daily_forecast',
+            'selected_model': selected_model,
             'item': first_day,
             'message': msg
         }
@@ -990,11 +1367,9 @@ def compare_actual_vs_forecast(
 ) -> Dict[str, Any]:
     """Compare current actual expense performance against forecasted expense for the upcoming period."""
     actor, approved_expenses, all_cats = _get_eligible_expense_rows(token)
-    cmap = {c['id']: c for c in all_cats}
     now_dt = get_jakarta_now()
     today = now_dt.date()
 
-    # Actual current month expenses
     first_this_month = date(today.year, today.month, 1)
     actual_rows = [
         t for t in approved_expenses
@@ -1002,28 +1377,29 @@ def compare_actual_vs_forecast(
     ]
     actual_sum = sum(float(t['nominal']) for t in actual_rows)
 
-    # Forecast for next month
     fcst = get_forecast_for_period(token, period_label=forecast_period_label)
     if not fcst.get('success'):
         return fcst
 
+    selected_model = fcst.get('selected_model') or 'Multi-Model Terbaik'
     forecast_sum = fcst['total_predicted']
     diff = forecast_sum - actual_sum
     pct_diff = (diff / actual_sum * 100) if actual_sum > 0 else 0.0
-
     direction_word = "meningkat" if diff > 0 else "menurun"
 
     msg = (
         f"### Perbandingan Realisasi vs Prediksi Pengeluaran\n\n"
         f"- **Realisasi Pengeluaran ({actual_period_label} s.d. hari ini):** {format_rupiah(actual_sum)} ({len(actual_rows)} transaksi)\n"
         f"- **Prediksi Pengeluaran ({forecast_period_label}):** **{format_rupiah(forecast_sum)}**\n"
+        f"- **Model Terpilih:** **{selected_model}**\n"
         f"- **Perubahan Proyeksi:** Proyeksi pengeluaran diperkirakan **{direction_word} sebesar {format_rupiah(abs(diff))}** ({abs(pct_diff):.1f}%)\n"
         f"- **Rentang Prediksi:** {format_rupiah(fcst['total_lower'])} s.d. {format_rupiah(fcst['total_upper'])}\n\n"
-        f"*Analisis ini membandingkan data realisasi yang telah disetujui dengan model deret waktu Meta Prophet.*"
+        f"*Analisis ini membandingkan data realisasi yang telah disetujui dengan model peramalan terpilih {selected_model}.*"
     )
 
     return {
         'success': True,
+        'selected_model': selected_model,
         'actual_label': actual_period_label,
         'actual_amount': round(actual_sum, 2),
         'forecast_label': forecast_period_label,
@@ -1036,13 +1412,15 @@ def compare_actual_vs_forecast(
 
 def get_expense_trend(token: str, days_ahead: int = 30) -> Dict[str, Any]:
     """Analyze the trajectory of store expenses (increasing, decreasing, or stable) and top category drivers."""
+    validated_days = validate_forecast_horizon(days_ahead)
     actor, approved_expenses, all_cats = _get_eligible_expense_rows(token)
     cmap = {c['id']: c.get('nama', 'Lainnya') for c in all_cats}
 
-    fcst = train_and_forecast_expenses(token, days_ahead=days_ahead)
+    fcst = train_and_forecast_expenses(token, days_ahead=validated_days)
     if not fcst.get('success'):
         return fcst
 
+    selected_model = fcst.get('selected_model', 'Multi-Model Terbaik')
     hist_avg = fcst['historical_daily_average']
     pred_avg = fcst['average_daily_predicted']
 
@@ -1062,7 +1440,6 @@ def get_expense_trend(token: str, days_ahead: int = 30) -> Dict[str, Any]:
         trend_label = "Menurun"
         trend_explanation = f"Rata-rata pengeluaran harian diproyeksikan turun sekitar {abs(pct_change):.1f}% dibanding rata-rata historis."
 
-    # Identify top expense categories from historical data
     cat_totals = {}
     for t in approved_expenses:
         c_name = cmap.get(t.get('kategori_id'), 'Lainnya')
@@ -1074,16 +1451,18 @@ def get_expense_trend(token: str, days_ahead: int = 30) -> Dict[str, Any]:
     msg = (
         f"### Analisis Tren Pengeluaran Toko\n\n"
         f"- **Arah Tren:** **{trend_label}**\n"
+        f"- **Model Peramalan:** **{selected_model}**\n"
         f"- **Rata-rata Historis:** {format_rupiah(hist_avg)}/hari\n"
         f"- **Estimasi Rata-rata Proyeksi:** {format_rupiah(pred_avg)}/hari\n"
         f"- **Penjelasan Tren:** {trend_explanation}\n\n"
         f"**Pos Pengeluaran Terbesar yang Mempengaruhi Tren:**\n"
         f"{top_cat_lines}\n\n"
-        f"*Analisis tren didasarkan pada perbandingan matematis antara rata-rata deret waktu historis dan proyeksi model Prophet.*"
+        f"*Analisis tren didasarkan pada perbandingan matematis antara rata-rata deret waktu historis dan proyeksi model {selected_model}.*"
     )
 
     return {
         'success': True,
+        'selected_model': selected_model,
         'trend': trend,
         'historical_daily_avg': round(hist_avg, 2),
         'predicted_daily_avg': round(pred_avg, 2),
@@ -1095,18 +1474,18 @@ def get_expense_trend(token: str, days_ahead: int = 30) -> Dict[str, Any]:
 
 def check_forecast_against_cash_balance(token: str, days_ahead: int = 30) -> Dict[str, Any]:
     """Compare authorized recorded net cash balance against upcoming forecasted expenses to assess cash sufficiency."""
+    validated_days = validate_forecast_horizon(days_ahead)
     actor, approved_expenses, all_cats = _get_eligible_expense_rows(token)
 
-    # Get authoritative financial numbers
     all_rows = period_rows(token)
     financial_metrics = metrics(all_rows, all_cats)
     cash_balance = float(financial_metrics.get('arus_kas_total', 0.0))
 
-    # Get expense forecast
-    fcst = train_and_forecast_expenses(token, days_ahead=days_ahead)
+    fcst = train_and_forecast_expenses(token, days_ahead=validated_days)
     if not fcst.get('success'):
         return fcst
 
+    selected_model = fcst.get('selected_model', 'Multi-Model Terbaik')
     pred_total = fcst['total_predicted_expense']
     gap = cash_balance - pred_total
     is_sufficient = gap >= 0
@@ -1115,14 +1494,14 @@ def check_forecast_against_cash_balance(token: str, days_ahead: int = 30) -> Dic
         status_label = "Saldo Kas Tercatat Mencukupi"
         status_desc = (
             f"Saldo kas bersih toko saat ini ({format_rupiah(cash_balance)}) lebih besar daripada "
-            f"total estimasi pengeluaran {days_ahead} hari ke depan ({format_rupiah(pred_total)}), "
+            f"total estimasi pengeluaran {validated_days} hari ke depan ({format_rupiah(pred_total)}), "
             f"dengan surplus cadangan sebesar **{format_rupiah(gap)}**."
         )
     else:
         status_label = "Potensi Defisit Kas Terdeteksi"
         status_desc = (
             f"Saldo kas bersih toko saat ini ({format_rupiah(cash_balance)}) lebih kecil daripada "
-            f"total estimasi pengeluaran {days_ahead} hari ke depan ({format_rupiah(pred_total)}), "
+            f"total estimasi pengeluaran {validated_days} hari ke depan ({format_rupiah(pred_total)}), "
             f"sehingga terdapat potensi defisit kas sebesar **{format_rupiah(abs(gap))}** jika tidak ada pemasukan baru."
         )
 
@@ -1133,10 +1512,11 @@ def check_forecast_against_cash_balance(token: str, days_ahead: int = 30) -> Dic
     )
 
     msg = (
-        f"### Kesiapan Saldo Kas vs Proyeksi Pengeluaran ({days_ahead} Hari ke Depan)\n\n"
+        f"### Kesiapan Saldo Kas vs Proyeksi Pengeluaran ({validated_days} Hari ke Depan)\n\n"
         f"- **Status Kesiapan:** **{status_label}**\n"
+        f"- **Model Peramalan:** **{selected_model}**\n"
         f"- **Saldo Kas Bersih Saat Ini:** {format_rupiah(cash_balance)}\n"
-        f"- **Estimasi Total Pengeluaran ({days_ahead} Hari):** {format_rupiah(pred_total)}\n"
+        f"- **Estimasi Total Pengeluaran ({validated_days} Hari):** {format_rupiah(pred_total)}\n"
         f"- **Selisih Kas:** {format_rupiah(gap)}\n\n"
         f"{status_desc}\n\n"
         f"> ℹ️ *{disclaimer}*"
@@ -1144,11 +1524,12 @@ def check_forecast_against_cash_balance(token: str, days_ahead: int = 30) -> Dic
 
     return {
         'success': True,
+        'selected_model': selected_model,
         'cash_balance': round(cash_balance, 2),
         'predicted_expense': round(pred_total, 2),
         'difference': round(gap, 2),
         'is_sufficient': is_sufficient,
-        'days_ahead': days_ahead,
+        'days_ahead': validated_days,
         'disclaimer': disclaimer,
         'message': msg
     }

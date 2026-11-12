@@ -81,7 +81,7 @@ def render(token):
                 col_chart2.plotly_chart(fig_pie, use_container_width=True)
 
         st.divider()
-        section_header('Peramalan Pengeluaran & Tagihan Rutin (Prophet)', 'Proyeksi beban pengeluaran deret waktu dan deteksi otomatis jadwal tagihan berkala.')
+        section_header('Prediksi Pengeluaran & Tagihan Rutin', 'Perkiraan pengeluaran untuk 3–90 hari ke depan dan jadwal tagihan berkala.')
         try:
             rec_data = forecast_svc.detect_recurring_expenses(token)
             if rec_data.get('upcoming_3_days_items'):
@@ -91,19 +91,28 @@ def render(token):
             if not readiness['ready']:
                 st.info(f"ℹ️ **Status Peramalan:** {readiness['message']}")
             else:
-                fcst = forecast_svc.train_and_forecast_expenses(token, days_ahead=30)
+                forecast_days = st.slider(
+                    'Horizon Peramalan Pengeluaran (Hari ke Depan)',
+                    min_value=3,
+                    max_value=90,
+                    value=30,
+                    step=1,
+                    help='Pilih rentang proyeksi antara 3 hingga 90 hari (default 30 hari).',
+                )
+                fcst = forecast_svc.train_and_forecast_expenses(token, days_ahead=int(forecast_days))
                 if fcst.get('success'):
-                    col_f1, col_f2, col_f3 = st.columns(3)
-                    col_f1.metric('Estimasi Pengeluaran 30 Hari', format_rupiah(fcst['total_predicted_expense']))
-                    col_f2.metric('Rentang Estimasi (80% CI)', f"{format_rupiah(fcst['total_predicted_lower'])} - {format_rupiah(fcst['total_predicted_upper'])}")
-                    col_f3.metric('Rata-rata Harian Proyeksi', format_rupiah(fcst['average_daily_predicted']))
+                    chosen_model = fcst.get('selected_model') or fcst.get('best_model') or 'Multi-Model Terbaik'
+                    col_f1, col_f3, col_f4 = st.columns(3)
+                    col_f1.metric(f'Estimasi Pengeluaran {forecast_days} Hari', format_rupiah(fcst['total_predicted_expense']))
+                    col_f3.metric('Rentang Estimasi', f"{format_rupiah(fcst['total_predicted_lower'])} - {format_rupiah(fcst['total_predicted_upper'])}")
+                    col_f4.metric('Rata-rata Harian Proyeksi', format_rupiah(fcst['average_daily_predicted']))
 
                     if fcst.get('projections'):
                         import plotly.express as px
                         df_proj = pd.DataFrame(fcst['projections'])
                         fig_line = px.line(
                             df_proj, x='ds', y='yhat',
-                            title='Proyeksi Pengeluaran Harian 30 Hari ke Depan (Prophet)',
+                            title=f'Proyeksi Pengeluaran Harian {forecast_days} Hari ke Depan',
                             labels={'ds': 'Tanggal', 'yhat': 'Estimasi Pengeluaran (Rp)'}
                         )
                         fig_line.update_layout(
@@ -114,14 +123,47 @@ def render(token):
                         )
                         st.plotly_chart(fig_line, use_container_width=True)
 
-                    eval_res = forecast_svc.evaluate_forecast_accuracy(token)
-                    if eval_res.get('success') and eval_res.get('ready'):
-                        with st.expander("Metrik Evaluasi Akurasi Model Prophet (Backtest)"):
+                        st.dataframe(df_proj[['ds', 'yhat']].rename(columns={
+                            'ds': 'Tanggal', 'yhat': 'Estimasi Pengeluaran (Rp)',
+                        }), use_container_width=True, hide_index=True)
+
+                    with st.expander('Detail teknis', expanded=False):
+                        st.write(f"Model terpilih: {chosen_model}")
+                        target_status = fcst.get('target_status', '')
+                        if target_status:
+                            if fcst.get('target_met'):
+                                st.success(f"✅ Status Akurasi: {target_status}")
+                            elif fcst.get('best_mape') is not None and fcst.get('best_mape') >= 20.0:
+                                st.warning(f"⚠️ Peringatan Akurasi: {target_status}. Pola transaksi toko masih fluktuatif/jarang sehingga kesalahan persentase tetap tinggi.")
+                            else:
+                                st.info(f"ℹ️ Status Akurasi: {target_status}")
+
+                        eval_res = forecast_svc.evaluate_forecast_accuracy(token)
+                        if eval_res.get('success') and eval_res.get('ready'):
+                            st.caption(f"Perbandingan model — evaluasi {eval_res.get('test_days', 28)} hari")
+                            comp_rows = eval_res.get('model_comparison') or []
+                            if comp_rows:
+                                comp_df = pd.DataFrame([
+                                    {
+                                        'Model': r['model'],
+                                        'MAPE (%)': f"{r['mape']:.2f}%" if r['mape'] is not None else 'N/A',
+                                        'MAE (Rp)': format_rupiah(r['mae']),
+                                        'RMSE (Rp)': format_rupiah(r['rmse']),
+                                        'WAPE (%)': f"{r['wape']:.2f}%" if r['wape'] is not None else 'N/A',
+                                        'Status': 'Terpilih (Terbaik)' if r['model'] == eval_res.get('best_model') else 'Kandidat',
+                                    }
+                                    for r in comp_rows
+                                ])
+                                st.dataframe(comp_df, use_container_width=True, hide_index=True)
                             st.markdown(eval_res.get('message', ''))
                 else:
-                    st.info(fcst.get('message', 'Tidak ada proyeksi peramalan yang tersedia saat ini.'))
+                    st.info('Prediksi belum tersedia untuk data toko saat ini.')
+                    with st.expander('Detail teknis', expanded=False):
+                        st.write(fcst.get('message', 'Tidak ada proyeksi peramalan yang tersedia saat ini.'))
         except Exception as exc:
-            st.error(f"Gagal memuat modul peramalan Prophet: {exc}")
+            st.error('Prediksi pengeluaran belum dapat ditampilkan. Silakan coba lagi.')
+            with st.expander('Detail teknis', expanded=False):
+                st.write(str(exc))
 
         st.divider()
         section_header('Ringkasan Eksekutif Keuangan', 'Analisis naratif kualitatif otomatis berdasarkan kalkulasi matematis arus kas.')

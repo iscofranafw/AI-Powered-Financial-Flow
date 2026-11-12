@@ -382,6 +382,7 @@ def parse_and_validate_dataframe(
     id_col = mappings.get('source_id')
     staff_col = mappings.get('staff')
     time_col = mappings.get('time')
+    cat_col = mappings.get('kategori')
 
     if not date_col or not desc_col or not amount_col:
         raise ValueError('Pemetaan kolom wajib: tanggal, deskripsi, dan nominal harus ditentukan')
@@ -398,6 +399,7 @@ def parse_and_validate_dataframe(
         source_id = str(raw_record.get(id_col) or '').strip() if id_col else ''
         staff = str(raw_record.get(staff_col) or '').strip() if staff_col else ''
         tx_time = str(raw_record.get(time_col) or '').strip() if time_col else ''
+        csv_category = str(raw_record.get(cat_col) or '').strip() if cat_col else ''
 
         # 1. Validate date
         try:
@@ -475,7 +477,7 @@ def parse_and_validate_dataframe(
         canonical_amt = format(Decimal(norm_amount_str), '.2f')
         fingerprint = f"{norm_date}|{norm_desc.lower()}|{canonical_amt}|{resolved_type}"
 
-        valid_rows.append({
+        row_item = {
             'baris': idx,
             'tanggal': norm_date,
             'deskripsi': norm_desc,
@@ -485,9 +487,44 @@ def parse_and_validate_dataframe(
             'fingerprint': fingerprint,
             'source_id': source_id,
             'error': '',
-        })
+        }
+        if csv_category:
+            row_item['csv_category'] = csv_category
+        valid_rows.append(row_item)
 
     return valid_rows, rejected_rows
+
+
+def extract_csv_category_candidates(
+    valid_rows: List[Dict[str, Any]],
+    existing_categories: List[Dict[str, Any]],
+) -> Dict[str, List[Dict[str, Any]]]:
+    """Extract unique initial category candidates declared in an uploaded CSV's category column."""
+    existing_keys = {
+        (str(c.get('tipe', '')).strip().lower(), str(c.get('nama', '')).strip().casefold())
+        for c in (existing_categories or [])
+    }
+    seen: set = set()
+    out: Dict[str, List[Dict[str, Any]]] = {'pengeluaran': [], 'pemasukan': []}
+    for row in valid_rows or []:
+        tp = str(row.get('tipe') or '').strip().lower()
+        raw_cat = str(row.get('csv_category') or '').strip()
+        if tp not in out or not raw_cat:
+            continue
+        clean_name = raw_cat[:80].strip()
+        key = (tp, clean_name.casefold())
+        if key in existing_keys or key in seen:
+            continue
+        seen.add(key)
+        desc_sample = str(row.get('deskripsi') or '').strip()
+        out[tp].append({
+            'nama': clean_name,
+            'tipe': tp,
+            'deskripsi': f'Kategori dari kolom CSV: {clean_name}',
+            'contoh': [desc_sample] if desc_sample else [],
+            'source': 'csv_column',
+        })
+    return out
 
 
 def _source_id(row):

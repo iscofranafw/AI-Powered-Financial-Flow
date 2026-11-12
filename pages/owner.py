@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from services.cashier_service import create_cashier, list_cashiers
 from services import finance_service as f
-from pages import ai_tools, import_view, report_view
+from pages import ai_tools, import_view, report_view, guidance_view
 from pages.finance import transactions_ui, categories_ui, approvals_ui
 from utils.ui_components import page_header, section_header
 
@@ -50,6 +50,7 @@ def render(token, profile):
         "Persetujuan Kasir",
         "Kelola Kategori",
         "Impor Data CSV",
+        "Panduan Usaha",
         "Akun Kasir",
         "Status Sistem"
     ]
@@ -74,6 +75,8 @@ def render(token, profile):
         categories_ui(token)
     elif pilihan == "Impor Data CSV":
         import_view.render(token)
+    elif pilihan == "Panduan Usaha":
+        guidance_view.render(token)
     elif pilihan == "Akun Kasir":
         cashier_management_ui(token)
     elif pilihan == "Status Sistem":

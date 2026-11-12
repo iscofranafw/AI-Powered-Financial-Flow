@@ -1,0 +1,135 @@
+{
+  "jenis_usaha": "lainnya",
+  "built_at": "2026-11-11T14:17:12.837947+00:00",
+  "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
+  "embedding_dim": 384,
+  "chunk_count": 10,
+  "chunks": [
+    {
+      "jenis_usaha": "lainnya",
+      "nama_file": "panduan_operasional_lainnya.md",
+      "judul_bagian": "1. Model Usaha & Target Pelanggan",
+      "sumber_url": "https://pos.mekari.com/blog/bisnis-retail-adalah, https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/bisnis-retail-adalah",
+        "https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320"
+      ],
+      "chunk_index": 0,
+      "text": "Setiap usaha UMKM perlu memetakan dua komponen inti sejak awal:\n- **Sifat Transaksi Utama (Barang vs Jasa vs Campuran):**\n  - **Usaha Dagang / Produk Fisik:** Membeli atau memproduksi barang lalu menjual kembali kepada pembeli eceran atau reseller; fokus utama terletak pada perputaran modal persediaan.\n  - **Usaha Jasa:** Menjual waktu, keahlian, atau penggunaan alat (seperti laundry, barbershop, jahit, percetakan); fokus utama terletak pada kapasitas jam kerja, utilisasi alat, dan kualitas hasil layanan.\n- **Segmentasi Pelanggan & Jam Ramai:** Catat kelompok pembeli terbanyak (individu sekitar, pelanggan kantoran, atau pesanan B2B) serta jam dan hari paling ramai supaya jadwal tenaga kerja dan pengadaan perlengkapan lebih efisien."
+    },
+    {
+      "jenis_usaha": "lainnya",
+      "nama_file": "panduan_operasional_lainnya.md",
+      "judul_bagian": "2. Produk/Jasa Utama & Standar Kualitas",
+      "sumber_url": "https://pos.mekari.com/blog/bisnis-retail-adalah, https://help-center.jurnal.id/hc/id/articles/4486758215193-Manufaktur",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/bisnis-retail-adalah",
+        "https://help-center.jurnal.id/hc/id/articles/4486758215193-Manufaktur"
+      ],
+      "chunk_index": 0,
+      "text": "Standar produk atau layanan yang seragam mencegah komplain dan pengulangan kerja (*rework*):\n- **Daftar Paket Layanan / SKU Jelas:** Tuliskan daftar produk atau paket jasa beserta spesifikasi dan harga agar pelanggan tidak bingung dan kasir tidak salah menagih.\n- **Kontrol Kualitas Sebelum Serah Terima:** Terapkan daftar periksa singkat sebelum produk dikemas atau hasil jasa diserahkan ke pelanggan (kelengkapan item, kondisi kemasan, kesesuaian catatan pesanan). Untuk standar sertifikasi teknis khusus industri spesifik (misalnya kosmetik BPOM, tekstil SNI, atau elektronik), rincian sektoral masing-masing **belum ada referensi terverifikasi** dalam panduan umum ini."
+    },
+    {
+      "jenis_usaha": "lainnya",
+      "nama_file": "panduan_operasional_lainnya.md",
+      "judul_bagian": "3. Pengelolaan Stok & Supplier",
+      "sumber_url": "https://www.foliopos.com/blog/detail/dari-berantakan-jadi-rapi-panduan-mengelola-stok-toko-ritel, https://help-center.jurnal.id/hc/id/articles/4486758215193-Manufaktur",
+      "sumber_urls": [
+        "https://www.foliopos.com/blog/detail/dari-berantakan-jadi-rapi-panduan-mengelola-stok-toko-ritel",
+        "https://help-center.jurnal.id/hc/id/articles/4486758215193-Manufaktur"
+      ],
+      "chunk_index": 0,
+      "text": "Meskipun bukan toko sembako besar, usaha barang maupun jasa tetap memiliki persediaan bahan habis pakai (*consumables*) dan kemasan:\n- **Catat Barang Masuk dan Keluar Sejak Awal:** Gunakan prinsip **FIFO** (*First In, First Out*) agar stok lama habis duluan dan tidak rusak di sudut gudang.\n- **Hindari Pembelian Berlebihan di Luar Perputaran:** Jangan menahan terlalu banyak kas pada bahan lambat terpakai hanya demi mengejar potongan harga kecil dari pemasok.\n- **Pemasok Cadangan & Stock Opname:** Simpan kontak lebih dari satu pemasok untuk bahan utama dan lakukan cek fisik stok (*stock opname*) minimal sebulan sekali guna mencocokkan fisik rak dengan catatan pembukuan."
+    },
+    {
+      "jenis_usaha": "lainnya",
+      "nama_file": "panduan_operasional_lainnya.md",
+      "judul_bagian": "4. HPP, Harga Jual & Margin",
+      "sumber_url": "https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/, https://pos.mekari.com/blog/cara-menghitung-hpp-penjualan-makanan",
+      "sumber_urls": [
+        "https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/",
+        "https://pos.mekari.com/blog/cara-menghitung-hpp-penjualan-makanan"
+      ],
+      "chunk_index": 0,
+      "text": "Prinsip dasar penetapan harga berlaku lintas bidang usaha UMKM:\n- **Hitung Seluruh Komponen Biaya Langsung (HPP):** Masukkan harga beli barang/bahan utama, kemasan, ongkos kirim/angkut pembelian, bahan habis pakai, serta biaya produksi langsung (seperti listrik/air khusus pengerjaan atau upah borongan per unit).\n- **Pisahkan Biaya Tetap (*Overhead*):** Sewa ruko, gaji tetap bulanan, internet, dan penyusutan peralatan dibayar dari total margin kotor semua transaksi; pastikan harga jual memiliki cukup ruang margin di atas HPP untuk menutup biaya tetap bulanan dan menyisakan laba bersih.\n- **Evaluasi Berkala Saat Biaya Pemasok Naik:** Tinju ulang daftar harga setidaknya tiap 3 bulan atau saat harga bahan utama maupun ongkos logistik mengalami kenaikan signifikan."
+    },
+    {
+      "jenis_usaha": "lainnya",
+      "nama_file": "panduan_operasional_lainnya.md",
+      "judul_bagian": "5. Pencatatan Keuangan & Cash Flow Harian",
+      "sumber_url": "https://pos.mekari.com/blog/strategi-bisnis-kuliner, https://kledo.com/blog/contoh-pembukuan-bengkel/",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+        "https://kledo.com/blog/contoh-pembukuan-bengkel/"
+      ],
+      "chunk_index": 0,
+      "text": "Kebiasaan keuangan paling menentukan bagi UMKM dari bidang apa pun:\n- **Pemisahan Uang Pribadi & Usaha Secara Tegas:** Gunakan rekening bank dan dompet QRIS terpisah untuk toko. Pemilik mengambil gaji bulanan atau pembagian laba terjadwal, bukan memakai kas toko untuk belanja rumah tangga tanpa dicatat.\n- **Pencatatan Harian Pemasukan & Pengeluaran:** Catat setiap penjualan (tunai, QRIS, transfer, piutang) dan setiap pengeluaran sesuai kategori tetap toko setiap hari sebelum toko tutup agar arus kas bersih terpantau nyata.\n- **Dana Darurat & Cadangan Perbaikan Alat:** Sisihkan sebagian kecil arus kas masuk ke pos cadangan agar kerusakan mendadak pada alat kerja tidak langsung menghentikan operasional usaha."
+    },
+    {
+      "jenis_usaha": "lainnya",
+      "nama_file": "panduan_operasional_lainnya.md",
+      "judul_bagian": "6. Legalitas & Perizinan",
+      "sumber_url": "https://izin.co.id/blog/cara-daftar-oss-umkm/, https://izin.co.id/blog/syarat-pirt/, https://halalmui.org/sertifikasi-halal-umkm-panduan-lengkap-2025/, https://oss.go.id, https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320",
+      "sumber_urls": [
+        "https://izin.co.id/blog/cara-daftar-oss-umkm/",
+        "https://izin.co.id/blog/syarat-pirt/",
+        "https://halalmui.org/sertifikasi-halal-umkm-panduan-lengkap-2025/",
+        "https://oss.go.id",
+        "https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320"
+      ],
+      "chunk_index": 0,
+      "text": "Dokumen dasar legalitas untuk UMKM Indonesia meliputi:\n- **NIB (Nomor Induk Berusaha) via OSS-RBA:** Pendaftaran dilakukan gratis melalui portal resmi pemerintah [oss.go.id](https://oss.go.id) berbekal KTP/NIK, NPWP pribadi/badan, dan kode **KBLI** yang paling tepat menggambarkan aktivitas utama usaha. - **Izin Pendukung Bila Menjual Pangan / Produk Konsumen:** Jika memiliki lini usaha makanan atau minuman olahan tahan lebih dari 7 hari, urus **SPP-IRT** melalui sistem OSS/Dinas Kesehatan dan ikuti pelatihan penyuluhan keamanan pangan. Bila memenuhi kriteria, lengkapi pula **Sertifikat Halal BPJPH** melalui portal `ptsp.halal.go.id` (tersedia jalur *Self-Declare* melalui pendamping PPH maupun jalur reguler LPH)."
+    },
+    {
+      "jenis_usaha": "lainnya",
+      "nama_file": "panduan_operasional_lainnya.md",
+      "judul_bagian": "6. Legalitas & Perizinan",
+      "sumber_url": "https://izin.co.id/blog/cara-daftar-oss-umkm/, https://izin.co.id/blog/syarat-pirt/, https://halalmui.org/sertifikasi-halal-umkm-panduan-lengkap-2025/, https://oss.go.id, https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320",
+      "sumber_urls": [
+        "https://izin.co.id/blog/cara-daftar-oss-umkm/",
+        "https://izin.co.id/blog/syarat-pirt/",
+        "https://halalmui.org/sertifikasi-halal-umkm-panduan-lengkap-2025/",
+        "https://oss.go.id",
+        "https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320"
+      ],
+      "chunk_index": 1,
+      "text": "melalui portal `ptsp.halal.go.id` (tersedia jalur *Self-Declare* melalui pendamping PPH maupun jalur reguler LPH).\n\n- **Kewajiban Perizinan Usaha Menengah/Khusus:** Untuk perizinan khusus profesi atau sektor teregulasi tingkat lanjut (seperti klinik, apotek, atau ekspor-impor penuh), **belum ada referensi terverifikasi** pada panduan UMKM umum ini."
+    },
+    {
+      "jenis_usaha": "lainnya",
+      "nama_file": "panduan_operasional_lainnya.md",
+      "judul_bagian": "7. Operasional Harian & SOP Singkat",
+      "sumber_url": "https://pos.mekari.com/blog/strategi-bisnis-kuliner, https://www.foliopos.com/blog/detail/dari-berantakan-jadi-rapi-panduan-mengelola-stok-toko-ritel",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+        "https://www.foliopos.com/blog/detail/dari-berantakan-jadi-rapi-panduan-mengelola-stok-toko-ritel"
+      ],
+      "chunk_index": 0,
+      "text": "Tiga rutinitas inti menjaga operasional konsisten meskipun staf berganti:\n- **Buka Toko / Awal Shift:** Siapkan modal kembalian kasir, pastikan kebersihan area kerja dan peralatan dalam kondisi siap pakai, serta periksa daftar pesanan atau janji pelanggan hari ini.\n- **Saat Operasional:** Catat transaksi segera setelah terjadi, minta persetujuan pelanggan bila ada tambahan biaya di luar paket standar, dan simpan seluruh struk pengeluaran kas kecil di satu map harian.\n- **Tutup Toko / Akhir Shift:** Cocokkan fisik uang tunai + saldo mutasi QRIS dengan catatan penjualan harian, dokumentasikan barang rusak atau kendala kerja hari itu, lalu kunci akses kas dan area penyimpanan."
+    },
+    {
+      "jenis_usaha": "lainnya",
+      "nama_file": "panduan_operasional_lainnya.md",
+      "judul_bagian": "8. Pemasaran & Pengembangan",
+      "sumber_url": "https://pos.mekari.com/blog/bisnis-retail-adalah, https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/bisnis-retail-adalah",
+        "https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi"
+      ],
+      "chunk_index": 0,
+      "text": "Strategi bertahap untuk memperluas basis pelanggan tanpa pemborosan biaya promosi:\n- **Daftar Lokasi Peta Digital & WhatsApp Katalog:** Pastikan titik usaha muncul jelas dengan jam buka akurat, foto asli produk/tempat, dan nomor WhatsApp aktif untuk tanya harga atau pemesanan awal. - **Minta Ulasan Pelanggan Puas & Program Rujukan:** Ajak pelanggan tetap memberi ulasan jujur atau rekomendasi mulut ke mulut dengan insentif ringan seperti voucher potongan kunjungan berikutnya. - **Evaluasi Produk/Jasa Terlaris Tiap Bulan:** Gunakan catatan transaksi keuangan bulanan untuk melihat layanan/kategori mana yang paling besar memberi arus kas masuk, lalu pertajam promosi dan ketersediaannya dibanding produk yang sepi peminat."
+    },
+    {
+      "jenis_usaha": "lainnya",
+      "nama_file": "panduan_operasional_lainnya.md",
+      "judul_bagian": "8. Pemasaran & Pengembangan",
+      "sumber_url": "https://pos.mekari.com/blog/bisnis-retail-adalah, https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/bisnis-retail-adalah",
+        "https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi"
+      ],
+      "chunk_index": 1,
+      "text": "paling besar memberi arus kas masuk, lalu pertajam promosi dan ketersediaannya dibanding produk yang sepi peminat.\n\nUntuk strategi periklanan berbayar lintas platform digital spesifik industri non-kuliner, **belum ada referensi terverifikasi** pada panduan ini."
+    }
+  ]
+}

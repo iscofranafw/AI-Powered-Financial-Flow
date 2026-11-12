@@ -164,3 +164,31 @@ def test_dashboard_summary():
         assert summary['arus_kas_total'] == Decimal('1200000')
         assert summary['jumlah_disetujui'] == 3
         assert summary['pengeluaran_per_kategori']['Bahan Baku'] == Decimal('300000')
+
+
+def test_create_category_forwards_keywords_and_auto_fill_fills_empty():
+    client = MagicMock()
+    client.table.return_value.insert.return_value.execute.return_value.data = [{'id': 'c_new'}]
+    client.table.return_value.update.return_value.eq.return_value.eq.return_value.execute.return_value.data = [{'id': 'c1'}]
+
+    with patch('services.finance_service.verify_actor', return_value={'toko_id': 's1', 'role': 'pemilik_toko'}), \
+         patch('services.finance_service.categories', return_value=[]), \
+         patch('services.finance_service.privileged_client', return_value=client):
+        fs.create_category('tok', 'Bahan baku', 'pengeluaran', description='Bahan kue', keywords=['tepung terigu', 'gula pasir'])
+        insert_payload = client.table.return_value.insert.call_args.args[0]
+        assert insert_payload['kata_kunci'] == ['tepung terigu', 'gula pasir']
+
+    cats = [
+        {'id': 'c1', 'nama': 'Bahan baku', 'tipe': 'pengeluaran', 'sistem': False, 'bukan_operasional': False, 'kata_kunci': []},
+        {'id': 'c2', 'nama': 'Operasional', 'tipe': 'pengeluaran', 'sistem': False, 'bukan_operasional': False, 'kata_kunci': ['existing kw']},
+        {'id': 'c3', 'nama': 'Others', 'tipe': 'pengeluaran', 'sistem': True, 'bukan_operasional': False, 'kata_kunci': []},
+    ]
+    with patch('services.finance_service.verify_actor', return_value={'toko_id': 's1', 'role': 'pemilik_toko'}), \
+         patch('services.finance_service.categories', return_value=cats), \
+         patch('ai.store_context.get_store_business_context', return_value={'bidang_usaha': 'Bakery'}), \
+         patch('services.finance_service.category_by_id', side_effect=lambda shop, cid: next(c for c in cats if c['id'] == cid)), \
+         patch('services.finance_service.privileged_client', return_value=client):
+        res = fs.auto_fill_category_keywords('tok', overwrite=False)
+        assert res['updated_count'] == 1
+        assert res['updated'][0]['id'] == 'c1'
+        assert 'cokelat' in res['updated'][0]['keywords']  # Cited bakery guide uses cokelat, not synthetic CSV's cokelat bubuk.

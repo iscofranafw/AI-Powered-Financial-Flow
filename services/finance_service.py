@@ -57,6 +57,19 @@ def initialize_categories(token):
   for name in names:
    admin.table('kategori').upsert({'toko_id':shop,'nama':name,'tipe':tipe,'sistem':name=='Others','bukan_operasional':name=='Tambahan Modal'},on_conflict='toko_id,tipe,nama').execute()
  return categories(shop)
+def _invalidate_classification_state(shop, tipe=None, rebuild_index=False):
+    """Clear classification/RAG caches and optionally rebuild FAISS index for shop."""
+    try:
+        from ai.hybrid_classifier import clear_classification_cache
+        clear_classification_cache(shop)
+        from ai.rag_engine import clear_memory_cache, rebuild_store_index
+        clear_memory_cache(shop)
+        if rebuild_index:
+            rebuild_store_index(shop, tipe)
+    except Exception as exc:
+        logger.warning("Classification/RAG cache refresh failed for shop %s: %s", shop, exc)
+
+
 def create_category(token,name,tipe,description='',system_seed=False,keywords=None):
  a=_owner(token);shop=a['toko_id'];tipe=_type(tipe);name=name.strip()
  if not name or len(name)>80: raise ValueError('Nama kategori wajib diisi (maksimal 80 karakter)')
@@ -64,15 +77,28 @@ def create_category(token,name,tipe,description='',system_seed=False,keywords=No
  if any(c['nama'].casefold()==name.casefold() and c['tipe']==tipe for c in existing): raise ValueError('Kategori sudah ada')
  if name.casefold()=='others' and not system_seed: raise ValueError('Others adalah kategori sistem')
  if name.casefold()=='tambahan modal' and tipe!='pemasukan': raise ValueError('Tambahan Modal harus pemasukan')
- return privileged_client().table('kategori').insert({'toko_id':shop,'nama':name,'tipe':tipe,'deskripsi':description.strip()[:500],'sistem':name.casefold()=='others','bukan_operasional':name.casefold()=='tambahan modal','kata_kunci':keywords or []}).execute().data
+ sanitized_kw = [str(k).strip()[:80] for k in (keywords or []) if str(k).strip()][:20]
+ res = privileged_client().table('kategori').insert({'toko_id':shop,'nama':name,'tipe':tipe,'deskripsi':description.strip()[:500],'sistem':name.casefold()=='others','bukan_operasional':name.casefold()=='tambahan modal','kata_kunci':sanitized_kw}).execute().data
+ is_real_row = isinstance(res, list) and bool(res) and isinstance(res[0], dict) and bool(res[0].get('toko_id'))
+ _invalidate_classification_state(shop, tipe, rebuild_index=is_real_row)
+ return res
 
-def rename_category(token,category_id,name,description=''):
+def rename_category(token,category_id,name,description='',keywords=None):
  a=_owner(token);shop=a['toko_id'];old=category_by_id(shop,category_id)
  if not old: raise ValueError('Kategori tidak ditemukan')
  if old['sistem'] or old['bukan_operasional']: raise ValueError('Kategori sistem/modal tidak dapat diubah namanya')
  name=name.strip()
  if not name or len(name)>80: raise ValueError('Nama kategori tidak valid')
- return privileged_client().table('kategori').update({'nama':name,'deskripsi':description.strip()[:500]}).eq('id',category_id).eq('toko_id',shop).execute().data
+ updates = {'nama':name,'deskripsi':description.strip()[:500]}
+ if keywords is not None:
+     sanitized_kw = [str(k).strip()[:80] for k in keywords if str(k).strip()]
+     if len(sanitized_kw) > 20:
+         raise ValueError('Maksimal 20 kata kunci')
+     updates['kata_kunci'] = sanitized_kw
+ res = privileged_client().table('kategori').update(updates).eq('id',category_id).eq('toko_id',shop).execute().data
+ is_real_row = isinstance(res, list) and bool(res) and isinstance(res[0], dict) and bool(res[0].get('toko_id'))
+ _invalidate_classification_state(shop, old.get('tipe'), rebuild_index=is_real_row)
+ return res
 
 def set_category_keywords(token,category_id,keywords):
  actor=_owner(token);shop=actor['toko_id']
@@ -81,7 +107,90 @@ def set_category_keywords(token,category_id,keywords):
  if cat['sistem']:raise ValueError('Kategori Others tidak diindeks')
  sanitized=[str(k).strip()[:80] for k in keywords if str(k).strip()]
  if len(sanitized)>20:raise ValueError('Maksimal 20 kata kunci')
- return privileged_client().table('kategori').update({'kata_kunci':sanitized}).eq('toko_id',shop).eq('id',category_id).execute().data
+ res = privileged_client().table('kategori').update({'kata_kunci':sanitized}).eq('toko_id',shop).eq('id',category_id).execute().data
+ is_real_row = isinstance(res, list) and bool(res) and isinstance(res[0], dict) and bool(res[0].get('toko_id'))
+ _invalidate_classification_state(shop, cat.get('tipe'), rebuild_index=is_real_row)
+ return res
+
+
+def plan_category_keywords(store_categories, history, business_type='Umum', csv_rows=None):
+    """Read-only plan; the same operation is used by UI and measurement tools."""
+    from ai.category_evidence import compile_keyword_plan, resolve_sample_owner
+    evidence = list(history)
+    prepared = compile_keyword_plan(store_categories, history, business_type)['categories']
+    # Explicit CSV category input outranks inferred examples. Remaining upload
+    # descriptions are proposed against the owner's allowed categories only.
+    indexed = {(r.get('tipe'), str(r.get('deskripsi', '')).strip().casefold()): r
+               for r in evidence}
+    seen_upload = set()
+    for row in csv_rows or []:
+        if row.get('error') or not row.get('deskripsi'):
+            continue
+        key = (row.get('tipe'), str(row['deskripsi']).strip().casefold())
+        declared_name = str(row.get('csv_category') or row.get('kategori') or '').strip()
+        upload_key = (*key, str(row.get('kategori_id') or declared_name))
+        if upload_key in seen_upload:
+            continue
+        seen_upload.add(upload_key)
+        cat = next((c for c in store_categories if c.get('tipe') == row.get('tipe')
+                    and (str(c['id']) == str(row.get('kategori_id') or '')
+                         or (declared_name and str(c['nama']).casefold() == declared_name.casefold()))), None)
+        if cat:
+            mapped = {**row, 'kategori_id': cat['id'], '_source_priority': 2, '_sample_priority': 2}
+            evidence.append(mapped)
+            indexed[key] = mapped
+            continue
+        if key in indexed:
+            evidence.append({**row, 'kategori_id': indexed[key]['kategori_id'], '_sample_priority': 2})
+            continue
+        # Same user item across action/quantity variants retains its confirmed
+        # category. No product vocabulary is embedded in this equivalence rule.
+        from ai.category_evidence import phrase_key
+        matching_ids = {r.get('kategori_id') for r in evidence
+                        if r.get('tipe') == row.get('tipe')
+                        and phrase_key(r.get('deskripsi', '')) == phrase_key(row['deskripsi'])}
+        if len(matching_ids) == 1:
+            assignment = next(iter(matching_ids))
+        else:
+            assignment = resolve_sample_owner(row['tipe'], row['deskripsi'], prepared, business_type)['kategori_id']
+        if assignment:
+            mapped = {**row, 'kategori_id': assignment, '_sample_priority': 2}
+            evidence.append(mapped)
+            indexed[key] = mapped
+    plan = compile_keyword_plan(store_categories, evidence, business_type)
+    plan['evidence'] = evidence
+    return plan
+
+
+def auto_fill_category_keywords(token, overwrite=False, csv_rows=None):
+    """Fill missing keywords from tenant history/upload, preserving filled fields."""
+    from ai.store_context import get_store_business_context
+    actor = _owner(token)
+    shop = actor['toko_id']
+    b_type = get_store_business_context(shop).get('bidang_usaha', 'Umum')
+    store_categories = categories(shop)
+    # Existing all-type 1000-row contract is retained. Corpus building queries
+    # 1000 per type independently, so income history is also indexed there.
+    history = (privileged_client().table('transaksi').select('kategori_id,deskripsi,tipe')
+               .eq('toko_id', shop).eq('status_persetujuan', 'disetujui')
+               .eq('status_kategori', 'dikonfirmasi')
+               .order('tanggal', desc=True).limit(1000).execute().data or [])
+    plan = plan_category_keywords(store_categories, history, b_type, csv_rows)
+    originals = {c['id']: c for c in store_categories}
+    updated = []
+    for cat in plan['categories']:
+        old = originals[cat['id']]
+        if cat.get('sistem') or cat.get('bukan_operasional') or str(cat.get('nama', '')).casefold() == 'others':
+            continue
+        if old.get('kata_kunci') and not overwrite:
+            continue
+        if cat.get('kata_kunci'):
+            set_category_keywords(token, cat['id'], cat['kata_kunci'])
+            updated.append({'id': cat['id'], 'nama': cat['nama'], 'keywords': cat['kata_kunci']})
+    for warning in plan['warnings']:
+        logger.warning(warning)
+    return {'updated_count': len(updated), 'updated': updated,
+            'warnings': plan['warnings'], 'keyword_audit': plan['audit']}
 
 def delete_category(token,category_id):
  a=_owner(token);shop=a['toko_id'];old=category_by_id(shop,category_id)
@@ -89,6 +198,7 @@ def delete_category(token,category_id):
  if old['sistem'] or old['bukan_operasional']: raise ValueError('Kategori terlindungi')
  if privileged_client().table('transaksi').select('id').eq('toko_id',shop).eq('kategori_id',category_id).limit(1).execute().data: raise ValueError('Kategori sudah dipakai; gunakan gabung kategori')
  privileged_client().table('kategori').delete().eq('id',category_id).eq('toko_id',shop).execute()
+ _invalidate_classification_state(shop, old.get('tipe'), rebuild_index=True)
 
 def merge_category(token,source_id,target_id):
  a=_owner(token);shop=a['toko_id'];src=category_by_id(shop,source_id);dst=category_by_id(shop,target_id)
@@ -210,6 +320,7 @@ def approve_transactions(token,ids,decision):
  try:
      from services.forecast_service import invalidate_forecast_cache
      invalidate_forecast_cache(shop)
+     _invalidate_classification_state(shop)
  except Exception as exc:
      logger.warning("Cache invalidation failed after approve_transactions for shop %s; returning committed result: %s", shop, exc)
      return res

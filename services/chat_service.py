@@ -69,6 +69,7 @@ TOOL_TO_INTENT = {
     ToolName.GET_PROFIT_ANALYSIS: Intent.QUERY_PROFIT,
 
     ToolName.EXPLAIN_FEATURE: Intent.EXPLAIN_APP_FEATURE,
+    ToolName.GET_BUSINESS_GUIDANCE: Intent.QUERY_BUSINESS_GUIDANCE,
     ToolName.EXPLAIN_NAVIGATION: Intent.EXPLAIN_APP_FEATURE,
     ToolName.EXPLAIN_OWNER_APPROVAL_WORKFLOW: Intent.EXPLAIN_APP_FEATURE,
     ToolName.EXPLAIN_CSV_IMPORT: Intent.EXPLAIN_APP_FEATURE,
@@ -746,12 +747,13 @@ def handle_chat_message(token, message_text, history=None, page_context=None):
     s_lower = raw_text.lower()
     if page_context and any(w in s_lower for w in ['halaman ini', 'menu ini', 'layar ini', 'di sini']):
         page_explanations = {
-            "Ringkasan Bisnis": "Halaman **Ringkasan Bisnis** menyajikan visualisasi arus kas, metrik omzet, perbandingan pengeluaran, dan peramalan pengeluaran Prophet toko Anda.",
+            "Ringkasan Bisnis": "Halaman **Ringkasan Bisnis** menyajikan visualisasi arus kas, metrik omzet, perbandingan pengeluaran, dan peramalan pengeluaran multi-model (Prophet, ETS, ARIMA, Seasonal Naive, MA7, LinearRegression) toko Anda.",
             "Transaksi": "Halaman **Transaksi** menampilkan seluruh riwayat transaksi toko dengan status persetujuan, filter tanggal, pencarian, dan opsi hapus.",
             "Pencatatan Cepat": "Halaman **Pencatatan Cepat** memungkinkan entri transaksi kilat dengan bantuan klasifikasi otomatis AI.",
             "Persetujuan Kasir": "Halaman **Persetujuan Kasir** digunakan oleh Pemilik Toko untuk meninjau dan menyetujui transaksi yang dicatat kasir sebelum masuk ke laporan resmi.",
             "Kelola Kategori": "Halaman **Kelola Kategori** digunakan untuk mengatur pos-pos anggaran pemasukan dan pengeluaran toko Anda.",
             "Impor Data CSV": "Halaman **Impor Data CSV** memungkinkan impor massal berkas transaksi lama dengan pemetaan kolom otomatis dan penemuan kategori cerdas.",
+            "Panduan Usaha": "Halaman **Panduan Usaha** menyediakan referensi operasional sesuai bidang usaha toko Anda (stok, HPP, SOP harian, pembukuan, dan legalitas) lengkap dengan rujukan sumber.",
             "Akun Kasir": "Halaman **Akun Kasir** digunakan untuk mendaftarkan dan memantau akun kasir yang bertugas di toko Anda.",
             "Status Sistem": "Halaman **Status Sistem** menyajikan diagnosa koneksi database Supabase dan kesiapan model AI Ollama.",
         }
@@ -946,7 +948,7 @@ def handle_chat_message(token, message_text, history=None, page_context=None):
         res['tool'] = decision.tool_name.value
         return res
 
-    # 13. Forecast (Prophet)
+    # 13. Forecast (Multi-Model)
     forecast_tools = {
         ToolName.GET_AVAILABLE_FORECAST,
         ToolName.GET_EXPENSE_FORECAST,
@@ -965,7 +967,7 @@ def handle_chat_message(token, message_text, history=None, page_context=None):
                 'intent': Intent.QUERY_FORECAST,
                 'tool': decision.tool_name.value,
                 'type': 'message',
-                'message': "Fitur peramalan pengeluaran (forecasting) Meta Prophet hanya dapat diakses oleh **Pemilik Toko** demi menjaga kerahasiaan proyeksi bisnis."
+                'message': "Fitur peramalan pengeluaran (forecasting multi-model) hanya dapat diakses oleh **Pemilik Toko** demi menjaga kerahasiaan proyeksi bisnis."
             }
         if decision.tool_name == ToolName.GET_AVAILABLE_FORECAST:
             return {
@@ -1004,6 +1006,25 @@ def handle_chat_message(token, message_text, history=None, page_context=None):
             'tool': decision.tool_name.value,
             'type': 'message',
             'message': get_feature_explanation(topic, is_owner=is_owner)
+        }
+
+    # 14b. Isolated Business Guidance RAG (Revisi 2)
+    if decision.tool_name == ToolName.GET_BUSINESS_GUIDANCE:
+        tool_res = dispatch_tool(token, decision)
+        res_data = tool_res.get('data') or {}
+        return {
+            'intent': Intent.QUERY_BUSINESS_GUIDANCE,
+            'tool': decision.tool_name.value,
+            'type': 'message',
+            'message': tool_res.get('message', ''),
+            'data': res_data,
+            'citations': res_data.get('citations', []),
+            'metadata': {
+                'intent': decision.tool_name.value,
+                'tool': decision.tool_name.value,
+                'jenis_usaha': res_data.get('jenis_usaha'),
+                'found': bool(res_data.get('found')),
+            },
         }
 
     # 15. Financial Summaries (Income, Expense, Cash Flow)

@@ -1,0 +1,168 @@
+{
+  "jenis_usaha": "warung_makan",
+  "built_at": "2026-11-11T14:17:11.995328+00:00",
+  "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
+  "embedding_dim": 384,
+  "chunk_count": 13,
+  "chunks": [
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "1. Model Usaha & Target Pelanggan",
+      "sumber_url": "https://pos.mekari.com/blog/strategi-bisnis-kuliner, https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+        "https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi"
+      ],
+      "chunk_index": 0,
+      "text": "Warung makan memiliki dinamika transaksi berfrekuensi tinggi dengan margin per porsi yang sangat bergantung pada kecepatan perputaran meja dan pesanan bawa pulang:\n- **Warung Makan Harian (Dine-in & Takeaway):** Melayani pekerja sekitar, mahasiswa, pengemudi ojek daring, dan keluarga di area padat aktivitas. Keunggulan bersaing terletak pada kecepatan saji, porsi konsisten, kebersihan ruang makan, dan harga terjangkau. - **Penjualan Online & Layanan Pesan Antar:** Integrasi dengan aplikasi pesan antar (seperti GoFood melalui GoBiz) memperluas jangkauan pelanggan tanpa menambah luas tempat duduk, tetapi struktur harga perlu disesuaikan karena adanya biaya komisi platform dan kemasan anti-tumpah."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "1. Model Usaha & Target Pelanggan",
+      "sumber_url": "https://pos.mekari.com/blog/strategi-bisnis-kuliner, https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+        "https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi"
+      ],
+      "chunk_index": 1,
+      "text": "tempat duduk, tetapi struktur harga perlu disesuaikan karena adanya biaya komisi platform dan kemasan anti-tumpah.\n\n- **Katering Harian & Nasi Kotak:** Menambah volume pesanan terprediksi untuk rapat kantor, acara warga, dan langganan makan siang sehingga pembelian bahan pasar lebih efisien."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "2. Produk/Jasa Utama & Standar Kualitas",
+      "sumber_url": "https://pos.mekari.com/blog/strategi-bisnis-kuliner, https://pos.mekari.com/blog/cara-menghitung-hpp-penjualan-makanan",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+        "https://pos.mekari.com/blog/cara-menghitung-hpp-penjualan-makanan"
+      ],
+      "chunk_index": 0,
+      "text": "Kualitas masakan dan konsistensi rasa menjaga pelanggan kembali setiap minggu:\n- **Menu Inti Terfokus (*Core Menu*):** Batasi menu harian pada 6–12 lauk atau paket andalan yang memakai bahan baku saling beririsan (misalnya ayam, tempe/tahu, sambal dasar, sayuran utama). Terlalu banyak menu unik dengan bahan terpisah akan memperbesar risiko bahan busuk.\n- **Resep & Takaran Baku:** Gunakan sendok takar, mangkuk porsi, dan bumbu dasar (*base paste*) yang ditimbang agar rasa masakan tetap sama walau juru masak berganti shift.\n- **Kebersihan Area Penyajian & Dapur:** Jaga suhu makanan matang di etalase tetap higienis dan tertutup dari lalat/debu; pisahkan talenan bahan mentah (daging/ikan) dan bahan siap makan (lalapan/sambal) untuk mencegah kontaminasi silang."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "3. Pengelolaan Stok & Supplier",
+      "sumber_url": "https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/, https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+      "sumber_urls": [
+        "https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/",
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner"
+      ],
+      "chunk_index": 0,
+      "text": "Pengelolaan stok dapur warung makan membedakan bahan segar dan bahan tahan lama:\n- **Pemisahan Bahan Basah & Bahan Kering:**\n  - **Bahan Basah / Segar (Belanja Harian/2 Harian):** Ayam, daging, ikan, sayuran hijau, santan segar, cabai. Terapkan tingkat *par stock* (batas aman harian) mengikuti rata-rata porsi terjual agar kulkas tidak penuh dengan bahan layu. - **Bahan Kering & Bumbu Tahan Lama (Belanja Mingguan/Bulanan):** Beras, minyak goreng, kecap, garam, gula, bawang kering, kemasan cup/kotak makan. - **Prinsip FIFO di Kulkas & Gudang Kering:** Bahan yang datang lebih dulu diletakkan di depan agar dimasak lebih awal; simpan bahan segar di wadah berlabel tanggal pembelian."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "3. Pengelolaan Stok & Supplier",
+      "sumber_url": "https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/, https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+      "sumber_urls": [
+        "https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/",
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner"
+      ],
+      "chunk_index": 1,
+      "text": "datang lebih dulu diletakkan di depan agar dimasak lebih awal; simpan bahan segar di wadah berlabel tanggal pembelian.\n\n- **Pencatatan Pemasok Pasar & Grosir:** Bandingkan harga dua hingga tiga pemasok pasar/grosir secara berkala untuk protein utama dan cabai yang sangat fluktuatif, serta catat pembelian tunai pasar harian di buku kas kecil supaya tidak terlewat."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "4. HPP, Harga Jual & Margin",
+      "sumber_url": "https://pos.mekari.com/blog/cara-menghitung-hpp-penjualan-makanan, https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/cara-menghitung-hpp-penjualan-makanan",
+        "https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/"
+      ],
+      "chunk_index": 0,
+      "text": "Pengendalian *food cost* adalah kunci agar warung ramai tetap menghasilkan laba bersih:\n- **Rumus HPP Bahan per Periode:**\n  $$\\text{Pemakaian Bahan} = \\text{Persediaan Awal} + \\text{Pembelian Bahan Periode Ini} - \\text{Persediaan Akhir}$$\n- **Menghitung Food Cost per Porsi dengan Yield Bahan:** Perhitungkan penyusutan saat bahan dibersihkan atau dimasak (misal berat bersih daging atau sayuran setelah dikupas/digoreng). Jangan membagi harga beli mentah secara polos tanpa memperhitungkan susut masak, bumbu dasar, minyak goreng, dan gas/kemasan."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "4. HPP, Harga Jual & Margin",
+      "sumber_url": "https://pos.mekari.com/blog/cara-menghitung-hpp-penjualan-makanan, https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/cara-menghitung-hpp-penjualan-makanan",
+        "https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/"
+      ],
+      "chunk_index": 1,
+      "text": "membagi harga beli mentah secara polos tanpa memperhitungkan susut masak, bumbu dasar, minyak goreng, dan gas/kemasan.\n\n- **Target Rentang Food Cost:** Dalam praktik bisnis kuliner umum, persentase *food cost* yang sehat biasanya dijaga di kisaran **30%–35%** dari harga jual (dapat lebih tinggi pada menu protein tertentu asal volume tinggi atau ditutup oleh minuman bermargin tebal seperti teh dan es jeruk). - **Harga Menu Dine-in vs Online Delivery:** Bedakan daftar harga atau buat paket khusus pada kanal *online delivery* agar komisi platform dan biaya kemasan tidak menggerus margin hingga negatif."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "5. Pencatatan Keuangan & Cash Flow Harian",
+      "sumber_url": "https://pos.mekari.com/blog/strategi-bisnis-kuliner, https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+        "https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi"
+      ],
+      "chunk_index": 0,
+      "text": "Arus kas warung makan cepat keluar-masuk setiap pagi untuk belanja pasar:\n- **Pemisahan Uang Kas Pribadi & Kas Usaha:** Pemilik usaha wajib menetapkan gaji atau jatah penarikan rutin alih-alih mengambil uang dari laci kasir sewaktu-waktu untuk belanja rumah tangga. Catat bila pemilik atau karyawan makan menu tertentu sebagai jatah makan karyawan/prive. - **Pencatatan Belanja Pasar Pagi:** Simpan struk pemasok atau tulis daftar belanja pasar lengkap beserta nominalnya setiap selesai belanja pagi sebelum warung buka. Kategorikan secara jelas ke pos Bahan Baku Makanan, Bahan Minuman, Kemasan, dan Gas/Operasional Dapur."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "5. Pencatatan Keuangan & Cash Flow Harian",
+      "sumber_url": "https://pos.mekari.com/blog/strategi-bisnis-kuliner, https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+        "https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi"
+      ],
+      "chunk_index": 1,
+      "text": "warung buka. Kategorikan secara jelas ke pos Bahan Baku Makanan, Bahan Minuman, Kemasan, dan Gas/Operasional Dapur.\n\n- **Rekap Penjualan per Kanal Pembayaran:** Cocokkan total penjualan tunai di laci kasir, pembayaran QRIS/transfer, serta laporan transaksi harian aplikasi pesan antar setiap malam sebelum tutup."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "6. Legalitas & Perizinan",
+      "sumber_url": "https://izin.co.id/blog/cara-daftar-oss-umkm/, https://halalmui.org/sertifikasi-halal-umkm-panduan-lengkap-2025/, https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320, https://oss.go.id",
+      "sumber_urls": [
+        "https://izin.co.id/blog/cara-daftar-oss-umkm/",
+        "https://halalmui.org/sertifikasi-halal-umkm-panduan-lengkap-2025/",
+        "https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320",
+        "https://oss.go.id"
+      ],
+      "chunk_index": 0,
+      "text": "Legalitas membantu warung makan mengikuti pengadaan makan kantor/pemerintah dan meningkatkan kepercayaan pelanggan:\n- **NIB via OSS-RBA:** Urus Nomor Induk Berusaha secara mandiri dan gratis melalui portal resmi [oss.go.id](https://oss.go.id) dengan KBLI rumah makan/warung makan/kedai makanan serta data lokasi usaha. - **Sertifikasi Halal BPJPH:** Warung makan dengan bahan baku daging ayam/sapi atau produk hewani olahan perlu memperhatikan kejelasan sumber RPH/supplier bersertifikat halal. Skema sertifikasi halal UMKM dapat diajukan melalui SiHalal (`ptsp.halal.go.id`) setelah NIB terbit (jalur *Self-Declare* berlaku jika memenuhi kriteria bahan non-kritis dan proses sederhana; penyembelihan/olahan daging hewani umumnya mengikuti persyaratan sertifikasi reguler)."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "6. Legalitas & Perizinan",
+      "sumber_url": "https://izin.co.id/blog/cara-daftar-oss-umkm/, https://halalmui.org/sertifikasi-halal-umkm-panduan-lengkap-2025/, https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320, https://oss.go.id",
+      "sumber_urls": [
+        "https://izin.co.id/blog/cara-daftar-oss-umkm/",
+        "https://halalmui.org/sertifikasi-halal-umkm-panduan-lengkap-2025/",
+        "https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320",
+        "https://oss.go.id"
+      ],
+      "chunk_index": 1,
+      "text": "dan proses sederhana; penyembelihan/olahan daging hewani umumnya mengikuti persyaratan sertifikasi reguler).\n\n- **Laik Higiene Sanitasi Jasaboga/Rumah Makan:** Untuk keperluan katering instansi atau sertifikat laik higiene dinas kesehatan setempat, **belum ada referensi terverifikasi** pada korpus panduan ini terkait rincian dokumen SLHS daerah per kabupaten/kota."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "7. Operasional Harian & SOP Singkat",
+      "sumber_url": "https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+      "sumber_urls": [
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner"
+      ],
+      "chunk_index": 0,
+      "text": "Alur rutin harian membantu dapur bekerja cepat saat jam makan siang memuncak:\n- **Pagi (Belanja & Prep Dapur):** Belanja bahan segar, cuci dan potong bahan sesuai porsi (*portioning* lauk ke wadah siap masak/goreng), siapkan bumbu dasar, dan catat pengeluaran belanja pasar segera.\n- **Jam Layanan Sibuk (Makan Siang & Sore):** Pisahkan alur pesanan makan di tempat dan pesanan ojek *online* agar antrean tidak saling menumpuk. Jaga ketersediaan nasi, sambal, dan es sebelum jam 11.30.\n- **Tutup Warung:** Bersihkan kompor, saluran pembuangan grease trap, kulkas, dan etalase. Catat sisa bahan mentah yang rentan basi, hitung uang kasir fisik + QRIS + laporan aplikasi, lalu siapkan daftar belanja esok hari berdasarkan sisa kulkas."
+    },
+    {
+      "jenis_usaha": "warung_makan",
+      "nama_file": "panduan_operasional_warung_makan.md",
+      "judul_bagian": "8. Pemasaran & Pengembangan",
+      "sumber_url": "https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi, https://pos.mekari.com/blog/strategi-bisnis-kuliner",
+      "sumber_urls": [
+        "https://www.gotocompany.com/news/press/umkm-kuliner-gofood-tumbuh-berkelanjutan-dengan-gobiz-satu-aplikasi-dengan-ragam-solusi",
+        "https://pos.mekari.com/blog/strategi-bisnis-kuliner"
+      ],
+      "chunk_index": 0,
+      "text": "Cara meningkatkan omzet tanpa menambah biaya sewa tempat:\n- **Paket Hemat & Menu Pendamping Minuman:** Bundling nasi + lauk + es teh manis menaikkan nilai transaksi rata-rata per pembeli karena minuman umumnya memiliki margin kotor sangat baik.\n- **Optimasi Toko Online & Foto Menu:** Pada aplikasi pesan antar seperti GoFood/GoBiz, pakai foto asli masakan dengan pencahayaan terang, nama paket yang jelas, serta jam buka konsisten untuk menaikkan konversi.\n- **Program Langganan Kantor/Keluarga Sekitar:** Tawarkan paket makan siang mingguan atau nasi kotak untuk perkantoran, sekolah, dan komunitas di radius 1–3 km dari lokasi warung. Untuk strategi kolaborasi *food vlogger* berbayar, **belum ada referensi terverifikasi** pada korpus ini."
+    }
+  ]
+}
