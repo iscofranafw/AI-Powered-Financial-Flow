@@ -1,3 +1,5 @@
+from ai.guidance_prompts import get_guidance_starters
+from ai.store_context import get_store_business_context
 import streamlit as st
 from utils.ui_components import page_header, format_rupiah
 from services.chat_service import handle_chat_message, confirm_proposal, cancel_proposal
@@ -26,6 +28,17 @@ def render(token, profile):
             st.rerun()
 
     messages = st.session_state[history_key]
+
+    guidance_input = None
+    if not messages:
+        business = get_store_business_context(profile.get('toko_id', '')).get('bidang_usaha', 'Umum')
+        starters = get_guidance_starters(business)
+        if starters:
+            st.caption('Panduan untuk usaha Anda:')
+            for index, starter in enumerate(starters):
+                if st.button(starter['question'], key=f'guide_chat_{user_id}_{index}',
+                             help=f"{starter['filename']} — {starter['section']}", use_container_width=True):
+                    guidance_input = starter['question']
 
     # Show role-aware starter tips if conversation is empty
     if not messages:
@@ -122,7 +135,7 @@ def render(token, profile):
                     st.info("Transaksi ini telah dibatalkan oleh pengguna.")
 
     # Chat input box
-    user_input = st.chat_input("Ketik instruksi transaksi atau pertanyaan bisnis/keuangan Anda di sini...")
+    user_input = st.chat_input("Ketik instruksi transaksi atau pertanyaan bisnis/keuangan Anda di sini...") or guidance_input
     if user_input:
         # Append user message
         st.session_state[history_key].append({

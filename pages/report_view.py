@@ -1,3 +1,4 @@
+import hashlib
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
@@ -5,6 +6,7 @@ from services import report_service as report
 from services import forecast_service as forecast_svc
 from services.finance_service import list_categories
 from services.validation_service import get_jakarta_today
+from utils.forecast_details import daily_expense_detail
 from utils.ui_components import page_header, section_header, format_rupiah, render_recurring_expense_reminders
 
 
@@ -99,33 +101,64 @@ def render(token):
                     step=1,
                     help='Pilih rentang proyeksi antara 3 hingga 90 hari (default 30 hari).',
                 )
-                fcst = forecast_svc.train_and_forecast_expenses(token, days_ahead=int(forecast_days))
-                if fcst.get('success'):
+                owner_key = hashlib.sha256(token.encode()).hexdigest()
+                result_key = f'forecast_display_{owner_key}'
+                if st.button('Hitung Prediksi', key='btn_calculate_forecast', type='primary'):
+                    with st.spinner('Menghitung prediksi pengeluaran...'):
+                        st.session_state[result_key] = {
+                            'horizon': int(forecast_days),
+                            'result': forecast_svc.train_and_forecast_expenses(token, days_ahead=int(forecast_days)),
+                        }
+                saved = st.session_state.get(result_key, {})
+                fcst = saved.get('result', {}) if saved.get('horizon') == int(forecast_days) else {}
+                if not fcst:
+                    st.info('Tekan Hitung Prediksi untuk menampilkan hasil sesuai rentang hari yang dipilih.')
+                elif fcst.get('success'):
                     chosen_model = fcst.get('selected_model') or fcst.get('best_model') or 'Multi-Model Terbaik'
-                    col_f1, col_f3, col_f4 = st.columns(3)
-                    col_f1.metric(f'Estimasi Pengeluaran {forecast_days} Hari', format_rupiah(fcst['total_predicted_expense']))
-                    col_f3.metric('Rentang Estimasi', f"{format_rupiah(fcst['total_predicted_lower'])} - {format_rupiah(fcst['total_predicted_upper'])}")
-                    col_f4.metric('Rata-rata Harian Proyeksi', format_rupiah(fcst['average_daily_predicted']))
-
                     if fcst.get('projections'):
                         import plotly.express as px
                         df_proj = pd.DataFrame(fcst['projections'])
-                        fig_line = px.line(
-                            df_proj, x='ds', y='yhat',
-                            title=f'Proyeksi Pengeluaran Harian {forecast_days} Hari ke Depan',
-                            labels={'ds': 'Tanggal', 'yhat': 'Estimasi Pengeluaran (Rp)'}
-                        )
-                        fig_line.update_layout(
-                            font_family='Inter, sans-serif',
-                            paper_bgcolor='rgba(0,0,0,0)',
-                            plot_bgcolor='rgba(0,0,0,0)',
-                            margin=dict(l=20, r=20, t=40, b=20)
-                        )
-                        st.plotly_chart(fig_line, use_container_width=True)
-
-                        st.dataframe(df_proj[['ds', 'yhat']].rename(columns={
+                        selection = st.dataframe(df_proj[['ds', 'yhat']].rename(columns={
                             'ds': 'Tanggal', 'yhat': 'Estimasi Pengeluaran (Rp)',
-                        }), use_container_width=True, hide_index=True)
+                        }), use_container_width=True, hide_index=True,
+                            key=f'forecast_daily_{owner_key}_{forecast_days}',
+                            on_select='rerun', selection_mode='single-row')
+                        st.caption('Klik baris tanggal untuk melihat jadwal tagihan, atau pilih tanggal di bawah.')
+                        selected_rows = selection.get('selection', {}).get('rows', [])
+                        chosen_date = (df_proj.iloc[selected_rows[0]]['ds']
+                                       if selected_rows and 0 <= selected_rows[0] < len(df_proj) else None)
+                        if chosen_date is None:
+                            chosen_date = st.selectbox('Buka detail tanggal', df_proj['ds'].tolist(), index=None,
+                                placeholder='Pilih tanggal', key=f'forecast_detail_{owner_key}_{forecast_days}')
+                        if chosen_date is not None:
+                            detail = daily_expense_detail(fcst['projections'], rec_data.get('recurring_items', []), chosen_date)
+                            with st.container(border=True):
+                                st.markdown(f"**Detail pengeluaran {detail['tanggal']}**")
+                                st.write(f"Estimasi total harian (perkiraan model, bukan kepastian): {format_rupiah(detail['estimasi_total'])}")
+                                st.markdown('**Jadwal tagihan dari data toko**')
+                                if detail['tagihan']:
+                                    for bill in detail['tagihan']:
+                                        st.write(f"{bill['nama']} — nominal berdasarkan riwayat: {format_rupiah(bill['nominal'])}")
+                                        st.caption(bill['sumber'])
+                                else:
+                                    st.info('Tidak ada tagihan rutin jatuh tempo hari ini pada jadwal yang tersedia.')
+                                st.caption('Sumber jadwal: deteksi pengeluaran rutin dari riwayat toko. Jadwal ini terpisah dari estimasi total; model tidak menghasilkan rincian item belanja harian.')
+
+                    col_total, col_average = st.columns(2)
+                    col_total.metric(f'Estimasi Pengeluaran {forecast_days} Hari', format_rupiah(fcst['total_predicted_expense']))
+                    col_average.metric('Rata-rata Harian Proyeksi', format_rupiah(fcst['average_daily_predicted']))
+                    with st.container(border=True):
+                        st.markdown('**Rentang Estimasi**')
+                        st.write(f"Batas bawah: {format_rupiah(fcst['total_predicted_lower'])}")
+                        st.write(f"Batas atas: {format_rupiah(fcst['total_predicted_upper'])}")
+
+                    if fcst.get('projections'):
+                        fig_line = px.line(df_proj, x='ds', y='yhat',
+                            title=f'Proyeksi Pengeluaran Harian {forecast_days} Hari ke Depan',
+                            labels={'ds': 'Tanggal', 'yhat': 'Estimasi Pengeluaran (Rp)'})
+                        fig_line.update_layout(font_family='Inter, sans-serif', paper_bgcolor='rgba(0,0,0,0)',
+                            plot_bgcolor='rgba(0,0,0,0)', margin=dict(l=20, r=20, t=40, b=20))
+                        st.plotly_chart(fig_line, use_container_width=True)
 
                     with st.expander('Detail teknis', expanded=False):
                         st.write(f"Model terpilih: {chosen_model}")
@@ -137,23 +170,19 @@ def render(token):
                                 st.warning(f"⚠️ Peringatan Akurasi: {target_status}. Pola transaksi toko masih fluktuatif/jarang sehingga kesalahan persentase tetap tinggi.")
                             else:
                                 st.info(f"ℹ️ Status Akurasi: {target_status}")
-
                         eval_res = forecast_svc.evaluate_forecast_accuracy(token)
                         if eval_res.get('success') and eval_res.get('ready'):
                             st.caption(f"Perbandingan model — evaluasi {eval_res.get('test_days', 28)} hari")
                             comp_rows = eval_res.get('model_comparison') or []
                             if comp_rows:
-                                comp_df = pd.DataFrame([
-                                    {
-                                        'Model': r['model'],
-                                        'MAPE (%)': f"{r['mape']:.2f}%" if r['mape'] is not None else 'N/A',
-                                        'MAE (Rp)': format_rupiah(r['mae']),
-                                        'RMSE (Rp)': format_rupiah(r['rmse']),
-                                        'WAPE (%)': f"{r['wape']:.2f}%" if r['wape'] is not None else 'N/A',
-                                        'Status': 'Terpilih (Terbaik)' if r['model'] == eval_res.get('best_model') else 'Kandidat',
-                                    }
-                                    for r in comp_rows
-                                ])
+                                comp_df = pd.DataFrame([{
+                                    'Model': r['model'],
+                                    'MAPE (%)': f"{r['mape']:.2f}%" if r['mape'] is not None else 'N/A',
+                                    'MAE (Rp)': format_rupiah(r['mae']),
+                                    'RMSE (Rp)': format_rupiah(r['rmse']),
+                                    'WAPE (%)': f"{r['wape']:.2f}%" if r['wape'] is not None else 'N/A',
+                                    'Status': 'Terpilih (Terbaik)' if r['model'] == eval_res.get('best_model') else 'Kandidat',
+                                } for r in comp_rows])
                                 st.dataframe(comp_df, use_container_width=True, hide_index=True)
                             st.markdown(eval_res.get('message', ''))
                 else:

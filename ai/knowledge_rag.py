@@ -594,7 +594,20 @@ def answer_business_guidance(
             + '\n\n'.join(snippets)
         )
 
-    if NO_REFERENCE_MESSAGE in answer_text.lower() and len(answer_text.strip()) <= 64:
+    # A model can decline in ordinary Indonesian instead of copying the exact
+    # required sentence. Keep that outcome an abstention; don't append an
+    # unrelated retrieved-source footer and report it as a grounded answer.
+    declined = re.match(
+        r'^(?:maaf[,.:\s]*)?(?:saya\s+)?(?:tidak|belum)\s+'
+        r'(?:menemukan|memiliki|mempunyai|ada|tersedia)\s+(?:informasi|referensi|panduan)\b',
+        answer_text.strip().lower(),
+    )
+    opening = re.split(r'\n\s*\n', answer_text.strip().lower(), maxsplit=1)[0]
+    unavailable_in_guide = re.search(
+        r'\b(?:tidak|belum)\s+(?:terdapat|tersedia|tercakup|dibahas|relevan)\b'
+        r'.{0,100}\b(?:panduan|kutipan|referensi)\b', opening,
+    )
+    if NO_REFERENCE_MESSAGE in opening or declined or unavailable_in_guide:
         return {
             'ok': True,
             'found': False,

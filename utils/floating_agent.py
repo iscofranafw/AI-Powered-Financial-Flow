@@ -12,6 +12,7 @@ import uuid
 
 import streamlit as st
 
+from ai.guidance_prompts import get_guidance_starters
 from ai.store_context import get_store_business_context
 from services.chat_service import cancel_proposal, confirm_proposal, handle_chat_message
 from utils.ui_components import format_rupiah
@@ -342,8 +343,8 @@ def render_floating_agent(token: str, profile: Dict[str, Any]) -> None:
                     unsafe_allow_html=True,
                 )
 
-                starters = get_contextual_starter_prompts(active_page, is_owner)
-                st.caption("Pertanyaan Cepat Berdasarkan Halaman Aktif:")
+                starters = [item['question'] for item in get_guidance_starters(store_info.get('bidang_usaha', 'Umum'))] + get_contextual_starter_prompts(active_page, is_owner)
+                st.caption("Panduan Usaha & Pertanyaan Cepat:")
                 for s_idx, starter in enumerate(starters):
                     if st.button(starter, key=f"quick_prompt_{session_id}_{s_idx}", use_container_width=True):
                         # Treat quick button click as user submission

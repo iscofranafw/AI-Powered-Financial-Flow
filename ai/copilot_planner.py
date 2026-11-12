@@ -56,6 +56,11 @@ def plan_stage_a_deterministic(text: str, context: Optional[ConversationContext]
     if re.search(r'\b(drop\s+table|delete\s+from|update\s+set|truncate\s+table)\b', s):
         return PlannerDecision(tool_name=ToolName.UNSUPPORTED_MUTATION, raw_query=text)
 
+    # Explicit guide starters must not be mistaken for a financial cash-flow
+    # query just because a real guide heading contains "Cash Flow Harian".
+    if s.startswith('menurut panduan usaha ') and _is_business_guidance_query(s):
+        return PlannerDecision(tool_name=ToolName.GET_BUSINESS_GUIDANCE, raw_query=text)
+
     # 2. General help and greetings
     if any(w in s for w in ['halo', 'hai', 'bantuan', 'help', 'menu apa', 'bisa apa', 'selamat pagi', 'selamat siang', 'selamat sore', 'selamat malam', 'panduan penggunaan']):
         return PlannerDecision(tool_name=ToolName.GENERAL_HELP, raw_query=text)

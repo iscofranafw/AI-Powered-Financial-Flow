@@ -94,6 +94,7 @@ def test_forecast_technical_details_collapsed_and_daily_results_unchanged():
          patch('services.forecast_service.train_and_forecast_expenses', return_value=forecast) as train, \
          patch('services.forecast_service.evaluate_forecast_accuracy', return_value=evaluation) as evaluate:
         app = AppTest.from_string("from pages.report_view import render\nrender('test')").run()
+        app.button(key='btn_calculate_forecast').click().run()
     assert not app.exception and not app.error
     details = next(e for e in app.expander if e.label == 'Detail teknis')
     assert details.proto.expanded is False
