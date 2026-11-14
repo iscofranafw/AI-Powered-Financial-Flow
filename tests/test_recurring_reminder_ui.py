@@ -281,8 +281,8 @@ def test_detect_recurring_expenses_includes_reminder_type_and_store_isolation():
         assert res['success'] is True
         assert len(res['recurring_items']) >= 1
         item = res['recurring_items'][0]
-        assert item['reminder_type'] == 'Tagihan dengan jatuh tempo terkonfirmasi'
-        assert item['is_verified_due_date'] is True
+        assert item['reminder_type'] == 'Perkiraan pengeluaran rutin berdasarkan riwayat'
+        assert item['is_verified_due_date'] is False
 
 
 def test_report_view_renders_compact_reminders_cleanly():

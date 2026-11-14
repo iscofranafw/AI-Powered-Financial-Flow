@@ -454,7 +454,7 @@ def test_recurring_backtest_gate_passes_regular_series(owner_actor, mock_categor
 
 
 def test_recurring_backtest_gate_fails_irregular_dates(owner_actor, mock_categories):
-    """(b) Synthetic series with irregular dates (same description, random gaps) fails gate and is NOT shown, but IS counted in seri_layak and excluded from cakupan_nominal."""
+    """Irregular series retains failed backtest evidence and appears without invented dates."""
     token = 'tok_owner'
     now_dt = datetime(2026, 11, 4, 10, 0, 0)
     txs = [
@@ -477,13 +477,21 @@ def test_recurring_backtest_gate_fails_irregular_dates(owner_actor, mock_categor
         assert rec['seri_lolos'] == 0
         assert rec['seri_belum_teruji'] == 0
         assert rec['cakupan_nominal'] == 0.0
-        assert len(rec['recurring_items']) == 0
+        assert len(rec['recurring_items']) == 1
+        item = rec['recurring_items'][0]
+        assert item['schedule_regular'] is False
+        assert item['next_expected_date'] is None
+        assert item['days_until'] is None
+        assert item['pattern_description'] == 'jadwal belum dapat dipastikan'
+        assert item['terbukti_uji'] is False
+        assert item['kejadian'] > 0
+        assert 'mape_uji' in item and 'tepat_tanggal_uji' in item
         assert len(rec['upcoming_3_days_items']) == 0
         assert "Cakupan prediksi: 0.0%" in rec['message']
 
 
 def test_recurring_backtest_gate_fails_wildly_varying_amounts(owner_actor, mock_categories):
-    """(c) Synthetic series with regular dates but wildly varying amounts (nominal MAPE > 20%) fails gate and is NOT shown."""
+    """Regular dates remain scheduled with a historical median despite a failed amount backtest."""
     token = 'tok_owner'
     now_dt = datetime(2026, 11, 4, 10, 0, 0)
     txs = [
@@ -506,8 +514,18 @@ def test_recurring_backtest_gate_fails_wildly_varying_amounts(owner_actor, mock_
         assert rec['seri_lolos'] == 0
         assert rec['seri_belum_teruji'] == 0
         assert rec['cakupan_nominal'] == 0.0
-        assert len(rec['recurring_items']) == 0
-        assert len(rec['upcoming_3_days_items']) == 0
+        assert len(rec['recurring_items']) == 1
+        item = rec['recurring_items'][0]
+        assert item['schedule_regular'] is True
+        assert item['schedule_kind'] == 'monthly'
+        assert item['anchor_day'] == 5
+        assert item['next_expected_date'] == '2026-11-05'
+        assert item['estimated_amount'] == 100000
+        assert item['is_verified_due_date'] is False
+        assert item['terbukti_uji'] is False
+        assert item['mape_uji'] > 20
+        assert item['kejadian'] > 0
+        assert len(rec['upcoming_3_days_items']) == 1
         assert "Cakupan prediksi: 0.0%" in rec['message']
 
 

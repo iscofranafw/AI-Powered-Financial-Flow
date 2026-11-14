@@ -50,6 +50,7 @@ from repositories.finance_repository import transactions, categories
 from services.report_service import period_rows, metrics
 from utils.ui_components import format_rupiah
 from ai.financial_chat import get_jakarta_now
+from utils.recurring_calendar import infer_schedule, scheduled_dates
 
 MIN_FORECAST_DAYS = 3
 MAX_FORECAST_DAYS = 90
@@ -955,15 +956,11 @@ def detect_recurring_expenses(token: str) -> Dict[str, Any]:
             amounts = [p[1] for p in sorted_pairs]
 
             last_date = dates[-1]
-            if len(dates) >= 2:
-                intervals = [(dates[i] - dates[i - 1]).days for i in range(1, len(dates))]
-                median_interval = int(np.median(intervals))
-            else:
-                # Default monthly for known utilities with 1 observation
-                median_interval = 30
+            schedule = infer_schedule(dates)
+            median_interval = schedule['estimated_interval_days']
 
             # Skip stale series (more than 2 missed cycles)
-            if (today - last_date).days > 2 * median_interval:
+            if median_interval and schedule['schedule_regular'] and (today - last_date).days > 2 * median_interval:
                 continue
 
             seri_layak += 1
@@ -977,14 +974,13 @@ def detect_recurring_expenses(token: str) -> Dict[str, Any]:
                     and bt['mape_uji'] is not None
                     and bt['mape_uji'] <= 20
                 )
-                if not is_passed:
-                    continue
-                terbukti_uji = True
+                terbukti_uji = is_passed
                 mape_uji = bt['mape_uji']
                 tepat_tanggal_uji = bt['tepat_tanggal']
                 kejadian = bt['kejadian']
-                seri_lolos += 1
-                nominal_lolos += sum(amounts)
+                if is_passed:
+                    seri_lolos += 1
+                    nominal_lolos += sum(amounts)
             else:
                 terbukti_uji = False
                 mape_uji = None
@@ -996,29 +992,29 @@ def detect_recurring_expenses(token: str) -> Dict[str, Any]:
             display_desc = items[0].get('deskripsi') or key.title()
 
             # Project next expected date
-            next_date = last_date + timedelta(days=median_interval)
-            # Roll forward if in the past
-            while next_date < today:
-                next_date += timedelta(days=median_interval)
-
-            days_until = (next_date - today).days
-            is_upcoming_3_days = bool(0 <= days_until <= 3)
+            dates_ahead = scheduled_dates(dict(schedule, last_date=str(last_date)), today, today + timedelta(days=366))
+            next_date, clipped = dates_ahead[0] if dates_ahead else (None, False)
+            days_until = (next_date - today).days if next_date else None
+            is_upcoming_3_days = bool(days_until is not None and 0 <= days_until <= 3)
 
             est_amount = float(np.median(amounts))
 
-            pattern_desc = "Bulanan (~30 hari)"
-            if median_interval <= 4:
-                pattern_desc = f"Setiap {median_interval} hari"
-            elif 6 <= median_interval <= 8:
+            pattern_desc = 'jadwal belum dapat dipastikan'
+            if schedule['schedule_regular']:
+                pattern_desc = 'Bulanan (tanggal kalender)' if schedule['schedule_kind'] == 'monthly' else f'Setiap {median_interval:g} hari'
+            if median_interval and schedule['schedule_regular'] and median_interval <= 4:
+                pattern_desc = f"Setiap {median_interval:g} hari"
+            elif median_interval and schedule['schedule_regular'] and 6 <= median_interval <= 8:
                 pattern_desc = "Mingguan (~7 hari)"
-            elif 12 <= median_interval <= 16:
+            elif median_interval and schedule['schedule_regular'] and 12 <= median_interval <= 16:
                 pattern_desc = "Dua Mingguan (~14 hari)"
 
-            is_verified = bool(
+            schedule_verified = bool(schedule['schedule_regular'] and schedule.get('historical_count', 0) >= 3 and (
                 items[0].get('is_verified_due_date')
                 or (items[0].get('usulan') or {}).get('is_verified_due_date')
                 or items[0].get('jatuh_tempo_terkonfirmasi')
-            )
+            ))
+            is_verified = schedule_verified and not clipped
             reminder_label = (
                 "Tagihan dengan jatuh tempo terkonfirmasi"
                 if is_verified
@@ -1026,15 +1022,17 @@ def detect_recurring_expenses(token: str) -> Dict[str, Any]:
             )
 
             recurring_candidates.append({
+                **schedule,
+                'schedule_verified': schedule_verified,
                 'key': key,
                 'description': display_desc,
                 'category': cat_name,
-                'historical_count': len(dates),
+                'historical_count': len(set(dates)),
                 'estimated_interval_days': median_interval,
                 'pattern_description': pattern_desc,
                 'estimated_amount': est_amount,
                 'last_date': str(last_date),
-                'next_expected_date': str(next_date),
+                'next_expected_date': str(next_date) if next_date else None,
                 'days_until': days_until,
                 'is_upcoming_3_days': is_upcoming_3_days,
                 'is_verified_due_date': is_verified,
@@ -1046,7 +1044,7 @@ def detect_recurring_expenses(token: str) -> Dict[str, Any]:
             })
 
     # Sort candidates by nearest next_expected_date
-    recurring_candidates.sort(key=lambda x: x['next_expected_date'])
+    recurring_candidates.sort(key=lambda x: x['next_expected_date'] or '9999-12-31')
     upcoming_3_days = [c for c in recurring_candidates if c['is_upcoming_3_days']]
 
     cakupan_nominal = float(nominal_lolos / total_approved_nominal) if total_approved_nominal > 0 else 0.0
@@ -1073,11 +1071,11 @@ def detect_recurring_expenses(token: str) -> Dict[str, Any]:
 
         msg += f"**Daftar Pola Pengeluaran Rutin Teridentifikasi:**\n"
         for item in recurring_candidates:
-            badge = "*(Segera dipersiapkan)*" if item['is_upcoming_3_days'] else f"({item['days_until']} hari lagi)"
+            badge = "*(Segera dipersiapkan)*" if item['is_upcoming_3_days'] else (f"({item['days_until']} hari lagi)" if item['days_until'] is not None else '')
             suffix = " • belum teruji" if not item['terbukti_uji'] else ""
             msg += (
                 f"- **{item['description']}** [{item['category']}]: "
-                f"Estimasi {format_rupiah(item['estimated_amount'])} • Jadwal: {item['next_expected_date']} {badge} "
+                f"Estimasi {format_rupiah(item['estimated_amount'])} • Jadwal: {item['next_expected_date'] or 'jadwal belum dapat dipastikan'} {badge} "
                 f"• Pola: {item['pattern_description']} (riwayat {item['historical_count']}x){suffix}\n"
             )
         msg += f"\n{cakupan_line}\n"
@@ -1313,8 +1311,9 @@ def get_next_predicted_expense(token: str) -> Dict[str, Any]:
     """Retrieve the nearest expected future expense from recurring schedules or daily forecast."""
     rec_result = detect_recurring_expenses(token)
 
-    if rec_result.get('recurring_items'):
-        nearest = rec_result['recurring_items'][0]
+    dated_items = [item for item in rec_result.get('recurring_items', []) if item.get('next_expected_date')]
+    if dated_items:
+        nearest = dated_items[0]
         days_str = "hari ini" if nearest['days_until'] == 0 else f"{nearest['days_until']} hari lagi"
         msg = (
             f"### Pengeluaran Mendatang Terdekat\n\n"

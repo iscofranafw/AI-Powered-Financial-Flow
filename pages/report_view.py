@@ -7,6 +7,7 @@ from services import forecast_service as forecast_svc
 from services.finance_service import list_categories
 from services.validation_service import get_jakarta_today
 from utils.forecast_details import daily_expense_detail
+from utils.recurring_calendar import build_bill_calendar
 from utils.ui_components import page_header, section_header, format_rupiah, render_recurring_expense_reminders
 
 
@@ -103,11 +104,15 @@ def render(token):
                 )
                 owner_key = hashlib.sha256(token.encode()).hexdigest()
                 result_key = f'forecast_display_{owner_key}'
+                previous = st.session_state.get(result_key)
+                if previous is not None and previous['horizon'] != int(forecast_days):
+                    del st.session_state[result_key]
                 if st.button('Hitung Prediksi', key='btn_calculate_forecast', type='primary'):
                     with st.spinner('Menghitung prediksi pengeluaran...'):
                         st.session_state[result_key] = {
                             'horizon': int(forecast_days),
                             'result': forecast_svc.train_and_forecast_expenses(token, days_ahead=int(forecast_days)),
+                            'recurring_items': rec_data.get('recurring_items', []),
                         }
                 saved = st.session_state.get(result_key, {})
                 fcst = saved.get('result', {}) if saved.get('horizon') == int(forecast_days) else {}
@@ -118,6 +123,8 @@ def render(token):
                     if fcst.get('projections'):
                         import plotly.express as px
                         df_proj = pd.DataFrame(fcst['projections'])
+                        recurring_items = saved.get('recurring_items', [])
+                        bill_calendar = build_bill_calendar(recurring_items, df_proj['ds'].min(), df_proj['ds'].max())
                         selection = st.dataframe(df_proj[['ds', 'yhat']].rename(columns={
                             'ds': 'Tanggal', 'yhat': 'Estimasi Pengeluaran (Rp)',
                         }), use_container_width=True, hide_index=True,
@@ -131,7 +138,7 @@ def render(token):
                             chosen_date = st.selectbox('Buka detail tanggal', df_proj['ds'].tolist(), index=None,
                                 placeholder='Pilih tanggal', key=f'forecast_detail_{owner_key}_{forecast_days}')
                         if chosen_date is not None:
-                            detail = daily_expense_detail(fcst['projections'], rec_data.get('recurring_items', []), chosen_date)
+                            detail = daily_expense_detail(fcst['projections'], recurring_items, chosen_date, calendar=bill_calendar)
                             with st.container(border=True):
                                 st.markdown(f"**Detail pengeluaran {detail['tanggal']}**")
                                 st.write(f"Estimasi total harian (perkiraan model, bukan kepastian): {format_rupiah(detail['estimasi_total'])}")
@@ -143,6 +150,20 @@ def render(token):
                                 else:
                                     st.info('Tidak ada tagihan rutin jatuh tempo hari ini pada jadwal yang tersedia.')
                                 st.caption('Sumber jadwal: deteksi pengeluaran rutin dari riwayat toko. Jadwal ini terpisah dari estimasi total; model tidak menghasilkan rincian item belanja harian.')
+
+                        section_header('Kalender Tagihan')
+                        st.caption('Tanggal berasal dari pola riwayat toko, bukan jadwal resmi penyedia tagihan. Nominal berdasarkan riwayat; total harian tetap estimasi model dan tidak ditambah tagihan di kalender.')
+                        if bill_calendar:
+                            st.dataframe(pd.DataFrame([{
+                                'Tanggal': bill['tanggal'], 'Tagihan': bill['nama'],
+                                'Nominal berdasarkan riwayat': format_rupiah(bill['nominal']),
+                                'Jadwal': 'Terkonfirmasi' if bill['terkonfirmasi'] else 'Perkiraan',
+                            } for bill in bill_calendar]), use_container_width=True, hide_index=True)
+                        else:
+                            st.info('Tidak ada tagihan rutin jatuh tempo dalam horizon pada jadwal yang tersedia.')
+                        for item in recurring_items:
+                            if not item.get('schedule_regular'):
+                                st.write(f"{item['description']} — jadwal belum dapat dipastikan; nominal berdasarkan riwayat: {format_rupiah(item['estimated_amount'])}")
 
                     col_total, col_average = st.columns(2)
                     col_total.metric(f'Estimasi Pengeluaran {forecast_days} Hari', format_rupiah(fcst['total_predicted_expense']))

@@ -1,11 +1,11 @@
 """Join displayed daily totals to existing recurring schedules, without forecasting items."""
 
 
-def daily_expense_detail(projections, recurring_items, selected_date):
+def daily_expense_detail(projections, recurring_items, selected_date, calendar=None):
     row = next((r for r in projections if r['ds'] == selected_date), None)
     if row is None:
         raise ValueError('Tanggal tidak tersedia pada hasil prediksi.')
-    bills = [{
+    bills = [entry for entry in calendar if entry['tanggal'] == selected_date] if calendar is not None else [{
         'nama': item['description'],
         'nominal': item['estimated_amount'],
         'tanggal': item['next_expected_date'],
