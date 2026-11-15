@@ -295,11 +295,11 @@ def render_floating_agent(token: str, profile: Dict[str, Any]) -> None:
         with h_col_actions:
             act_col1, act_col2 = st.columns(2)
             with act_col1:
-                if st.button("Baru", key="btn_float_new_chat", help="Mulai obrolan baru"):
+                if st.button("💬", key="btn_float_new_chat", help="Mulai obrolan baru"):
                     create_new_session(user_id, store_id)
                     st.rerun(scope="fragment")
             with act_col2:
-                if st.button("Tutup", key="btn_float_close", help="Tutup panel asisten"):
+                if st.button("✕", key="btn_float_close", help="Tutup panel asisten"):
                     st.session_state["floating_agent_open"] = False
                     st.rerun(scope="fragment")
 
@@ -323,7 +323,7 @@ def render_floating_agent(token: str, profile: Dict[str, Any]) -> None:
                     switch_session(user_id, store_id, sel_sid)
                     st.rerun(scope="fragment")
             with s_col2:
-                if st.button("Hapus", key="btn_float_del_session", help="Hapus obrolan ini"):
+                if st.button("🗑️", key="btn_float_del_session", help="Hapus obrolan ini"):
                     delete_session(user_id, store_id, session_id)
                     st.rerun(scope="fragment")
 
