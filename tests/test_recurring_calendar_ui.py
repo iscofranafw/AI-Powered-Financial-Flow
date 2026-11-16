@@ -41,9 +41,11 @@ def test_calendar_detail_horizon_button_and_owner_isolation():
         assert 'Internet — nominal berdasarkan riwayat' in text
         assert 'Air — nominal berdasarkan riwayat' in text
         assert format_rupiah(106) in text
-        assert 'jadwal belum dapat dipastikan' in text
+        assert 'jadwal belum dapat dipastikan' not in text
+        assert 'Tidak teratur' not in text
         app.selectbox[0].select('2026-11-13').run()
-        assert any('Tidak ada tagihan rutin jatuh tempo hari ini' in element.value for element in app.info)
+        assert not any('Tidak ada tagihan rutin jatuh tempo' in element.value for element in app.info)
+        assert any('Jadwal tagihan dari data toko' in element.value for element in app.markdown)
         assert any(format_rupiah(107) in element.value for element in app.markdown)
         app.slider[0].set_value(15).run()
         assert not app.dataframe

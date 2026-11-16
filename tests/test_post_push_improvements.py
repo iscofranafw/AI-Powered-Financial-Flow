@@ -81,7 +81,8 @@ def test_date_detail_matches_real_recurring_detection_and_empty_day(report_ui):
     assert 'Jadwal terkonfirmasi' in text and 'bukan kepastian' in text
     picker = next(s for s in app.selectbox if s.label == 'Buka detail tanggal')
     picker.select('2026-11-13').run()
-    assert any('Tidak ada tagihan rutin jatuh tempo hari ini' in e.value for e in app.info)
+    assert not any('Tidak ada tagihan rutin jatuh tempo' in e.value for e in app.info)
+    assert any('Jadwal tagihan dari data toko' in e.value for e in app.markdown)
     assert any('250.000' in e.value for e in app.markdown)
     train.assert_called_once()  # Selecting a date never retrains the model.
 

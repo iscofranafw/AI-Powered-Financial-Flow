@@ -147,8 +147,6 @@ def render(token):
                                     for bill in detail['tagihan']:
                                         st.write(f"{bill['nama']} — nominal berdasarkan riwayat: {format_rupiah(bill['nominal'])}")
                                         st.caption(bill['sumber'])
-                                else:
-                                    st.info('Tidak ada tagihan rutin jatuh tempo hari ini pada jadwal yang tersedia.')
                                 st.caption('Sumber jadwal: deteksi pengeluaran rutin dari riwayat toko. Jadwal ini terpisah dari estimasi total; model tidak menghasilkan rincian item belanja harian.')
 
                         section_header('Kalender Tagihan')
@@ -159,11 +157,6 @@ def render(token):
                                 'Nominal berdasarkan riwayat': format_rupiah(bill['nominal']),
                                 'Jadwal': 'Terkonfirmasi' if bill['terkonfirmasi'] else 'Perkiraan',
                             } for bill in bill_calendar]), use_container_width=True, hide_index=True)
-                        else:
-                            st.info('Tidak ada tagihan rutin jatuh tempo dalam horizon pada jadwal yang tersedia.')
-                        for item in recurring_items:
-                            if not item.get('schedule_regular'):
-                                st.write(f"{item['description']} — jadwal belum dapat dipastikan; nominal berdasarkan riwayat: {format_rupiah(item['estimated_amount'])}")
 
                     col_total, col_average = st.columns(2)
                     col_total.metric(f'Estimasi Pengeluaran {forecast_days} Hari', format_rupiah(fcst['total_predicted_expense']))
