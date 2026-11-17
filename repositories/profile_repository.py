@@ -6,4 +6,4 @@ def cashier_profiles(admin, shop_id):
     return admin.table("profiles").select("id,email,nama,status").eq("toko_id",shop_id).eq("role","kasir").execute().data
 
 def pending_owners(admin):
-    return admin.table("profiles").select("id,email,nama,status,toko_id,created_at").eq("role","pemilik_toko").order("created_at",desc=True).execute().data
+    return admin.table("profiles").select("id,email,nama,status,toko_id,created_at,toko(nama)").eq("role","pemilik_toko").order("created_at",desc=True).execute().data

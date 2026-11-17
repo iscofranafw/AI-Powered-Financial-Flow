@@ -8,11 +8,54 @@ from services.admin_service import (
     list_deletion_requests,
     approve_deletion_request,
     reject_deletion_request,
+    delete_inactive_shop,
+    ShopAuthCleanupError,
 )
 from utils.ui_components import page_header, section_header
 
+
+def _dismiss_shop_deletion():
+    st.session_state.pop("shop_deletion_target", None)
+
+
+@st.dialog("Konfirmasi Hapus Toko", on_dismiss=_dismiss_shop_deletion)
+def _confirm_shop_deletion(token, owner):
+    st.write(f"Toko: {owner['nama_toko']}")
+    st.write(f"Email pemilik: {owner['email']}")
+    st.error("Toko, seluruh data operasional, profil, dan akun login pengguna toko akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.")
+    st.caption("Jejak audit administratif tetap disimpan.")
+    if owner.get("deletion_pending"):
+        st.warning("Data toko sudah dihapus. Lanjutkan pembersihan indeks lokal dan akun login yang belum selesai.")
+    yes, cancel = st.columns(2)
+    if cancel.button("Batal", key="cancel_shop_delete", use_container_width=True):
+        _dismiss_shop_deletion()
+        st.rerun()
+    with yes.container(key="owner_delete_confirm_style"):
+        confirmed = st.button("Ya, Hapus", key="owner_delete_confirm", use_container_width=True)
+    if confirmed:
+        try:
+            result = delete_inactive_shop(token, owner["id"], owner["toko_id"], owner["email"])
+        except ShopAuthCleanupError as exc:
+            _dismiss_shop_deletion()
+            st.session_state["shop_deletion_warning"] = str(exc)
+            st.rerun()
+        except Exception as exc:
+            st.error(f"Gagal menghapus toko: {exc}")
+        else:
+            _dismiss_shop_deletion()
+            st.session_state["shop_deletion_success"] = f"Toko {result['shop_name']} berhasil dihapus."
+            st.rerun()
+
+
 def render(token):
     page_header("Manajemen Platform", "Persetujuan akun pemilik toko baru dan rekapitulasi data sistem.")
+    st.markdown("""<style>
+    [class*="st-key-owner_delete_"] button {background:#b91c1c;color:#fff;border-color:#b91c1c;}
+    [class*="st-key-owner_delete_"] button:hover {background:#991b1b;color:#fff;border-color:#991b1b;}
+    </style>""", unsafe_allow_html=True)
+    for key, display in (("shop_deletion_success", st.success), ("shop_deletion_warning", st.warning)):
+        if key in st.session_state:
+            display(st.session_state.pop(key))
 
     try:
         owners = list_owners(token)
@@ -28,18 +71,28 @@ def render(token):
                 status_text = status_labels.get(owner['status'], owner['status'])
 
                 with st.container():
-                    col_info, col_action, col_btn = st.columns([3, 2, 1])
+                    col_info, col_action, col_btn, col_delete = st.columns([3, 2, 1, 1])
                     col_info.markdown(f"**{owner['nama']}** &bull; `{owner['email']}`  \nStatus: {status_text}")
                     options = ["aktif", "ditolak", "nonaktif"]
                     current_idx = options.index(owner["status"]) if owner["status"] in options else 0
-                    choice = col_action.selectbox("Ubah Status:", options, index=current_idx, key=f"state_{owner['id']}")
-                    if col_btn.button("Simpan", key=f"save_{owner['id']}", use_container_width=True):
+                    pending_cleanup = owner.get("deletion_pending", False)
+                    choice = col_action.selectbox("Ubah Status:", options, index=current_idx, key=f"state_{owner['id']}", disabled=pending_cleanup)
+                    if col_btn.button("Simpan", key=f"save_{owner['id']}", use_container_width=True, disabled=pending_cleanup):
                         change_owner_status(token, owner["id"], choice)
                         st.success(f"Status {owner['nama']} berhasil diubah menjadi {choice}.")
                         st.rerun()
+                    if owner["status"] == "nonaktif":
+                        with col_delete.container(key=f"owner_delete_style_{owner['id']}"):
+                            if st.button("Hapus", key=f"owner_delete_{owner['id']}", use_container_width=True):
+                                st.session_state["shop_deletion_target"] = dict(owner)
+                    if pending_cleanup:
+                        col_info.warning("Pembersihan belum selesai; tekan Hapus untuk melanjutkan.")
                     st.markdown("<hr style='margin: 0.75rem 0;'>", unsafe_allow_html=True)
         else:
             st.info("Tidak ada akun pemilik toko yang perlu ditinjau.")
+
+        if "shop_deletion_target" in st.session_state:
+            _confirm_shop_deletion(token, st.session_state["shop_deletion_target"])
 
         st.divider()
         section_header("Direktori Pengguna Sistem")
