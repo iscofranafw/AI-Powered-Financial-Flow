@@ -1,6 +1,6 @@
 {
   "jenis_usaha": "lainnya",
-  "built_at": "2026-11-11T14:17:12.837947+00:00",
+  "built_at": "2026-11-17T16:57:29.612151+00:00",
   "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
   "embedding_dim": 384,
   "chunk_count": 10,
@@ -15,7 +15,7 @@
         "https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320"
       ],
       "chunk_index": 0,
-      "text": "Setiap usaha UMKM perlu memetakan dua komponen inti sejak awal:\n- **Sifat Transaksi Utama (Barang vs Jasa vs Campuran):**\n  - **Usaha Dagang / Produk Fisik:** Membeli atau memproduksi barang lalu menjual kembali kepada pembeli eceran atau reseller; fokus utama terletak pada perputaran modal persediaan.\n  - **Usaha Jasa:** Menjual waktu, keahlian, atau penggunaan alat (seperti laundry, barbershop, jahit, percetakan); fokus utama terletak pada kapasitas jam kerja, utilisasi alat, dan kualitas hasil layanan.\n- **Segmentasi Pelanggan & Jam Ramai:** Catat kelompok pembeli terbanyak (individu sekitar, pelanggan kantoran, atau pesanan B2B) serta jam dan hari paling ramai supaya jadwal tenaga kerja dan pengadaan perlengkapan lebih efisien."
+      "text": "Setiap usaha UMKM perlu memetakan dua komponen inti sejak awal:\n- **Sifat Transaksi Utama (Barang vs Jasa vs Campuran):**\n  - **Usaha Dagang / Produk Fisik:** Membeli atau memproduksi barang lalu menjual kembali kepada pembeli eceran atau reseller, fokus utama terletak pada perputaran modal persediaan.\n  - **Usaha Jasa:** Menjual waktu, keahlian, atau penggunaan alat (seperti laundry, barbershop, jahit, percetakan), fokus utama terletak pada kapasitas jam kerja, utilisasi alat, dan kualitas hasil layanan.\n- **Segmentasi Pelanggan & Jam Ramai:** Catat kelompok pembeli terbanyak (individu sekitar, pelanggan kantoran, atau pesanan B2B) serta jam dan hari paling ramai supaya jadwal tenaga kerja dan pengadaan perlengkapan lebih efisien."
     },
     {
       "jenis_usaha": "lainnya",
@@ -51,7 +51,7 @@
         "https://pos.mekari.com/blog/cara-menghitung-hpp-penjualan-makanan"
       ],
       "chunk_index": 0,
-      "text": "Prinsip dasar penetapan harga berlaku lintas bidang usaha UMKM:\n- **Hitung Seluruh Komponen Biaya Langsung (HPP):** Masukkan harga beli barang/bahan utama, kemasan, ongkos kirim/angkut pembelian, bahan habis pakai, serta biaya produksi langsung (seperti listrik/air khusus pengerjaan atau upah borongan per unit).\n- **Pisahkan Biaya Tetap (*Overhead*):** Sewa ruko, gaji tetap bulanan, internet, dan penyusutan peralatan dibayar dari total margin kotor semua transaksi; pastikan harga jual memiliki cukup ruang margin di atas HPP untuk menutup biaya tetap bulanan dan menyisakan laba bersih.\n- **Evaluasi Berkala Saat Biaya Pemasok Naik:** Tinju ulang daftar harga setidaknya tiap 3 bulan atau saat harga bahan utama maupun ongkos logistik mengalami kenaikan signifikan."
+      "text": "Prinsip dasar penetapan harga berlaku lintas bidang usaha UMKM:\n- **Hitung Seluruh Komponen Biaya Langsung (HPP):** Masukkan harga beli barang/bahan utama, kemasan, ongkos kirim/angkut pembelian, bahan habis pakai, serta biaya produksi langsung (seperti listrik/air khusus pengerjaan atau upah borongan per unit).\n- **Pisahkan Biaya Tetap (*Overhead*):** Sewa ruko, gaji tetap bulanan, internet, dan penyusutan peralatan dibayar dari total margin kotor semua transaksi, pastikan harga jual memiliki cukup ruang margin di atas HPP untuk menutup biaya tetap bulanan dan menyisakan laba bersih.\n- **Evaluasi Berkala Saat Biaya Pemasok Naik:** Tinju ulang daftar harga setidaknya tiap 3 bulan atau saat harga bahan utama maupun ongkos logistik mengalami kenaikan signifikan."
     },
     {
       "jenis_usaha": "lainnya",

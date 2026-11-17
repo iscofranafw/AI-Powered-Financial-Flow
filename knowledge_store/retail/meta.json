@@ -1,6 +1,6 @@
 {
   "jenis_usaha": "retail",
-  "built_at": "2026-11-11T14:17:12.327766+00:00",
+  "built_at": "2026-11-17T16:57:28.963008+00:00",
   "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
   "embedding_dim": 384,
   "chunk_count": 14,
@@ -77,7 +77,7 @@
         "https://www.programipos.co.id/blog/usaha-toko-sembako/"
       ],
       "chunk_index": 1,
-      "text": "melumpuhkan uang kas (*dead stock*) atau memicu barang kedaluwarsa bila produk tersebut bukan kategori *fast moving*.\n\n- **Stock Opname Terjadwal & Kontrol Shrinkage:** Lakukan stock opname berkala (tiap pekan untuk produk *fast moving*/nilai tinggi seperti rokok & sembako utama, dan tiap bulan/kuartal per kategori) untuk mendeteksi selisih fisik vs catatan sistem akibat barang hilang, salah input varian satuan (pcs vs dus), atau rusak. - **Pemetaan Distributor Resmi vs Agen:** Untuk kebutuhan retail kecil, belanja ke agen grosir terpercaya mempercepat perputaran; untuk toko grosir besar, utamakan kontrak langsung distributor utama dengan syarat jatuh tempo (TOP) yang terkontrol."
+      "text": "melumpuhkan uang kas (*dead stock*) atau memicu barang kedaluwarsa bila produk tersebut bukan kategori *fast moving*.\n\n- **Stock Opname Terjadwal & Kontrol Shrinkage:** Lakukan stock opname berkala (tiap pekan untuk produk *fast moving*/nilai tinggi seperti rokok & sembako utama, dan tiap bulan/kuartal per kategori) untuk mendeteksi selisih fisik vs catatan sistem akibat barang hilang, salah input varian satuan (pcs vs dus), atau rusak. - **Pemetaan Distributor Resmi vs Agen:** Untuk kebutuhan retail kecil, belanja ke agen grosir terpercaya mempercepat perputaran, untuk toko grosir besar, utamakan kontrak langsung distributor utama dengan syarat jatuh tempo (TOP) yang terkontrol."
     },
     {
       "jenis_usaha": "retail",
@@ -113,7 +113,7 @@
         "https://www.programipos.co.id/blog/usaha-toko-sembako/"
       ],
       "chunk_index": 0,
-      "text": "Kontrol arus kas toko sembako dan grosir menuntut ketelitian terhadap uang kulakan dan piutang:\n- **Pisahkan Omzet dari Laba:** Tingginya uang masuk di toko kelontong/grosir sebagian besar merupakan perputaran modal kulakan, bukan laba bersih. Pisahkan rekening kas harian toko dan rekening pribadi pemilik; tetapkan penarikan gaji pemilik yang tetap. - **Kontrol Utang Distributor & Piutang Pelanggan Grosir:** Untuk model **grosir**, penjualan tempo kepada warung langganan wajib dibatasi plafon piutang dan tanggal jatuh tempo per pelanggan agar toko tidak kehabisan kas saat harus membayar faktur distributor."
+      "text": "Kontrol arus kas toko sembako dan grosir menuntut ketelitian terhadap uang kulakan dan piutang:\n- **Pisahkan Omzet dari Laba:** Tingginya uang masuk di toko kelontong/grosir sebagian besar merupakan perputaran modal kulakan, bukan laba bersih. Pisahkan rekening kas harian toko dan rekening pribadi pemilik, tetapkan penarikan gaji pemilik yang tetap. - **Kontrol Utang Distributor & Piutang Pelanggan Grosir:** Untuk model **grosir**, penjualan tempo kepada warung langganan wajib dibatasi plafon piutang dan tanggal jatuh tempo per pelanggan agar toko tidak kehabisan kas saat harus membayar faktur distributor."
     },
     {
       "jenis_usaha": "retail",
@@ -151,7 +151,7 @@
         "https://www.dpr.go.id/kegiatan-dpr/berita/Lembaga-Penyiaran-Diminta-Bantu-Sosialisasi-Izin-untuk-UMKM-54320"
       ],
       "chunk_index": 1,
-      "text": "atau perdagangan besar/grosir untuk agen). Proses NIB bagi UMK berisiko rendah bersifat gratis secara online.\n\n- **Izin Khusus Barang Terkendali / B2B Pajak:** Bila usaha grosir sudah mencapai batas omzet Pengusaha Kena Pajak (PKP) sesuai ketentuan perpajakan atau memperdagangkan barang tertentu (seperti agen resmi LPG 3 kg/distributor), berlaku perizinan sektoral tambahan; subtopik persyaratan kuota agen resmi komoditas bersubsidi **belum ada referensi terverifikasi** dalam korpus ini."
+      "text": "atau perdagangan besar/grosir untuk agen). Proses NIB bagi UMK berisiko rendah bersifat gratis secara online.\n\n- **Izin Khusus Barang Terkendali / B2B Pajak:** Bila usaha grosir sudah mencapai batas omzet Pengusaha Kena Pajak (PKP) sesuai ketentuan perpajakan atau memperdagangkan barang tertentu (seperti agen resmi LPG 3 kg/distributor), berlaku perizinan sektoral tambahan, subtopik persyaratan kuota agen resmi komoditas bersubsidi **belum ada referensi terverifikasi** dalam korpus ini."
     },
     {
       "jenis_usaha": "retail",
@@ -175,7 +175,7 @@
         "https://www.rajarak.co.id/2023/07/manajemen-toko-kelontong.html"
       ],
       "chunk_index": 0,
-      "text": "Langkah pengembangan yang realistis untuk retail dan grosir lokal:\n- **Layanan Pesan Antar Warga & WhatsApp Order:** Berikan layanan kirim cepat gratis dengan minimum belanja bagi warga komplek atau warung kecil di sekitar toko agar pelanggan malas pindah ke pesaing.\n- **Paket Bundling Kebutuhan Bulanan (Sembako):** Jual paket hemat bulanan berisi beras + minyak + gula + mie dengan harga bundel menarik untuk pelanggan keluarga, atau paket kulakan perdana untuk pelanggan warung baru pada segmen grosir.\n- **Penambahan Layanan Digital Ringan:** Penjualan pulsa, token listrik, atau pembayaran tagihan di kasir dapat menambah kunjungan pelanggan; terkait rincian teknis margin PPOB antar-provider, **belum ada referensi terverifikasi** dalam korpus ini."
+      "text": "Langkah pengembangan yang realistis untuk retail dan grosir lokal:\n- **Layanan Pesan Antar Warga & WhatsApp Order:** Berikan layanan kirim cepat gratis dengan minimum belanja bagi warga komplek atau warung kecil di sekitar toko agar pelanggan malas pindah ke pesaing.\n- **Paket Bundling Kebutuhan Bulanan (Sembako):** Jual paket hemat bulanan berisi beras + minyak + gula + mie dengan harga bundel menarik untuk pelanggan keluarga, atau paket kulakan perdana untuk pelanggan warung baru pada segmen grosir.\n- **Penambahan Layanan Digital Ringan:** Penjualan pulsa, token listrik, atau pembayaran tagihan di kasir dapat menambah kunjungan pelanggan, terkait rincian teknis margin PPOB antar-provider, **belum ada referensi terverifikasi** dalam korpus ini."
     }
   ]
 }

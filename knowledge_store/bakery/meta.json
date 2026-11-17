@@ -1,6 +1,6 @@
 {
   "jenis_usaha": "bakery",
-  "built_at": "2026-11-11T14:17:11.685551+00:00",
+  "built_at": "2026-11-17T16:57:28.071401+00:00",
   "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
   "embedding_dim": 384,
   "chunk_count": 15,
@@ -103,7 +103,7 @@
         "https://help-center.jurnal.id/hc/id/articles/4486758215193-Manufaktur"
       ],
       "chunk_index": 1,
-      "text": "(misal 2–3 jam sebelum tutup) sering kali lebih sehat bagi arus kas daripada membuang stok 0 rupiah di akhir hari.\n\n- **Evaluasi Kenaikan Bahan Baku:** Lakukan peninjauan biaya resep per bulan terutama untuk telur, cokelat, dan mentega yang fluktuatif; sesuaikan ukuran, bundling menu, atau harga jual bila margin kotor tergerus."
+      "text": "(misal 2–3 jam sebelum tutup) sering kali lebih sehat bagi arus kas daripada membuang stok 0 rupiah di akhir hari.\n\n- **Evaluasi Kenaikan Bahan Baku:** Lakukan peninjauan biaya resep per bulan terutama untuk telur, cokelat, dan mentega yang fluktuatif, sesuaikan ukuran, bundling menu, atau harga jual bila margin kotor tergerus."
     },
     {
       "jenis_usaha": "bakery",
@@ -153,7 +153,7 @@
         "https://oss.go.id"
       ],
       "chunk_index": 1,
-      "text": "melalui OSS/Dinas Kesehatan setempat dengan mengikuti penyuluhan keamanan pangan (PKP) dan pemenuhan label kemasan.\n\nUntuk produk roti basah dengan masa simpan di bawah 7 hari, ketentuan izin edar spesifik mengikuti regulasi pangan segar/siap saji BPOM atau dinas terkait — subtopik rincian izin BPOM MD spesifik tidak dibahas mendalam (**belum ada referensi terverifikasi** selain jalur PIRT & NIB). - **Sertifikasi Halal BPJPH:** UMKM bakery yang telah memiliki NIB dapat mengajukan sertifikasi halal melalui SiHalal (`ptsp.halal.go.id`). Skema **Self-Declare** tersedia melalui pendampingan PPH untuk bahan yang sudah jelas kehalalannya dan proses sederhana; bila memakai bahan kritis atau skala lebih kompleks, gunakan jalur reguler melalui LPH terakreditasi."
+      "text": "melalui OSS/Dinas Kesehatan setempat dengan mengikuti penyuluhan keamanan pangan (PKP) dan pemenuhan label kemasan.\n\nUntuk produk roti basah dengan masa simpan di bawah 7 hari, ketentuan izin edar spesifik mengikuti regulasi pangan segar/siap saji BPOM atau dinas terkait — subtopik rincian izin BPOM MD spesifik tidak dibahas mendalam (**belum ada referensi terverifikasi** selain jalur PIRT & NIB). - **Sertifikasi Halal BPJPH:** UMKM bakery yang telah memiliki NIB dapat mengajukan sertifikasi halal melalui SiHalal (`ptsp.halal.go.id`). Skema **Self-Declare** tersedia melalui pendampingan PPH untuk bahan yang sudah jelas kehalalannya dan proses sederhana, bila memakai bahan kritis atau skala lebih kompleks, gunakan jalur reguler melalui LPH terakreditasi."
     },
     {
       "jenis_usaha": "bakery",

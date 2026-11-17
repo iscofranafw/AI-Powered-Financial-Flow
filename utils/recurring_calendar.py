@@ -58,5 +58,5 @@ def build_bill_calendar(items, start, end):
             entries.append({'nama': item['description'], 'nominal': item['estimated_amount'],
                             'tanggal': str(due), 'terkonfirmasi': verified,
                             'sumber': ('Jadwal terkonfirmasi' if verified else 'Perkiraan jadwal')
-                            + '; nominal berdasarkan riwayat toko'})
+                            + ', nominal berdasarkan riwayat toko'})
     return sorted(entries, key=lambda entry: (entry['tanggal'], entry['nama']))

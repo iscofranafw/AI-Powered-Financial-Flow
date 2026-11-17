@@ -136,7 +136,7 @@ def _enforce_purpose(decision, tipe, description, cats, business_type):
     if tipe == 'pengeluaran' and applies and decision.get('kategori_id') and decision['kategori_id'] != owner:
         decision.update(kategori_id=None, status_kategori='perlu_tinjauan', source='perlu_tinjauan',
                         is_unresolved=True, reason_code='PURPOSE_CONFLICT',
-                        message='Bahan bakar bakery memerlukan kategori operasional/bahan bakar yang sesuai; tinjau kembali.')
+                        message='Bahan bakar bakery memerlukan kategori operasional/bahan bakar yang sesuai, tinjau kembali.')
     return decision
 
 
@@ -281,7 +281,7 @@ def classify(tipe, deskripsi, cats, toko_id=None, business_type=None):
     try:
         reply = ask_json(_classification_guidance('petunjuk_similarity' in payload), json.dumps(payload, ensure_ascii=False), CHOICE_SCHEMA)
     except Exception as exc:
-        raise LLMUnavailable('Klasifikasi AI gagal. Jalankan Ollama dan model llama3:8b (ollama serve; ollama pull llama3:8b). ' + str(exc)) from exc
+        raise LLMUnavailable('Klasifikasi AI gagal. Jalankan Ollama dan model llama3:8b (ollama serve, ollama pull llama3:8b). ' + str(exc)) from exc
     try:
         blocked = _excluded_system_ids(tipe, cats)
         result = _decision(reply, {c['id'] for c in payload['daftar_kategori_tersedia']}, blocked_ids=blocked)

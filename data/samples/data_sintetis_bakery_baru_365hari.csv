@@ -1,0 +1,530 @@
+tanggal,deskripsi,nominal,tipe
+2025-11-18,bayar air PDAM,98000,pengeluaran
+2025-11-18,bayar internet wifi,371000,pengeluaran
+2025-11-18,bayar listrik toko,297000,pengeluaran
+2025-11-19,penjualan roti,290000,pemasukan
+2025-11-20,penjualan kue pesanan,477000,pemasukan
+2025-11-21,beli gula pasir 10 kg,183000,pengeluaran
+2025-11-21,penjualan kue pesanan,667000,pemasukan
+2025-11-22,beli minyak goreng 5 liter,136000,pengeluaran
+2025-11-22,beli susu cair 10 liter,215000,pengeluaran
+2025-11-22,penjualan kue pesanan,787000,pemasukan
+2025-11-23,penjualan kue,437000,pemasukan
+2025-11-25,penjualan roti,240000,pemasukan
+2025-11-26,beli gula pasir 10 kg,166000,pengeluaran
+2025-11-26,penjualan kue,501000,pemasukan
+2025-11-27,penjualan roti dan kue,694000,pemasukan
+2025-11-28,beli cokelat bubuk 2 kg,140000,pengeluaran
+2025-11-28,gaji baker,2225000,pengeluaran
+2025-11-28,gaji kasir,2045000,pengeluaran
+2025-11-28,penjualan roti,315000,pemasukan
+2025-11-29,biaya antar pesanan ojek,41000,pengeluaran
+2025-11-29,penjualan kue,370000,pemasukan
+2025-11-30,beli cokelat bubuk 2 kg,147000,pengeluaran
+2025-11-30,penjualan roti,331000,pemasukan
+2025-12-02,penjualan roti,411000,pemasukan
+2025-12-03,beli gula pasir 10 kg,179000,pengeluaran
+2025-12-04,penjualan roti dan kue,372000,pemasukan
+2025-12-05,bayar listrik toko,255000,pengeluaran
+2025-12-05,beli telur ayam 5 kg,131000,pengeluaran
+2025-12-05,penjualan roti dan kue,376000,pemasukan
+2025-12-07,bayar air PDAM,89000,pengeluaran
+2025-12-07,beli plastik dan kantong kertas,96000,pengeluaran
+2025-12-07,penjualan roti dan kue,696000,pemasukan
+2025-12-10,bayar internet wifi,314000,pengeluaran
+2025-12-10,penjualan roti,270000,pemasukan
+2025-12-11,beli keju 2 kg,142000,pengeluaran
+2025-12-11,penjualan roti dan kue,478000,pemasukan
+2025-12-12,beli gula pasir 10 kg,192000,pengeluaran
+2025-12-12,penjualan kue,483000,pemasukan
+2025-12-13,penjualan roti,440000,pemasukan
+2025-12-14,beli plastik dan kantong kertas,111000,pengeluaran
+2025-12-16,beli cokelat bubuk 2 kg,143000,pengeluaran
+2025-12-16,beli ragi instan 1 kg,95000,pengeluaran
+2025-12-16,penjualan kue,336000,pemasukan
+2025-12-17,beli susu cair 10 liter,187000,pengeluaran
+2025-12-17,penjualan roti dan kue,604000,pemasukan
+2025-12-18,beli susu cair 10 liter,193000,pengeluaran
+2025-12-18,penjualan kue,338000,pemasukan
+2025-12-19,beli tepung terigu 25 kg,272000,pengeluaran
+2025-12-19,penjualan roti,382000,pemasukan
+2025-12-20,beli selai dan topping,101000,pengeluaran
+2025-12-21,beli minyak goreng 5 liter,138000,pengeluaran
+2025-12-21,biaya antar pesanan ojek,88000,pengeluaran
+2025-12-21,penjualan roti,298000,pemasukan
+2025-12-23,beli mentega 5 kg,222000,pengeluaran
+2025-12-24,beli mentega 5 kg,189000,pengeluaran
+2025-12-24,penjualan roti dan kue,528000,pemasukan
+2025-12-26,beli tepung terigu 25 kg,288000,pengeluaran
+2025-12-27,beli mentega 5 kg,256000,pengeluaran
+2025-12-27,penjualan kue,569000,pemasukan
+2025-12-28,gaji baker,2480000,pengeluaran
+2025-12-28,gaji kasir,2067000,pengeluaran
+2025-12-28,penjualan kue,355000,pemasukan
+2025-12-30,beli telur ayam 5 kg,130000,pengeluaran
+2025-12-30,penjualan roti,380000,pemasukan
+2025-12-31,penjualan roti,344000,pemasukan
+2026-01-02,penjualan kue,526000,pemasukan
+2026-01-03,penjualan roti,415000,pemasukan
+2026-01-04,beli cokelat bubuk 2 kg,151000,pengeluaran
+2026-01-04,penjualan kue,253000,pemasukan
+2026-01-06,bayar listrik toko,379000,pengeluaran
+2026-01-06,beli kemasan dus kue,214000,pengeluaran
+2026-01-06,penjualan roti,225000,pemasukan
+2026-01-07,bayar air PDAM,89000,pengeluaran
+2026-01-07,beli tepung terigu 25 kg,289000,pengeluaran
+2026-01-07,penjualan kue pesanan,370000,pemasukan
+2026-01-08,beli susu cair 10 liter,200000,pengeluaran
+2026-01-08,penjualan roti dan kue,611000,pemasukan
+2026-01-09,beli mentega 5 kg,202000,pengeluaran
+2026-01-10,bayar internet wifi,394000,pengeluaran
+2026-01-10,penjualan roti,426000,pemasukan
+2026-01-11,beli gula pasir 10 kg,191000,pengeluaran
+2026-01-11,beli tepung terigu 25 kg,233000,pengeluaran
+2026-01-11,penjualan kue pesanan,428000,pemasukan
+2026-01-13,penjualan roti,335000,pemasukan
+2026-01-14,penjualan roti,462000,pemasukan
+2026-01-15,penjualan roti,332000,pemasukan
+2026-01-17,beli plastik dan kantong kertas,76000,pengeluaran
+2026-01-17,beli ragi instan 1 kg,87000,pengeluaran
+2026-01-18,beli mentega 5 kg,230000,pengeluaran
+2026-01-18,penjualan roti,276000,pemasukan
+2026-01-20,penjualan roti dan kue,633000,pemasukan
+2026-01-21,beli ragi instan 1 kg,80000,pengeluaran
+2026-01-22,beli ragi instan 1 kg,89000,pengeluaran
+2026-01-22,penjualan roti,451000,pemasukan
+2026-01-23,beli gas LPG 12 kg,214000,pengeluaran
+2026-01-23,penjualan roti,327000,pemasukan
+2026-01-24,penjualan kue,536000,pemasukan
+2026-01-25,beli minyak goreng 5 liter,139000,pengeluaran
+2026-01-25,penjualan roti,350000,pemasukan
+2026-01-27,beli keju 2 kg,151000,pengeluaran
+2026-01-27,penjualan roti,350000,pemasukan
+2026-01-28,gaji baker,2573000,pengeluaran
+2026-01-28,gaji kasir,2121000,pengeluaran
+2026-01-28,penjualan kue,326000,pemasukan
+2026-01-30,beli tepung terigu 25 kg,279000,pengeluaran
+2026-01-31,biaya antar pesanan ojek,80000,pengeluaran
+2026-01-31,penjualan roti,395000,pemasukan
+2026-02-01,penjualan kue,482000,pemasukan
+2026-02-03,beli susu cair 10 liter,235000,pengeluaran
+2026-02-03,penjualan roti,277000,pemasukan
+2026-02-04,beli ragi instan 1 kg,104000,pengeluaran
+2026-02-04,penjualan roti,371000,pemasukan
+2026-02-05,bayar listrik toko,303000,pengeluaran
+2026-02-05,beli gula pasir 10 kg,155000,pengeluaran
+2026-02-05,penjualan roti,216000,pemasukan
+2026-02-07,bayar air PDAM,74000,pengeluaran
+2026-02-07,beli telur ayam 5 kg,119000,pengeluaran
+2026-02-07,beli tepung terigu 25 kg,231000,pengeluaran
+2026-02-07,penjualan roti,463000,pemasukan
+2026-02-08,beli kemasan dus kue,190000,pengeluaran
+2026-02-08,beli tepung terigu 25 kg,288000,pengeluaran
+2026-02-10,bayar internet wifi,364000,pengeluaran
+2026-02-10,penjualan roti dan kue,560000,pemasukan
+2026-02-11,beli telur ayam 5 kg,116000,pengeluaran
+2026-02-11,penjualan kue,276000,pemasukan
+2026-02-12,beli gula pasir 10 kg,192000,pengeluaran
+2026-02-12,biaya antar pesanan ojek,55000,pengeluaran
+2026-02-12,penjualan roti dan kue,452000,pemasukan
+2026-02-13,penjualan roti,477000,pemasukan
+2026-02-14,penjualan kue,530000,pemasukan
+2026-02-15,beli plastik dan kantong kertas,82000,pengeluaran
+2026-02-15,penjualan roti dan kue,554000,pemasukan
+2026-02-18,penjualan roti dan kue,467000,pemasukan
+2026-02-19,beli cokelat bubuk 2 kg,142000,pengeluaran
+2026-02-19,penjualan kue,360000,pemasukan
+2026-02-20,beli susu cair 10 liter,197000,pengeluaran
+2026-02-20,penjualan roti,280000,pemasukan
+2026-02-21,beli ragi instan 1 kg,85000,pengeluaran
+2026-02-21,penjualan kue,438000,pemasukan
+2026-02-22,biaya antar pesanan ojek,47000,pengeluaran
+2026-02-22,penjualan roti dan kue,500000,pemasukan
+2026-02-24,beli kemasan dus kue,166000,pengeluaran
+2026-02-24,penjualan roti,453000,pemasukan
+2026-02-25,beli susu cair 10 liter,180000,pengeluaran
+2026-02-25,penjualan kue,325000,pemasukan
+2026-02-26,beli telur ayam 5 kg,121000,pengeluaran
+2026-02-26,biaya antar pesanan ojek,74000,pengeluaran
+2026-02-26,penjualan roti dan kue,436000,pemasukan
+2026-02-27,beli kemasan dus kue,191000,pengeluaran
+2026-02-27,beli mentega 5 kg,226000,pengeluaran
+2026-02-28,gaji baker,2434000,pengeluaran
+2026-02-28,gaji kasir,1807000,pengeluaran
+2026-02-28,penjualan roti,274000,pemasukan
+2026-03-01,beli tepung terigu 25 kg,249000,pengeluaran
+2026-03-03,penjualan roti,266000,pemasukan
+2026-03-04,penjualan roti dan kue,404000,pemasukan
+2026-03-05,bayar listrik toko,362000,pengeluaran
+2026-03-05,beli tepung terigu 25 kg,256000,pengeluaran
+2026-03-05,beli tepung terigu 25 kg,280000,pengeluaran
+2026-03-05,penjualan roti dan kue,673000,pemasukan
+2026-03-06,beli ragi instan 1 kg,109000,pengeluaran
+2026-03-06,penjualan kue pesanan,484000,pemasukan
+2026-03-07,bayar air PDAM,98000,pengeluaran
+2026-03-07,beli mentega 5 kg,209000,pengeluaran
+2026-03-07,penjualan kue,282000,pemasukan
+2026-03-08,beli gula pasir 10 kg,196000,pengeluaran
+2026-03-08,penjualan roti dan kue,621000,pemasukan
+2026-03-10,bayar internet wifi,386000,pengeluaran
+2026-03-10,penjualan kue,392000,pemasukan
+2026-03-11,beli gas LPG 12 kg,184000,pengeluaran
+2026-03-11,penjualan kue,579000,pemasukan
+2026-03-12,beli mentega 5 kg,228000,pengeluaran
+2026-03-12,penjualan kue pesanan,354000,pemasukan
+2026-03-13,penjualan roti,407000,pemasukan
+2026-03-14,beli cokelat bubuk 2 kg,144000,pengeluaran
+2026-03-14,beli tepung terigu 25 kg,253000,pengeluaran
+2026-03-15,penjualan roti,400000,pemasukan
+2026-03-17,beli minyak goreng 5 liter,99000,pengeluaran
+2026-03-17,penjualan roti dan kue,508000,pemasukan
+2026-03-18,beli gula pasir 10 kg,199000,pengeluaran
+2026-03-18,beli plastik dan kantong kertas,100000,pengeluaran
+2026-03-25,penjualan roti,498000,pemasukan
+2026-03-26,beli mentega 5 kg,198000,pengeluaran
+2026-03-26,beli mentega 5 kg,240000,pengeluaran
+2026-03-26,penjualan kue,343000,pemasukan
+2026-03-27,penjualan kue,294000,pemasukan
+2026-03-28,beli gula pasir 10 kg,151000,pengeluaran
+2026-03-28,gaji baker,2279000,pengeluaran
+2026-03-28,gaji kasir,1842000,pengeluaran
+2026-03-28,penjualan roti,365000,pemasukan
+2026-03-29,beli telur ayam 5 kg,141000,pengeluaran
+2026-03-29,penjualan roti,274000,pemasukan
+2026-03-31,beli selai dan topping,84000,pengeluaran
+2026-03-31,penjualan kue,562000,pemasukan
+2026-04-01,penjualan roti,293000,pemasukan
+2026-04-02,beli plastik dan kantong kertas,62000,pengeluaran
+2026-04-02,penjualan roti,373000,pemasukan
+2026-04-03,beli cokelat bubuk 2 kg,115000,pengeluaran
+2026-04-03,beli loyang dan peralatan,177000,pengeluaran
+2026-04-03,penjualan kue,598000,pemasukan
+2026-04-04,beli gula pasir 10 kg,152000,pengeluaran
+2026-04-04,penjualan kue,481000,pemasukan
+2026-04-05,bayar listrik toko,284000,pengeluaran
+2026-04-05,penjualan roti,494000,pemasukan
+2026-04-07,bayar air PDAM,84000,pengeluaran
+2026-04-07,penjualan roti,458000,pemasukan
+2026-04-08,beli tepung terigu 25 kg,240000,pengeluaran
+2026-04-08,penjualan roti dan kue,424000,pemasukan
+2026-04-09,penjualan roti,297000,pemasukan
+2026-04-10,bayar internet wifi,389000,pengeluaran
+2026-04-10,beli mentega 5 kg,223000,pengeluaran
+2026-04-10,beli susu cair 10 liter,193000,pengeluaran
+2026-04-10,penjualan roti,294000,pemasukan
+2026-04-11,beli ragi instan 1 kg,100000,pengeluaran
+2026-04-11,penjualan roti,398000,pemasukan
+2026-04-12,penjualan roti,364000,pemasukan
+2026-04-14,penjualan kue,539000,pemasukan
+2026-04-15,penjualan kue,563000,pemasukan
+2026-04-16,beli gula pasir 10 kg,180000,pengeluaran
+2026-04-16,penjualan roti,234000,pemasukan
+2026-04-17,beli gula pasir 10 kg,163000,pengeluaran
+2026-04-17,penjualan roti,227000,pemasukan
+2026-04-18,beli plastik dan kantong kertas,80000,pengeluaran
+2026-04-18,penjualan roti,463000,pemasukan
+2026-04-19,beli mentega 5 kg,211000,pengeluaran
+2026-04-19,penjualan roti,328000,pemasukan
+2026-04-21,beli loyang dan peralatan,393000,pengeluaran
+2026-04-21,penjualan kue,304000,pemasukan
+2026-04-22,beli cokelat bubuk 2 kg,155000,pengeluaran
+2026-04-22,biaya promosi instagram,114000,pengeluaran
+2026-04-22,penjualan roti,262000,pemasukan
+2026-04-23,beli cokelat bubuk 2 kg,155000,pengeluaran
+2026-04-23,beli gula pasir 10 kg,163000,pengeluaran
+2026-04-23,penjualan kue pesanan,631000,pemasukan
+2026-04-24,penjualan kue,522000,pemasukan
+2026-04-26,beli plastik dan kantong kertas,106000,pengeluaran
+2026-04-26,penjualan kue,467000,pemasukan
+2026-04-28,beli kemasan dus kue,178000,pengeluaran
+2026-04-28,gaji baker,2551000,pengeluaran
+2026-04-28,gaji kasir,1863000,pengeluaran
+2026-04-28,penjualan roti,352000,pemasukan
+2026-04-29,penjualan kue,417000,pemasukan
+2026-04-30,beli kemasan dus kue,211000,pengeluaran
+2026-04-30,beli telur ayam 5 kg,121000,pengeluaran
+2026-04-30,penjualan kue pesanan,345000,pemasukan
+2026-05-01,penjualan kue,435000,pemasukan
+2026-05-02,penjualan roti,203000,pemasukan
+2026-05-03,penjualan kue,320000,pemasukan
+2026-05-05,bayar listrik toko,223000,pengeluaran
+2026-05-06,penjualan roti dan kue,333000,pemasukan
+2026-05-07,bayar air PDAM,113000,pengeluaran
+2026-05-07,beli susu cair 10 liter,202000,pengeluaran
+2026-05-08,penjualan roti dan kue,655000,pemasukan
+2026-05-09,beli kemasan dus kue,175000,pengeluaran
+2026-05-09,beli susu cair 10 liter,231000,pengeluaran
+2026-05-09,penjualan kue,454000,pemasukan
+2026-05-10,bayar internet wifi,384000,pengeluaran
+2026-05-10,penjualan kue,317000,pemasukan
+2026-05-12,penjualan kue,273000,pemasukan
+2026-05-13,biaya antar pesanan ojek,82000,pengeluaran
+2026-05-13,penjualan kue pesanan,313000,pemasukan
+2026-05-14,beli minyak goreng 5 liter,106000,pengeluaran
+2026-05-14,beli plastik dan kantong kertas,60000,pengeluaran
+2026-05-14,penjualan kue,431000,pemasukan
+2026-05-15,penjualan roti,356000,pemasukan
+2026-05-16,penjualan roti,356000,pemasukan
+2026-05-17,penjualan roti dan kue,335000,pemasukan
+2026-05-19,penjualan roti dan kue,700000,pemasukan
+2026-05-20,beli telur ayam 5 kg,145000,pengeluaran
+2026-05-20,penjualan kue,280000,pemasukan
+2026-05-21,beli selai dan topping,142000,pengeluaran
+2026-05-22,beli mentega 5 kg,220000,pengeluaran
+2026-05-22,penjualan roti,369000,pemasukan
+2026-05-23,penjualan kue,349000,pemasukan
+2026-05-24,beli keju 2 kg,182000,pengeluaran
+2026-05-24,biaya antar pesanan ojek,45000,pengeluaran
+2026-05-24,penjualan roti dan kue,449000,pemasukan
+2026-05-26,beli keju 2 kg,180000,pengeluaran
+2026-05-26,beli tepung terigu 25 kg,258000,pengeluaran
+2026-05-26,penjualan roti,293000,pemasukan
+2026-05-29,beli cokelat bubuk 2 kg,117000,pengeluaran
+2026-05-29,gaji baker,2380000,pengeluaran
+2026-05-29,gaji kasir,2143000,pengeluaran
+2026-05-29,penjualan kue pesanan,702000,pemasukan
+2026-05-30,beli tepung terigu 25 kg,270000,pengeluaran
+2026-05-30,penjualan roti,384000,pemasukan
+2026-06-02,penjualan kue,457000,pemasukan
+2026-06-03,penjualan kue,510000,pemasukan
+2026-06-04,beli cokelat bubuk 2 kg,116000,pengeluaran
+2026-06-04,penjualan kue,572000,pemasukan
+2026-06-05,bayar listrik toko,312000,pengeluaran
+2026-06-05,penjualan roti,324000,pemasukan
+2026-06-06,beli cokelat bubuk 2 kg,123000,pengeluaran
+2026-06-06,beli kemasan dus kue,188000,pengeluaran
+2026-06-06,penjualan roti dan kue,382000,pemasukan
+2026-06-07,bayar air PDAM,126000,pengeluaran
+2026-06-07,penjualan roti,422000,pemasukan
+2026-06-09,biaya promosi instagram,211000,pengeluaran
+2026-06-09,penjualan roti dan kue,619000,pemasukan
+2026-06-10,bayar internet wifi,327000,pengeluaran
+2026-06-10,penjualan roti dan kue,338000,pemasukan
+2026-06-11,beli plastik dan kantong kertas,77000,pengeluaran
+2026-06-11,beli plastik dan kantong kertas,102000,pengeluaran
+2026-06-11,penjualan roti,304000,pemasukan
+2026-06-12,beli gula pasir 10 kg,171000,pengeluaran
+2026-06-12,beli keju 2 kg,199000,pengeluaran
+2026-06-12,penjualan kue pesanan,798000,pemasukan
+2026-06-13,penjualan roti dan kue,621000,pemasukan
+2026-06-14,beli gas LPG 12 kg,210000,pengeluaran
+2026-06-14,beli plastik dan kantong kertas,115000,pengeluaran
+2026-06-14,penjualan roti dan kue,541000,pemasukan
+2026-06-17,beli mentega 5 kg,189000,pengeluaran
+2026-06-17,beli minyak goreng 5 liter,99000,pengeluaran
+2026-06-17,penjualan roti,426000,pemasukan
+2026-06-18,beli cokelat bubuk 2 kg,122000,pengeluaran
+2026-06-18,penjualan kue,534000,pemasukan
+2026-06-19,penjualan kue,287000,pemasukan
+2026-06-20,beli tepung terigu 25 kg,270000,pengeluaran
+2026-06-20,penjualan roti dan kue,674000,pemasukan
+2026-06-23,penjualan roti dan kue,357000,pemasukan
+2026-06-24,penjualan roti,488000,pemasukan
+2026-06-25,beli ragi instan 1 kg,81000,pengeluaran
+2026-06-26,beli kemasan dus kue,174000,pengeluaran
+2026-06-26,penjualan roti,325000,pemasukan
+2026-06-27,beli minyak goreng 5 liter,99000,pengeluaran
+2026-06-27,penjualan roti,353000,pemasukan
+2026-06-28,beli telur ayam 5 kg,113000,pengeluaran
+2026-06-28,gaji baker,2220000,pengeluaran
+2026-06-28,gaji kasir,1806000,pengeluaran
+2026-06-30,beli tepung terigu 25 kg,232000,pengeluaran
+2026-06-30,penjualan kue,315000,pemasukan
+2026-07-01,penjualan roti,397000,pemasukan
+2026-07-02,beli kemasan dus kue,153000,pengeluaran
+2026-07-02,penjualan kue,492000,pemasukan
+2026-07-03,beli kemasan dus kue,184000,pengeluaran
+2026-07-03,penjualan kue,349000,pemasukan
+2026-07-04,beli minyak goreng 5 liter,136000,pengeluaran
+2026-07-04,beli selai dan topping,148000,pengeluaran
+2026-07-04,penjualan roti,361000,pemasukan
+2026-07-05,bayar listrik toko,262000,pengeluaran
+2026-07-07,bayar air PDAM,124000,pengeluaran
+2026-07-07,beli keju 2 kg,172000,pengeluaran
+2026-07-07,penjualan roti,310000,pemasukan
+2026-07-08,beli gula pasir 10 kg,177000,pengeluaran
+2026-07-08,beli susu cair 10 liter,190000,pengeluaran
+2026-07-08,penjualan roti,488000,pemasukan
+2026-07-09,penjualan kue,376000,pemasukan
+2026-07-10,bayar internet wifi,342000,pengeluaran
+2026-07-10,beli kemasan dus kue,173000,pengeluaran
+2026-07-10,beli telur ayam 5 kg,110000,pengeluaran
+2026-07-10,penjualan roti,418000,pemasukan
+2026-07-11,beli mentega 5 kg,190000,pengeluaran
+2026-07-12,penjualan roti dan kue,595000,pemasukan
+2026-07-14,beli gas LPG 12 kg,199000,pengeluaran
+2026-07-14,beli gula pasir 10 kg,175000,pengeluaran
+2026-07-14,penjualan roti dan kue,341000,pemasukan
+2026-07-15,beli tepung terigu 25 kg,252000,pengeluaran
+2026-07-15,biaya antar pesanan ojek,73000,pengeluaran
+2026-07-17,beli plastik dan kantong kertas,82000,pengeluaran
+2026-07-17,penjualan kue,574000,pemasukan
+2026-07-18,penjualan roti,213000,pemasukan
+2026-07-19,beli ragi instan 1 kg,76000,pengeluaran
+2026-07-19,penjualan kue,550000,pemasukan
+2026-07-21,penjualan kue,363000,pemasukan
+2026-07-22,beli mentega 5 kg,243000,pengeluaran
+2026-07-22,beli tepung terigu 25 kg,258000,pengeluaran
+2026-07-22,penjualan roti dan kue,522000,pemasukan
+2026-07-23,penjualan roti,480000,pemasukan
+2026-07-24,beli plastik dan kantong kertas,62000,pengeluaran
+2026-07-24,penjualan roti dan kue,625000,pemasukan
+2026-07-25,beli cokelat bubuk 2 kg,141000,pengeluaran
+2026-07-25,penjualan roti,302000,pemasukan
+2026-07-26,penjualan kue pesanan,681000,pemasukan
+2026-07-28,gaji baker,2497000,pengeluaran
+2026-07-28,gaji kasir,1832000,pengeluaran
+2026-07-28,penjualan roti,249000,pemasukan
+2026-07-29,penjualan kue pesanan,307000,pemasukan
+2026-07-30,penjualan roti dan kue,404000,pemasukan
+2026-07-31,beli gula pasir 10 kg,183000,pengeluaran
+2026-07-31,beli mentega 5 kg,203000,pengeluaran
+2026-07-31,penjualan roti,404000,pemasukan
+2026-08-01,penjualan roti,497000,pemasukan
+2026-08-02,penjualan roti,434000,pemasukan
+2026-08-04,beli susu cair 10 liter,183000,pengeluaran
+2026-08-04,penjualan roti dan kue,381000,pemasukan
+2026-08-05,bayar listrik toko,232000,pengeluaran
+2026-08-05,beli mentega 5 kg,205000,pengeluaran
+2026-08-05,penjualan roti,428000,pemasukan
+2026-08-06,penjualan roti dan kue,425000,pemasukan
+2026-08-07,bayar air PDAM,79000,pengeluaran
+2026-08-07,beli selai dan topping,117000,pengeluaran
+2026-08-07,beli tepung terigu 25 kg,236000,pengeluaran
+2026-08-07,penjualan kue,262000,pemasukan
+2026-08-08,beli tepung terigu 25 kg,243000,pengeluaran
+2026-08-08,penjualan kue,594000,pemasukan
+2026-08-09,biaya antar pesanan ojek,40000,pengeluaran
+2026-08-09,penjualan roti,367000,pemasukan
+2026-08-11,bayar internet wifi,399000,pengeluaran
+2026-08-12,biaya promosi instagram,168000,pengeluaran
+2026-08-12,penjualan roti dan kue,443000,pemasukan
+2026-08-13,biaya antar pesanan ojek,65000,pengeluaran
+2026-08-13,penjualan roti,328000,pemasukan
+2026-08-14,beli keju 2 kg,190000,pengeluaran
+2026-08-14,beli ragi instan 1 kg,110000,pengeluaran
+2026-08-14,penjualan roti,377000,pemasukan
+2026-08-15,penjualan roti dan kue,580000,pemasukan
+2026-08-16,biaya antar pesanan ojek,67000,pengeluaran
+2026-08-16,penjualan roti dan kue,692000,pemasukan
+2026-08-18,beli plastik dan kantong kertas,75000,pengeluaran
+2026-08-18,penjualan roti dan kue,672000,pemasukan
+2026-08-19,penjualan roti,229000,pemasukan
+2026-08-20,beli gula pasir 10 kg,180000,pengeluaran
+2026-08-20,penjualan kue,288000,pemasukan
+2026-08-22,penjualan kue,531000,pemasukan
+2026-08-25,beli tepung terigu 25 kg,259000,pengeluaran
+2026-08-26,beli tepung terigu 25 kg,267000,pengeluaran
+2026-08-27,beli cokelat bubuk 2 kg,155000,pengeluaran
+2026-08-27,penjualan roti,212000,pemasukan
+2026-08-28,gaji baker,2252000,pengeluaran
+2026-08-28,gaji kasir,2016000,pengeluaran
+2026-08-28,penjualan roti,342000,pemasukan
+2026-08-29,beli ragi instan 1 kg,101000,pengeluaran
+2026-08-29,penjualan roti,252000,pemasukan
+2026-08-30,penjualan roti dan kue,550000,pemasukan
+2026-09-01,beli keju 2 kg,192000,pengeluaran
+2026-09-01,beli ragi instan 1 kg,109000,pengeluaran
+2026-09-02,beli ragi instan 1 kg,85000,pengeluaran
+2026-09-02,penjualan roti dan kue,358000,pemasukan
+2026-09-04,beli gula pasir 10 kg,152000,pengeluaran
+2026-09-04,beli mentega 5 kg,252000,pengeluaran
+2026-09-04,penjualan roti,389000,pemasukan
+2026-09-05,bayar listrik toko,326000,pengeluaran
+2026-09-05,beli telur ayam 5 kg,112000,pengeluaran
+2026-09-06,beli kemasan dus kue,192000,pengeluaran
+2026-09-06,beli telur ayam 5 kg,144000,pengeluaran
+2026-09-06,penjualan roti,413000,pemasukan
+2026-09-08,bayar air PDAM,122000,pengeluaran
+2026-09-08,penjualan roti dan kue,593000,pemasukan
+2026-09-09,penjualan roti,215000,pemasukan
+2026-09-10,bayar internet wifi,383000,pengeluaran
+2026-09-10,beli cokelat bubuk 2 kg,119000,pengeluaran
+2026-09-10,beli gas LPG 12 kg,183000,pengeluaran
+2026-09-11,penjualan kue,540000,pemasukan
+2026-09-12,beli keju 2 kg,158000,pengeluaran
+2026-09-12,penjualan kue,578000,pemasukan
+2026-09-13,penjualan kue pesanan,595000,pemasukan
+2026-09-15,penjualan roti,228000,pemasukan
+2026-09-16,penjualan kue pesanan,771000,pemasukan
+2026-09-17,beli cokelat bubuk 2 kg,134000,pengeluaran
+2026-09-17,penjualan roti,493000,pemasukan
+2026-09-18,penjualan kue pesanan,535000,pemasukan
+2026-09-19,penjualan kue,561000,pemasukan
+2026-09-20,penjualan roti,467000,pemasukan
+2026-09-22,penjualan kue pesanan,764000,pemasukan
+2026-09-23,beli plastik dan kantong kertas,78000,pengeluaran
+2026-09-23,penjualan roti,284000,pemasukan
+2026-09-24,beli cokelat bubuk 2 kg,156000,pengeluaran
+2026-09-24,penjualan kue,458000,pemasukan
+2026-09-26,beli susu cair 10 liter,192000,pengeluaran
+2026-09-26,beli tepung terigu 25 kg,243000,pengeluaran
+2026-09-26,penjualan kue,401000,pemasukan
+2026-09-27,penjualan kue pesanan,464000,pemasukan
+2026-09-29,beli minyak goreng 5 liter,101000,pengeluaran
+2026-09-29,gaji baker,2539000,pengeluaran
+2026-09-29,gaji kasir,1989000,pengeluaran
+2026-09-30,beli telur ayam 5 kg,139000,pengeluaran
+2026-09-30,penjualan roti dan kue,502000,pemasukan
+2026-10-01,penjualan kue,551000,pemasukan
+2026-10-02,penjualan kue,511000,pemasukan
+2026-10-03,biaya antar pesanan ojek,62000,pengeluaran
+2026-10-03,penjualan roti,411000,pemasukan
+2026-10-04,beli cokelat bubuk 2 kg,127000,pengeluaran
+2026-10-04,beli gula pasir 10 kg,182000,pengeluaran
+2026-10-04,penjualan kue,339000,pemasukan
+2026-10-06,bayar listrik toko,321000,pengeluaran
+2026-10-06,beli gula pasir 10 kg,157000,pengeluaran
+2026-10-07,bayar air PDAM,120000,pengeluaran
+2026-10-07,beli gula pasir 10 kg,160000,pengeluaran
+2026-10-08,beli keju 2 kg,163000,pengeluaran
+2026-10-08,penjualan kue pesanan,459000,pemasukan
+2026-10-09,penjualan kue,303000,pemasukan
+2026-10-10,bayar internet wifi,344000,pengeluaran
+2026-10-10,beli gula pasir 10 kg,179000,pengeluaran
+2026-10-10,penjualan roti,445000,pemasukan
+2026-10-11,penjualan roti,256000,pemasukan
+2026-10-13,penjualan kue,481000,pemasukan
+2026-10-14,penjualan roti,242000,pemasukan
+2026-10-15,penjualan kue,300000,pemasukan
+2026-10-16,beli susu cair 10 liter,181000,pengeluaran
+2026-10-16,penjualan kue,583000,pemasukan
+2026-10-17,beli telur ayam 5 kg,145000,pengeluaran
+2026-10-17,penjualan roti,266000,pemasukan
+2026-10-18,beli mentega 5 kg,237000,pengeluaran
+2026-10-18,penjualan roti,478000,pemasukan
+2026-10-20,penjualan roti,478000,pemasukan
+2026-10-21,penjualan kue,453000,pemasukan
+2026-10-22,beli ragi instan 1 kg,94000,pengeluaran
+2026-10-22,penjualan roti,311000,pemasukan
+2026-10-23,beli susu cair 10 liter,192000,pengeluaran
+2026-10-23,penjualan kue,393000,pemasukan
+2026-10-25,beli mentega 5 kg,234000,pengeluaran
+2026-10-25,penjualan roti dan kue,687000,pemasukan
+2026-10-27,beli susu cair 10 liter,234000,pengeluaran
+2026-10-27,penjualan kue pesanan,584000,pemasukan
+2026-10-28,beli cokelat bubuk 2 kg,143000,pengeluaran
+2026-10-28,beli tepung terigu 25 kg,269000,pengeluaran
+2026-10-28,gaji baker,2392000,pengeluaran
+2026-10-28,gaji kasir,2003000,pengeluaran
+2026-10-28,penjualan kue,442000,pemasukan
+2026-10-29,beli tepung terigu 25 kg,231000,pengeluaran
+2026-10-29,penjualan roti dan kue,421000,pemasukan
+2026-10-31,penjualan kue,538000,pemasukan
+2026-11-03,beli gula pasir 10 kg,193000,pengeluaran
+2026-11-03,penjualan roti,281000,pemasukan
+2026-11-04,biaya antar pesanan ojek,68000,pengeluaran
+2026-11-04,penjualan roti,336000,pemasukan
+2026-11-05,bayar listrik toko,282000,pengeluaran
+2026-11-05,penjualan roti,402000,pemasukan
+2026-11-07,bayar air PDAM,111000,pengeluaran
+2026-11-08,penjualan roti,453000,pemasukan
+2026-11-10,bayar internet wifi,367000,pengeluaran
+2026-11-11,penjualan roti,252000,pemasukan
+2026-11-12,penjualan roti,243000,pemasukan
+2026-11-13,beli minyak goreng 5 liter,122000,pengeluaran
+2026-11-13,beli ragi instan 1 kg,71000,pengeluaran
+2026-11-13,penjualan roti dan kue,307000,pemasukan
+2026-11-14,penjualan roti dan kue,667000,pemasukan
+2026-11-15,penjualan roti dan kue,633000,pemasukan
+2026-11-17,penjualan roti dan kue,583000,pemasukan

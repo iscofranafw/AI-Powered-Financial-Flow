@@ -34,7 +34,7 @@ def metrics(rows,cats):
 
 def narrative(data):
     expected={k:float(data[k]) for k in ('pemasukan','pengeluaran','arus_kas_operasional','arus_kas_total')}
-    backup=f"Pemasukan Rp{expected['pemasukan']:,.0f}; pengeluaran Rp{expected['pengeluaran']:,.0f}; arus kas operasional Rp{expected['arus_kas_operasional']:,.0f}."
+    backup=f"Pemasukan Rp{expected['pemasukan']:,.0f}, pengeluaran Rp{expected['pengeluaran']:,.0f}, arus kas operasional Rp{expected['arus_kas_operasional']:,.0f}."
     try:
         import json
         schema = {'type':'object','properties':{

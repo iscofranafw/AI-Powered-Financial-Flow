@@ -22,7 +22,7 @@ def list_owners(token):
 
 
 class ShopAuthCleanupError(RuntimeError):
-    """Data toko sudah dihapus; job durable menunggu indeks lokal atau akun auth."""
+    """Data toko sudah dihapus, job durable menunggu indeks lokal atau akun auth."""
 
 
 def delete_inactive_shop(token, owner_id, shop_id, owner_email):

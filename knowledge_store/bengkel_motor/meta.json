@@ -1,6 +1,6 @@
 {
   "jenis_usaha": "bengkel_motor",
-  "built_at": "2026-11-11T14:17:12.588603+00:00",
+  "built_at": "2026-11-17T16:57:29.289785+00:00",
   "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
   "embedding_dim": 384,
   "chunk_count": 11,
@@ -27,7 +27,7 @@
         "https://turboly.com/blog/2026/08/panduan-manajemen-stok-spare-part-bengkel-efektif/"
       ],
       "chunk_index": 0,
-      "text": "Kepercayaan pemilik motor ditentukan oleh kejujuran diagnosis, keaslian suku cadang, dan kerapian bengkel:\n- **Standarisasi Daftar Paket Servis:** Sediakan menu harga jasa yang jelas (misal paket servis ringan + pembersih injektor/CVT, paket ganti oli + cek pengereman) agar pelanggan tahu perkiraan biaya sebelum pekerjaan dimulai.\n- **Keaslian & Jaminan Sparepart:** Bedakan dan jelaskan kepada pelanggan antara komponen OEM/asli pabrikan dan komponen *aftermarket* berkualitas sebelum memasang; tunjukkan suku cadang bekas yang diganti agar transparansi terjaga.\n- **Tata Ruang & Kenyamanan Ruang Tunggu:** Pisahkan area kerja servis (pit mekanik beralas tahan oli dengan sirkulasi udara baik), rak penyimpanan sparepart tertata rapi, dan area tunggu pelanggan yang bersih serta sejuk."
+      "text": "Kepercayaan pemilik motor ditentukan oleh kejujuran diagnosis, keaslian suku cadang, dan kerapian bengkel:\n- **Standarisasi Daftar Paket Servis:** Sediakan menu harga jasa yang jelas (misal paket servis ringan + pembersih injektor/CVT, paket ganti oli + cek pengereman) agar pelanggan tahu perkiraan biaya sebelum pekerjaan dimulai.\n- **Keaslian & Jaminan Sparepart:** Bedakan dan jelaskan kepada pelanggan antara komponen OEM/asli pabrikan dan komponen *aftermarket* berkualitas sebelum memasang, tunjukkan suku cadang bekas yang diganti agar transparansi terjaga.\n- **Tata Ruang & Kenyamanan Ruang Tunggu:** Pisahkan area kerja servis (pit mekanik beralas tahan oli dengan sirkulasi udara baik), rak penyimpanan sparepart tertata rapi, dan area tunggu pelanggan yang bersih serta sejuk."
     },
     {
       "jenis_usaha": "bengkel_motor",
@@ -137,7 +137,7 @@
         "https://kelolabengkel.id/blog/cara-mengelola-inventori-sparepart-bengkel-dengan-efektif"
       ],
       "chunk_index": 0,
-      "text": "Pertumbuhan bengkel ditopang oleh loyalitas servis ulang setiap 1–2 bulan:\n- **Pengingat Servis Berkala (Reminder):** Catat nomor WhatsApp dan tanggal ganti oli pelanggan; kirim pengingat sopan saat perkiraan waktu servis berikutnya (sekitar 1,5–2 bulan atau kelipatan jarak tempuh) disertai info pengecekan gratis angin ban atau rem.\n- **Paket Hari Sepi & Promo Komunitas:** Berikan diskon jasa ringan di hari kerja jam 09.00–14.00 untuk komunitas ojek daring atau karyawan perkantoran sekitar agar pit mekanik tetap terisi merata sepanjang pekan. Terkait skema program garansi servis lanjutan atau integrasi aplikasi *loyalty* khusus bengkel berbayar, **belum ada referensi terverifikasi** dalam panduan ini."
+      "text": "Pertumbuhan bengkel ditopang oleh loyalitas servis ulang setiap 1–2 bulan:\n- **Pengingat Servis Berkala (Reminder):** Catat nomor WhatsApp dan tanggal ganti oli pelanggan, kirim pengingat sopan saat perkiraan waktu servis berikutnya (sekitar 1,5–2 bulan atau kelipatan jarak tempuh) disertai info pengecekan gratis angin ban atau rem.\n- **Paket Hari Sepi & Promo Komunitas:** Berikan diskon jasa ringan di hari kerja jam 09.00–14.00 untuk komunitas ojek daring atau karyawan perkantoran sekitar agar pit mekanik tetap terisi merata sepanjang pekan. Terkait skema program garansi servis lanjutan atau integrasi aplikasi *loyalty* khusus bengkel berbayar, **belum ada referensi terverifikasi** dalam panduan ini."
     }
   ]
 }

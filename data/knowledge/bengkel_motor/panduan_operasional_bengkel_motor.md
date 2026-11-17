@@ -15,7 +15,7 @@ Sumber: [Pegadaian - Memulai Usaha Bengkel Motor](https://pegadaian.co.id/artike
 
 Kepercayaan pemilik motor ditentukan oleh kejujuran diagnosis, keaslian suku cadang, dan kerapian bengkel:
 - **Standarisasi Daftar Paket Servis:** Sediakan menu harga jasa yang jelas (misal paket servis ringan + pembersih injektor/CVT, paket ganti oli + cek pengereman) agar pelanggan tahu perkiraan biaya sebelum pekerjaan dimulai.
-- **Keaslian & Jaminan Sparepart:** Bedakan dan jelaskan kepada pelanggan antara komponen OEM/asli pabrikan dan komponen *aftermarket* berkualitas sebelum memasang; tunjukkan suku cadang bekas yang diganti agar transparansi terjaga.
+- **Keaslian & Jaminan Sparepart:** Bedakan dan jelaskan kepada pelanggan antara komponen OEM/asli pabrikan dan komponen *aftermarket* berkualitas sebelum memasang, tunjukkan suku cadang bekas yang diganti agar transparansi terjaga.
 - **Tata Ruang & Kenyamanan Ruang Tunggu:** Pisahkan area kerja servis (pit mekanik beralas tahan oli dengan sirkulasi udara baik), rak penyimpanan sparepart tertata rapi, dan area tunggu pelanggan yang bersih serta sejuk.
 
 ## 3. Pengelolaan Stok & Supplier
@@ -68,5 +68,5 @@ SOP harian menjaga kecepatan servis dan menghindari kehilangan peralatan:
 Sumber: [Pegadaian - Memulai Usaha Bengkel Motor](https://pegadaian.co.id/artikel/wirausaha/cara-memulai-usaha-bengkel-motor-dan-sparepart), [KelolaBengkel - Inventori Sparepart Bengkel](https://kelolabengkel.id/blog/cara-mengelola-inventori-sparepart-bengkel-dengan-efektif)
 
 Pertumbuhan bengkel ditopang oleh loyalitas servis ulang setiap 1–2 bulan:
-- **Pengingat Servis Berkala (Reminder):** Catat nomor WhatsApp dan tanggal ganti oli pelanggan; kirim pengingat sopan saat perkiraan waktu servis berikutnya (sekitar 1,5–2 bulan atau kelipatan jarak tempuh) disertai info pengecekan gratis angin ban atau rem.
+- **Pengingat Servis Berkala (Reminder):** Catat nomor WhatsApp dan tanggal ganti oli pelanggan, kirim pengingat sopan saat perkiraan waktu servis berikutnya (sekitar 1,5–2 bulan atau kelipatan jarak tempuh) disertai info pengecekan gratis angin ban atau rem.
 - **Paket Hari Sepi & Promo Komunitas:** Berikan diskon jasa ringan di hari kerja jam 09.00–14.00 untuk komunitas ojek daring atau karyawan perkantoran sekitar agar pit mekanik tetap terisi merata sepanjang pekan. Terkait skema program garansi servis lanjutan atau integrasi aplikasi *loyalty* khusus bengkel berbayar, **belum ada referensi terverifikasi** dalam panduan ini.

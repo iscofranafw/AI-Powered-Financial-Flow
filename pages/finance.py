@@ -37,11 +37,11 @@ def render_ai_pending_queue(token, *, auto_retry=True):
             st.session_state[key] = time.monotonic()
             if diagnosis()['ok']:
                 result = retry_pending_ai_classifications(token, limit=20 if requested else 3)
-                st.info(f"AI: {result['processed']} diproses; {result['remaining']} masih menunggu.")
+                st.info(f"AI: {result['processed']} diproses, {result['remaining']} masih menunggu.")
                 if result['errors']:
                     st.warning(result['errors'][0])
             elif requested:
-                st.warning('Jalankan Ollama llama3:8b; antrean tetap tersimpan.')
+                st.warning('Jalankan Ollama llama3:8b, antrean tetap tersimpan.')
     except Exception as exc:
         st.warning(f'Antrean AI belum dapat diproses: {exc}')
 
@@ -113,7 +113,7 @@ def _render_others_reclassification_panel(token, cats, key_prefix='cat'):
                 except Exception as exc:
                     st.error(f'Gagal menerapkan klasifikasi ulang: {exc}')
         elif not updates:
-            st.info('Tidak ada transaksi Others yang mencapai keyakinan cukup; lengkapi kata kunci kategori terlebih dahulu.')
+            st.info('Tidak ada transaksi Others yang mencapai keyakinan cukup, lengkapi kata kunci kategori terlebih dahulu.')
         if c_cancel.button('Tutup Pratinjau', key=f'{key_prefix}_btn_cancel_others'):
             st.session_state.pop('others_reclass_preview', None)
             st.rerun()

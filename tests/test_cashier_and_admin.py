@@ -7,13 +7,13 @@ from services.auth_service import AccessError
 
 def test_create_cashier_input_validations():
     with patch('services.cashier_service.verify_actor', return_value={'id': 'o1', 'role': 'pemilik_toko', 'toko_id': 's1'}):
-        with pytest.raises(ValueError, match='Nama/email wajib; password minimal 8 karakter'):
+        with pytest.raises(ValueError, match='Nama/email wajib, password minimal 8 karakter'):
             create_cashier('tok', '', 'kasir@toko.com', 'password123')
 
-        with pytest.raises(ValueError, match='Nama/email wajib; password minimal 8 karakter'):
+        with pytest.raises(ValueError, match='Nama/email wajib, password minimal 8 karakter'):
             create_cashier('tok', 'Budi', 'kasirtokocom', 'password123')
 
-        with pytest.raises(ValueError, match='Nama/email wajib; password minimal 8 karakter'):
+        with pytest.raises(ValueError, match='Nama/email wajib, password minimal 8 karakter'):
             create_cashier('tok', 'Budi', 'kasir@toko.com', 'short')
 
 

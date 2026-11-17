@@ -105,14 +105,14 @@ def render(token: str):
             result = st.session_state.get('csv_import_result') or {}
             saved = result.get('session_imported', result.get('total_imported'))
             detail = f" {saved:,} transaksi terkonfirmasi tersimpan dalam sesi ini." if saved is not None else ''
-            st.warning('Berkas dilepas setelah penyimpanan akhir dimulai; ini tidak membatalkan data yang sudah tersimpan.' + detail + ' Periksa daftar transaksi dan kategori toko untuk hasilnya.')
+            st.warning('Berkas dilepas setelah penyimpanan akhir dimulai, ini tidak membatalkan data yang sudah tersimpan.' + detail + ' Periksa daftar transaksi dan kategori toko untuk hasilnya.')
             return
         # Clear upload-related session state when file is removed
         discard_draft(st.session_state, reset_upload=False)
         return
 
     if st.session_state.get('csv_commit_started'):
-        st.warning('Penyimpanan akhir telah dimulai. Data yang sudah tersimpan tidak dibatalkan. Periksa ringkasan di bawah; kegagalan dapat dicoba ulang dengan ID impor yang sama.')
+        st.warning('Penyimpanan akhir telah dimulai. Data yang sudah tersimpan tidak dibatalkan. Periksa ringkasan di bawah, kegagalan dapat dicoba ulang dengan ID impor yang sama.')
     else:
         st.button('Batal Impor', key='btn_cancel_import', on_click=discard_draft, args=(st.session_state,))
 
@@ -552,7 +552,7 @@ def render(token: str):
         f"({len(all_reviewed_exp)} pengeluaran, {len(all_reviewed_inc)} pemasukan) + kategori toko aktif (<strong>{len(existing_store_cats)}</strong>).<br>"
         f"<small style='color:#334155;'><strong>Pengeluaran Diizinkan ({len(preview_allowed_exp)}):</strong> {', '.join(preview_allowed_exp)}</small><br>"
         f"<small style='color:#334155;'><strong>Pemasukan Diizinkan ({len(preview_allowed_inc)}):</strong> {', '.join(preview_allowed_inc)}</small><br>"
-        f"<small style='color:#64748B;'>Klasifikasi otomatis hanya boleh memilih dari daftar kategori ini; transaksi di luar daftar atau keyakinan &lt; 70 masuk antrean tinjauan / Others tanpa membuat kategori liar.</small>"
+        f"<small style='color:#64748B;'>Klasifikasi otomatis hanya boleh memilih dari daftar kategori ini, transaksi di luar daftar atau keyakinan &lt; 70 masuk antrean tinjauan / Others tanpa membuat kategori liar.</small>"
         f"</div>",
         unsafe_allow_html=True,
     )
@@ -585,7 +585,7 @@ def render(token: str):
         rows_to_import, existing_store_cats, all_reviewed_exp + all_reviewed_inc,
     )
     for missing_type in missing_types:
-        st.error(f'Belum ada kategori {missing_type}. Tambahkan minimal 1 kategori {missing_type} sebelum lanjut; semua transaksi jenis ini akan masuk Perlu Tinjauan bila kategori belum tersedia.')
+        st.error(f'Belum ada kategori {missing_type}. Tambahkan minimal 1 kategori {missing_type} sebelum lanjut, semua transaksi jenis ini akan masuk Perlu Tinjauan bila kategori belum tersedia.')
 
     btn_approve = st.button(
         'Setujui Kategori & Lanjutkan',
@@ -762,7 +762,7 @@ def render(token: str):
     # Preview classified transactions
     st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
     for missing_type in missing_allowed_types(suggested):
-        st.warning(f'Toko ini belum punya kategori {missing_type}. Transaksi menunggu kategori dibuat; tambahkan kategori lalu klasifikasi ulang.')
+        st.warning(f'Toko ini belum punya kategori {missing_type}. Transaksi menunggu kategori dibuat, tambahkan kategori lalu klasifikasi ulang.')
     st.caption('Pratinjau transaksi hasil klasifikasi:')
     preview_data = [
         {
@@ -864,13 +864,13 @@ def render(token: str):
             st.rerun()
 
         except Exception as exc:
-            st.error(f'Penyimpanan database gagal: {exc}. Kategori/kata kunci yang sudah tersimpan tetap ada; transaksi batch yang sudah dikonfirmasi database juga tetap tersimpan. Ini bukan pembatalan. Coba lagi dengan tombol simpan (ID impor tetap sama).')
+            st.error(f'Penyimpanan database gagal: {exc}. Kategori/kata kunci yang sudah tersimpan tetap ada, transaksi batch yang sudah dikonfirmasi database juga tetap tersimpan. Ini bukan pembatalan. Coba lagi dengan tombol simpan (ID impor tetap sama).')
             try:
                 before_ids = set(st.session_state['csv_categories_before_commit'])
                 persisted_new = [c['nama'] for c in finance.list_categories(token) if c['id'] not in before_ids]
                 st.warning(f"Kategori baru yang sudah tersimpan: {len(persisted_new)} — {', '.join(persisted_new) or 'tidak ada'}. Perubahan kata kunci yang sudah berhasil juga tetap tersimpan.")
             except Exception:
-                st.warning('Audit kategori belum dapat dibaca; periksa Kelola Kategori sebelum mencoba lagi.')
+                st.warning('Audit kategori belum dapat dibaca, periksa Kelola Kategori sebelum mencoba lagi.')
 
     # ----------------------------------------------------
     # TAHAP 7 — Ringkasan Penyelesaian (Completion Summary)

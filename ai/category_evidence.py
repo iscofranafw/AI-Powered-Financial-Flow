@@ -248,5 +248,5 @@ def compile_keyword_plan(categories, evidence_rows, business_type='Umum', prefer
         cat['kata_kunci'] = cleaned[:20]
         cat['contoh'] = samples[cid]
         if not cleaned and not cat.get('bukan_operasional'):
-            warnings.append(f"Kategori {cat['nama']} belum mempunyai kata kunci unik; isi atau tinjau melalui Kelola Kategori.")
+            warnings.append(f"Kategori {cat['nama']} belum mempunyai kata kunci unik, isi atau tinjau melalui Kelola Kategori.")
     return {'categories': cats, 'audit': audit, 'warnings': warnings}

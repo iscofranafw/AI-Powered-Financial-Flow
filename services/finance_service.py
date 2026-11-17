@@ -196,7 +196,7 @@ def delete_category(token,category_id):
  a=_owner(token);shop=a['toko_id'];old=category_by_id(shop,category_id)
  if not old: raise ValueError('Kategori tidak ditemukan')
  if old['sistem'] or old['bukan_operasional']: raise ValueError('Kategori terlindungi')
- if privileged_client().table('transaksi').select('id').eq('toko_id',shop).eq('kategori_id',category_id).limit(1).execute().data: raise ValueError('Kategori sudah dipakai; gunakan gabung kategori')
+ if privileged_client().table('transaksi').select('id').eq('toko_id',shop).eq('kategori_id',category_id).limit(1).execute().data: raise ValueError('Kategori sudah dipakai, gunakan gabung kategori')
  privileged_client().table('kategori').delete().eq('id',category_id).eq('toko_id',shop).execute()
  _invalidate_classification_state(shop, old.get('tipe'), rebuild_index=True)
 

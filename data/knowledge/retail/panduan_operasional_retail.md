@@ -28,7 +28,7 @@ Salah satu penyebab kebocoran kas terbesar di toko ritel dan grosir adalah baran
 - **FIFO & FEFO Wajib di Gudang dan Rak:** Setiap restok barang masuk ditempatkan di bagian belakang atau bawah rak sehingga stok lama terjual lebih dulu.
 - **Waspadai Jebakan Overstock Harga Grosir:** Diskon besar dari distributor untuk pembelian jumlah raksasa tampak menguntungkan di kertas, namun berisiko melumpuhkan uang kas (*dead stock*) atau memicu barang kedaluwarsa bila produk tersebut bukan kategori *fast moving*.
 - **Stock Opname Terjadwal & Kontrol Shrinkage:** Lakukan stock opname berkala (tiap pekan untuk produk *fast moving*/nilai tinggi seperti rokok & sembako utama, dan tiap bulan/kuartal per kategori) untuk mendeteksi selisih fisik vs catatan sistem akibat barang hilang, salah input varian satuan (pcs vs dus), atau rusak.
-- **Pemetaan Distributor Resmi vs Agen:** Untuk kebutuhan retail kecil, belanja ke agen grosir terpercaya mempercepat perputaran; untuk toko grosir besar, utamakan kontrak langsung distributor utama dengan syarat jatuh tempo (TOP) yang terkontrol.
+- **Pemetaan Distributor Resmi vs Agen:** Untuk kebutuhan retail kecil, belanja ke agen grosir terpercaya mempercepat perputaran, untuk toko grosir besar, utamakan kontrak langsung distributor utama dengan syarat jatuh tempo (TOP) yang terkontrol.
 
 ## 4. HPP, Harga Jual & Margin
 Sumber: [Program iPos - Usaha Toko Sembako](https://www.programipos.co.id/blog/usaha-toko-sembako/), [Mekari POS - Bisnis Retail](https://pos.mekari.com/blog/bisnis-retail-adalah)
@@ -42,7 +42,7 @@ Penentuan harga wajib menyesuaikan model eceran maupun grosir serta fluktuasi ha
 Sumber: [Mekari POS - Bisnis Retail](https://pos.mekari.com/blog/bisnis-retail-adalah), [Program iPos - Usaha Toko Sembako](https://www.programipos.co.id/blog/usaha-toko-sembako/)
 
 Kontrol arus kas toko sembako dan grosir menuntut ketelitian terhadap uang kulakan dan piutang:
-- **Pisahkan Omzet dari Laba:** Tingginya uang masuk di toko kelontong/grosir sebagian besar merupakan perputaran modal kulakan, bukan laba bersih. Pisahkan rekening kas harian toko dan rekening pribadi pemilik; tetapkan penarikan gaji pemilik yang tetap.
+- **Pisahkan Omzet dari Laba:** Tingginya uang masuk di toko kelontong/grosir sebagian besar merupakan perputaran modal kulakan, bukan laba bersih. Pisahkan rekening kas harian toko dan rekening pribadi pemilik, tetapkan penarikan gaji pemilik yang tetap.
 - **Kontrol Utang Distributor & Piutang Pelanggan Grosir:** Untuk model **grosir**, penjualan tempo kepada warung langganan wajib dibatasi plafon piutang dan tanggal jatuh tempo per pelanggan agar toko tidak kehabisan kas saat harus membayar faktur distributor.
 - **Klasifikasi Pengeluaran Kas:** Pisahkan pembayaran kulakan barang dagangan, ongkos kuli angkut/ekspedisi, beban listrik (terutama freezer/showcase minuman), kantong plastik/kemasan, dan gaji karyawan saat mencatat transaksi keuangan harian.
 
@@ -51,7 +51,7 @@ Sumber: [IZIN.co.id - Daftar OSS UMKM](https://izin.co.id/blog/cara-daftar-oss-u
 
 Perizinan membantu toko retail maupun grosir bekerja sama dengan distributor resmi dan perbankan:
 - **NIB (Nomor Induk Berusaha) OSS-RBA:** Daftar melalui [oss.go.id](https://oss.go.id) dengan memilih KBLI yang sesuai (perdagangan eceran berbagai macam barang yang utamanya makanan/minuman/tembakau untuk kelontong/minimarket, atau perdagangan besar/grosir untuk agen). Proses NIB bagi UMK berisiko rendah bersifat gratis secara online.
-- **Izin Khusus Barang Terkendali / B2B Pajak:** Bila usaha grosir sudah mencapai batas omzet Pengusaha Kena Pajak (PKP) sesuai ketentuan perpajakan atau memperdagangkan barang tertentu (seperti agen resmi LPG 3 kg/distributor), berlaku perizinan sektoral tambahan; subtopik persyaratan kuota agen resmi komoditas bersubsidi **belum ada referensi terverifikasi** dalam korpus ini.
+- **Izin Khusus Barang Terkendali / B2B Pajak:** Bila usaha grosir sudah mencapai batas omzet Pengusaha Kena Pajak (PKP) sesuai ketentuan perpajakan atau memperdagangkan barang tertentu (seperti agen resmi LPG 3 kg/distributor), berlaku perizinan sektoral tambahan, subtopik persyaratan kuota agen resmi komoditas bersubsidi **belum ada referensi terverifikasi** dalam korpus ini.
 
 ## 7. Operasional Harian & SOP Singkat
 Sumber: [FolioPOS - Manajemen Stok Toko Ritel](https://www.foliopos.com/blog/detail/dari-berantakan-jadi-rapi-panduan-mengelola-stok-toko-ritel), [Raja Rak - Manajemen Toko Kelontong](https://www.rajarak.co.id/2023/07/manajemen-toko-kelontong.html)
@@ -67,4 +67,4 @@ Sumber: [Mekari POS - Bisnis Retail](https://pos.mekari.com/blog/bisnis-retail-a
 Langkah pengembangan yang realistis untuk retail dan grosir lokal:
 - **Layanan Pesan Antar Warga & WhatsApp Order:** Berikan layanan kirim cepat gratis dengan minimum belanja bagi warga komplek atau warung kecil di sekitar toko agar pelanggan malas pindah ke pesaing.
 - **Paket Bundling Kebutuhan Bulanan (Sembako):** Jual paket hemat bulanan berisi beras + minyak + gula + mie dengan harga bundel menarik untuk pelanggan keluarga, atau paket kulakan perdana untuk pelanggan warung baru pada segmen grosir.
-- **Penambahan Layanan Digital Ringan:** Penjualan pulsa, token listrik, atau pembayaran tagihan di kasir dapat menambah kunjungan pelanggan; terkait rincian teknis margin PPOB antar-provider, **belum ada referensi terverifikasi** dalam korpus ini.
+- **Penambahan Layanan Digital Ringan:** Penjualan pulsa, token listrik, atau pembayaran tagihan di kasir dapat menambah kunjungan pelanggan, terkait rincian teknis margin PPOB antar-provider, **belum ada referensi terverifikasi** dalam korpus ini.

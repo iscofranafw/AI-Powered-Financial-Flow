@@ -85,7 +85,7 @@ def preview_csv(content: bytes, max_rows: int = MAX_IMPORT_ROW_LIMIT) -> List[Di
     # For legacy compliance, if standard headers are not present and cannot map mandatory fields, raise ValueError
     if not has_standard_headers:
         if not mappings.get('tanggal') or not mappings.get('deskripsi') or not mappings.get('nominal'):
-            raise ValueError('Kolom wajib: tanggal, deskripsi, nominal; opsional: tipe')
+            raise ValueError('Kolom wajib: tanggal, deskripsi, nominal, opsional: tipe')
 
     valid_rows, rejected_rows = parse_and_validate_dataframe(
         df=df,

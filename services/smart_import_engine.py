@@ -769,7 +769,7 @@ def execute_scalable_import(
             invalidate_forecast_cache(shop_id)
         except Exception as exc:
             logger.warning('Forecast cache invalidation failed after import for shop %s; keeping committed count %s: %s', shop_id, total_imported, exc)
-            cleanup_warnings.append('Forecast cache invalidation failed; imported rows remain committed.')
+            cleanup_warnings.append('Forecast cache invalidation failed, imported rows remain committed.')
 
     # Audit count after import
     count_after = count_before + total_imported

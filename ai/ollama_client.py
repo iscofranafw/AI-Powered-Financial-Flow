@@ -63,7 +63,7 @@ def diagnosis():
         return {
             'ok': matched,
             'models': names,
-            'message': 'Siap' if matched else f'Model {wanted} tidak ditemukan; jalankan ollama pull {wanted}'
+            'message': 'Siap' if matched else f'Model {wanted} tidak ditemukan, jalankan ollama pull {wanted}'
         }
     except Exception as exc:
         _record_failure()

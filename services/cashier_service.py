@@ -11,7 +11,7 @@ def create_cashier(token, nama, email, password):
     owner = verify_actor(token, {'pemilik_toko'})
     nama, email = nama.strip(), email.strip().lower()
     if not nama or not email or '@' not in email or len(password) < 8:
-        raise ValueError('Nama/email wajib; password minimal 8 karakter')
+        raise ValueError('Nama/email wajib, password minimal 8 karakter')
     admin = privileged_client()
     ticket = secrets.token_urlsafe(48)
     token_hash = hashlib.sha256(ticket.encode()).hexdigest()

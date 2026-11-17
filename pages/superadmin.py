@@ -86,7 +86,7 @@ def render(token):
                             if st.button("Hapus", key=f"owner_delete_{owner['id']}", use_container_width=True):
                                 st.session_state["shop_deletion_target"] = dict(owner)
                     if pending_cleanup:
-                        col_info.warning("Pembersihan belum selesai; tekan Hapus untuk melanjutkan.")
+                        col_info.warning("Pembersihan belum selesai, tekan Hapus untuk melanjutkan.")
                     st.markdown("<hr style='margin: 0.75rem 0;'>", unsafe_allow_html=True)
         else:
             st.info("Tidak ada akun pemilik toko yang perlu ditinjau.")

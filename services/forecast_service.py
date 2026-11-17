@@ -588,7 +588,7 @@ def evaluate_forecast_candidates_df(
         target_status = "target <20% belum dapat dihitung (periode uji tanpa pengeluaran aktif)"
     elif n_nonzero < 5:
         target_status = (
-            f"target <20% belum dapat disimpulkan (hanya {n_nonzero} hari aktif dari {eff_test} hari uji; "
+            f"target <20% belum dapat disimpulkan (hanya {n_nonzero} hari aktif dari {eff_test} hari uji, "
             f"MAPE terbaik {best_mape:.2f}%)"
         )
     elif best_mape < TARGET_MAPE_THRESHOLD:

@@ -969,7 +969,7 @@ def test_import_optional_failures_log_warnings_and_preserve_committed_rows(caplo
     assert result['failed_count'] == 0
     assert result['completion_status'] == 'completed'
     assert result['count_before'] == 0 and result['count_after'] == 1
-    assert result['warnings'] == ['Forecast cache invalidation failed; imported rows remain committed.']
+    assert result['warnings'] == ['Forecast cache invalidation failed, imported rows remain committed.']
     validate.assert_called_once_with('shop', 'cat-1', 'pemasukan')
     for phrase in ('Duplicate preflight unavailable', 'Pre-import count unavailable',
                    'Category prefetch failed', 'Forecast cache invalidation failed',

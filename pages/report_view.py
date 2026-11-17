@@ -147,10 +147,10 @@ def render(token):
                                     for bill in detail['tagihan']:
                                         st.write(f"{bill['nama']} — nominal berdasarkan riwayat: {format_rupiah(bill['nominal'])}")
                                         st.caption(bill['sumber'])
-                                st.caption('Sumber jadwal: deteksi pengeluaran rutin dari riwayat toko. Jadwal ini terpisah dari estimasi total; model tidak menghasilkan rincian item belanja harian.')
+                                st.caption('Sumber jadwal: deteksi pengeluaran rutin dari riwayat toko. Jadwal ini terpisah dari estimasi total, model tidak menghasilkan rincian item belanja harian.')
 
                         section_header('Kalender Tagihan')
-                        st.caption('Tanggal berasal dari pola riwayat toko, bukan jadwal resmi penyedia tagihan. Nominal berdasarkan riwayat; total harian tetap estimasi model dan tidak ditambah tagihan di kalender.')
+                        st.caption('Tanggal berasal dari pola riwayat toko, bukan jadwal resmi penyedia tagihan. Nominal berdasarkan riwayat, total harian tetap estimasi model dan tidak ditambah tagihan di kalender.')
                         if bill_calendar:
                             st.dataframe(pd.DataFrame([{
                                 'Tanggal': bill['tanggal'], 'Tagihan': bill['nama'],

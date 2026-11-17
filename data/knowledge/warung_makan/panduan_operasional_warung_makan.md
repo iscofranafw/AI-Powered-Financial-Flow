@@ -16,7 +16,7 @@ Sumber: [Mekari POS - Strategi Bisnis Kuliner](https://pos.mekari.com/blog/strat
 Kualitas masakan dan konsistensi rasa menjaga pelanggan kembali setiap minggu:
 - **Menu Inti Terfokus (*Core Menu*):** Batasi menu harian pada 6–12 lauk atau paket andalan yang memakai bahan baku saling beririsan (misalnya ayam, tempe/tahu, sambal dasar, sayuran utama). Terlalu banyak menu unik dengan bahan terpisah akan memperbesar risiko bahan busuk.
 - **Resep & Takaran Baku:** Gunakan sendok takar, mangkuk porsi, dan bumbu dasar (*base paste*) yang ditimbang agar rasa masakan tetap sama walau juru masak berganti shift.
-- **Kebersihan Area Penyajian & Dapur:** Jaga suhu makanan matang di etalase tetap higienis dan tertutup dari lalat/debu; pisahkan talenan bahan mentah (daging/ikan) dan bahan siap makan (lalapan/sambal) untuk mencegah kontaminasi silang.
+- **Kebersihan Area Penyajian & Dapur:** Jaga suhu makanan matang di etalase tetap higienis dan tertutup dari lalat/debu, pisahkan talenan bahan mentah (daging/ikan) dan bahan siap makan (lalapan/sambal) untuk mencegah kontaminasi silang.
 
 ## 3. Pengelolaan Stok & Supplier
 Sumber: [Mekari Jurnal - Cara Menghitung HPP Makanan & Food Cost](https://www.jurnal.id/id/blog/contoh-cara-menghitung-hpp-makanan-juga-food-cost-adalah-berikut/), [Mekari POS - Strategi Bisnis Kuliner](https://pos.mekari.com/blog/strategi-bisnis-kuliner)
@@ -25,7 +25,7 @@ Pengelolaan stok dapur warung makan membedakan bahan segar dan bahan tahan lama:
 - **Pemisahan Bahan Basah & Bahan Kering:**
   - **Bahan Basah / Segar (Belanja Harian/2 Harian):** Ayam, daging, ikan, sayuran hijau, santan segar, cabai. Terapkan tingkat *par stock* (batas aman harian) mengikuti rata-rata porsi terjual agar kulkas tidak penuh dengan bahan layu.
   - **Bahan Kering & Bumbu Tahan Lama (Belanja Mingguan/Bulanan):** Beras, minyak goreng, kecap, garam, gula, bawang kering, kemasan cup/kotak makan.
-- **Prinsip FIFO di Kulkas & Gudang Kering:** Bahan yang datang lebih dulu diletakkan di depan agar dimasak lebih awal; simpan bahan segar di wadah berlabel tanggal pembelian.
+- **Prinsip FIFO di Kulkas & Gudang Kering:** Bahan yang datang lebih dulu diletakkan di depan agar dimasak lebih awal, simpan bahan segar di wadah berlabel tanggal pembelian.
 - **Pencatatan Pemasok Pasar & Grosir:** Bandingkan harga dua hingga tiga pemasok pasar/grosir secara berkala untuk protein utama dan cabai yang sangat fluktuatif, serta catat pembelian tunai pasar harian di buku kas kecil supaya tidak terlewat.
 
 ## 4. HPP, Harga Jual & Margin
@@ -51,7 +51,7 @@ Sumber: [IZIN.co.id - Daftar OSS UMKM](https://izin.co.id/blog/cara-daftar-oss-u
 
 Legalitas membantu warung makan mengikuti pengadaan makan kantor/pemerintah dan meningkatkan kepercayaan pelanggan:
 - **NIB via OSS-RBA:** Urus Nomor Induk Berusaha secara mandiri dan gratis melalui portal resmi [oss.go.id](https://oss.go.id) dengan KBLI rumah makan/warung makan/kedai makanan serta data lokasi usaha.
-- **Sertifikasi Halal BPJPH:** Warung makan dengan bahan baku daging ayam/sapi atau produk hewani olahan perlu memperhatikan kejelasan sumber RPH/supplier bersertifikat halal. Skema sertifikasi halal UMKM dapat diajukan melalui SiHalal (`ptsp.halal.go.id`) setelah NIB terbit (jalur *Self-Declare* berlaku jika memenuhi kriteria bahan non-kritis dan proses sederhana; penyembelihan/olahan daging hewani umumnya mengikuti persyaratan sertifikasi reguler).
+- **Sertifikasi Halal BPJPH:** Warung makan dengan bahan baku daging ayam/sapi atau produk hewani olahan perlu memperhatikan kejelasan sumber RPH/supplier bersertifikat halal. Skema sertifikasi halal UMKM dapat diajukan melalui SiHalal (`ptsp.halal.go.id`) setelah NIB terbit (jalur *Self-Declare* berlaku jika memenuhi kriteria bahan non-kritis dan proses sederhana, penyembelihan/olahan daging hewani umumnya mengikuti persyaratan sertifikasi reguler).
 - **Laik Higiene Sanitasi Jasaboga/Rumah Makan:** Untuk keperluan katering instansi atau sertifikat laik higiene dinas kesehatan setempat, **belum ada referensi terverifikasi** pada korpus panduan ini terkait rincian dokumen SLHS daerah per kabupaten/kota.
 
 ## 7. Operasional Harian & SOP Singkat

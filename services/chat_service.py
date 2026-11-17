@@ -333,7 +333,7 @@ def _handle_cashier_activity(token, raw_text, actor):
             lines.append(
                 f"Kasir yang paling aktif pada periode **{period_label}** adalah **{most_active['nama']}** "
                 f"dengan mencatat **{m_stats['total']} transaksi** "
-                f"(total nilai **{format_rupiah(m_stats['nominal'])}**; "
+                f"(total nilai **{format_rupiah(m_stats['nominal'])}**, "
                 f"{m_stats['disetujui']} disetujui, {m_stats['pending']} menunggu persetujuan).\n"
             )
         else:

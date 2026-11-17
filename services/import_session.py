@@ -88,7 +88,7 @@ def materialize_categories(token, staged):
                     description=cat.get('deskripsi', ''), keywords=cat.get('kata_kunci', []),
                     system_seed=bool(cat.get('sistem') or cat.get('bukan_operasional')))
             if not isinstance(result, list) or not result or not result[0].get('id'):
-                raise RuntimeError('Database tidak mengembalikan ID kategori tersimpan; periksa ringkasan sebelum mencoba lagi.')
+                raise RuntimeError('Database tidak mengembalikan ID kategori tersimpan, periksa ringkasan sebelum mencoba lagi.')
             real = result[0]
             by_key[key] = real
             created += 1

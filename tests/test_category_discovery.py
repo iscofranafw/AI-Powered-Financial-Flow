@@ -249,7 +249,7 @@ def test_category_deletion_prevented_when_used_by_transactions():
          patch('services.finance_service.category_by_id', return_value={'id': 'c_exp_stok', 'nama': 'Stok', 'sistem': False, 'bukan_operasional': False}), \
          patch('services.finance_service.privileged_client', return_value=mock_p):
 
-        with pytest.raises(ValueError, match='Kategori sudah dipakai; gunakan gabung kategori'):
+        with pytest.raises(ValueError, match='Kategori sudah dipakai, gunakan gabung kategori'):
             finance_service.delete_category('tok', 'c_exp_stok')
 
 

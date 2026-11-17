@@ -7,8 +7,8 @@ Sumber: [Mekari POS - Bisnis Retail](https://pos.mekari.com/blog/bisnis-retail-a
 
 Setiap usaha UMKM perlu memetakan dua komponen inti sejak awal:
 - **Sifat Transaksi Utama (Barang vs Jasa vs Campuran):**
-  - **Usaha Dagang / Produk Fisik:** Membeli atau memproduksi barang lalu menjual kembali kepada pembeli eceran atau reseller; fokus utama terletak pada perputaran modal persediaan.
-  - **Usaha Jasa:** Menjual waktu, keahlian, atau penggunaan alat (seperti laundry, barbershop, jahit, percetakan); fokus utama terletak pada kapasitas jam kerja, utilisasi alat, dan kualitas hasil layanan.
+  - **Usaha Dagang / Produk Fisik:** Membeli atau memproduksi barang lalu menjual kembali kepada pembeli eceran atau reseller, fokus utama terletak pada perputaran modal persediaan.
+  - **Usaha Jasa:** Menjual waktu, keahlian, atau penggunaan alat (seperti laundry, barbershop, jahit, percetakan), fokus utama terletak pada kapasitas jam kerja, utilisasi alat, dan kualitas hasil layanan.
 - **Segmentasi Pelanggan & Jam Ramai:** Catat kelompok pembeli terbanyak (individu sekitar, pelanggan kantoran, atau pesanan B2B) serta jam dan hari paling ramai supaya jadwal tenaga kerja dan pengadaan perlengkapan lebih efisien.
 
 ## 2. Produk/Jasa Utama & Standar Kualitas
@@ -31,7 +31,7 @@ Sumber: [Mekari Jurnal - Cara Menghitung HPP Makanan & Food Cost](https://www.ju
 
 Prinsip dasar penetapan harga berlaku lintas bidang usaha UMKM:
 - **Hitung Seluruh Komponen Biaya Langsung (HPP):** Masukkan harga beli barang/bahan utama, kemasan, ongkos kirim/angkut pembelian, bahan habis pakai, serta biaya produksi langsung (seperti listrik/air khusus pengerjaan atau upah borongan per unit).
-- **Pisahkan Biaya Tetap (*Overhead*):** Sewa ruko, gaji tetap bulanan, internet, dan penyusutan peralatan dibayar dari total margin kotor semua transaksi; pastikan harga jual memiliki cukup ruang margin di atas HPP untuk menutup biaya tetap bulanan dan menyisakan laba bersih.
+- **Pisahkan Biaya Tetap (*Overhead*):** Sewa ruko, gaji tetap bulanan, internet, dan penyusutan peralatan dibayar dari total margin kotor semua transaksi, pastikan harga jual memiliki cukup ruang margin di atas HPP untuk menutup biaya tetap bulanan dan menyisakan laba bersih.
 - **Evaluasi Berkala Saat Biaya Pemasok Naik:** Tinju ulang daftar harga setidaknya tiap 3 bulan atau saat harga bahan utama maupun ongkos logistik mengalami kenaikan signifikan.
 
 ## 5. Pencatatan Keuangan & Cash Flow Harian

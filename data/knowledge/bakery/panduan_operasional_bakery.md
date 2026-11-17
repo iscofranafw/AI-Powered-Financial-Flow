@@ -40,7 +40,7 @@ Perhitungan biaya produksi bakery perlu mencakup komponen bahan hingga energi ag
   $$\text{HPP per unit} = \frac{\text{Biaya Bahan Baku + Kemasan + Gas/Listrik Produksi + Upah Produksi Langsung}}{\text{Jumlah Roti Layak Jual per Batch}}$$
   Pastikan unit gagal/susut panggang (*shrinkage*) dan sampel display dihitung ke dalam pembagi agar biaya per potong realistis.
 - **Penetapan Harga Jual & Waste Roti Sisa:** Untuk produk roti harian tanpa pengawet, perhitungkan tingkat susut/diskon akhir hari ke dalam struktur margin kotor. Diskon roti sore (misal 2–3 jam sebelum tutup) sering kali lebih sehat bagi arus kas daripada membuang stok 0 rupiah di akhir hari.
-- **Evaluasi Kenaikan Bahan Baku:** Lakukan peninjauan biaya resep per bulan terutama untuk telur, cokelat, dan mentega yang fluktuatif; sesuaikan ukuran, bundling menu, atau harga jual bila margin kotor tergerus.
+- **Evaluasi Kenaikan Bahan Baku:** Lakukan peninjauan biaya resep per bulan terutama untuk telur, cokelat, dan mentega yang fluktuatif, sesuaikan ukuran, bundling menu, atau harga jual bila margin kotor tergerus.
 
 ## 5. Pencatatan Keuangan & Cash Flow Harian
 Sumber: [Mekari POS - Bisnis Bakery](https://pos.mekari.com/blog/bisnis-bakery)
@@ -56,7 +56,7 @@ Sumber: [IZIN.co.id - Daftar OSS UMKM](https://izin.co.id/blog/cara-daftar-oss-u
 Aspek legalitas penting untuk membuka akses ritel modern, pengadaan kantor, dan pembiayaan:
 - **NIB (Nomor Induk Berusaha):** Wajib didaftarkan melalui sistem OSS-RBA ([oss.go.id](https://oss.go.id)) menggunakan NIK KTP, NPWP, rincian KBLI usaha roti/kue, serta lokasi usaha. Untuk kategori UMK risiko rendah, NIB terbit langsung sebagai izin berusaha dasar.
 - **SPP-IRT (PIRT):** Produk olahan roti/kue kering yang dikemas dan memiliki daya simpan lebih dari 7 hari pada suhu ruang umumnya dapat mendaftarkan SPP-IRT melalui OSS/Dinas Kesehatan setempat dengan mengikuti penyuluhan keamanan pangan (PKP) dan pemenuhan label kemasan. Untuk produk roti basah dengan masa simpan di bawah 7 hari, ketentuan izin edar spesifik mengikuti regulasi pangan segar/siap saji BPOM atau dinas terkait — subtopik rincian izin BPOM MD spesifik tidak dibahas mendalam (**belum ada referensi terverifikasi** selain jalur PIRT & NIB).
-- **Sertifikasi Halal BPJPH:** UMKM bakery yang telah memiliki NIB dapat mengajukan sertifikasi halal melalui SiHalal (`ptsp.halal.go.id`). Skema **Self-Declare** tersedia melalui pendampingan PPH untuk bahan yang sudah jelas kehalalannya dan proses sederhana; bila memakai bahan kritis atau skala lebih kompleks, gunakan jalur reguler melalui LPH terakreditasi.
+- **Sertifikasi Halal BPJPH:** UMKM bakery yang telah memiliki NIB dapat mengajukan sertifikasi halal melalui SiHalal (`ptsp.halal.go.id`). Skema **Self-Declare** tersedia melalui pendampingan PPH untuk bahan yang sudah jelas kehalalannya dan proses sederhana, bila memakai bahan kritis atau skala lebih kompleks, gunakan jalur reguler melalui LPH terakreditasi.
 
 ## 7. Operasional Harian & SOP Singkat
 Sumber: [Mekari POS - Bisnis Bakery](https://pos.mekari.com/blog/bisnis-bakery), [NCSA Indonesia - Tips Usaha Toko Roti](https://ncsaindonesia.com/web/cara-memulai-buka-usaha-toko-roti-tips-ala-chef-profesional/)

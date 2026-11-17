@@ -1,6 +1,6 @@
 {
   "jenis_usaha": "warung_makan",
-  "built_at": "2026-11-11T14:17:11.995328+00:00",
+  "built_at": "2026-11-17T16:57:28.455351+00:00",
   "embedding_model": "paraphrase-multilingual-MiniLM-L12-v2",
   "embedding_dim": 384,
   "chunk_count": 13,
@@ -39,7 +39,7 @@
         "https://pos.mekari.com/blog/cara-menghitung-hpp-penjualan-makanan"
       ],
       "chunk_index": 0,
-      "text": "Kualitas masakan dan konsistensi rasa menjaga pelanggan kembali setiap minggu:\n- **Menu Inti Terfokus (*Core Menu*):** Batasi menu harian pada 6–12 lauk atau paket andalan yang memakai bahan baku saling beririsan (misalnya ayam, tempe/tahu, sambal dasar, sayuran utama). Terlalu banyak menu unik dengan bahan terpisah akan memperbesar risiko bahan busuk.\n- **Resep & Takaran Baku:** Gunakan sendok takar, mangkuk porsi, dan bumbu dasar (*base paste*) yang ditimbang agar rasa masakan tetap sama walau juru masak berganti shift.\n- **Kebersihan Area Penyajian & Dapur:** Jaga suhu makanan matang di etalase tetap higienis dan tertutup dari lalat/debu; pisahkan talenan bahan mentah (daging/ikan) dan bahan siap makan (lalapan/sambal) untuk mencegah kontaminasi silang."
+      "text": "Kualitas masakan dan konsistensi rasa menjaga pelanggan kembali setiap minggu:\n- **Menu Inti Terfokus (*Core Menu*):** Batasi menu harian pada 6–12 lauk atau paket andalan yang memakai bahan baku saling beririsan (misalnya ayam, tempe/tahu, sambal dasar, sayuran utama). Terlalu banyak menu unik dengan bahan terpisah akan memperbesar risiko bahan busuk.\n- **Resep & Takaran Baku:** Gunakan sendok takar, mangkuk porsi, dan bumbu dasar (*base paste*) yang ditimbang agar rasa masakan tetap sama walau juru masak berganti shift.\n- **Kebersihan Area Penyajian & Dapur:** Jaga suhu makanan matang di etalase tetap higienis dan tertutup dari lalat/debu, pisahkan talenan bahan mentah (daging/ikan) dan bahan siap makan (lalapan/sambal) untuk mencegah kontaminasi silang."
     },
     {
       "jenis_usaha": "warung_makan",
@@ -51,7 +51,7 @@
         "https://pos.mekari.com/blog/strategi-bisnis-kuliner"
       ],
       "chunk_index": 0,
-      "text": "Pengelolaan stok dapur warung makan membedakan bahan segar dan bahan tahan lama:\n- **Pemisahan Bahan Basah & Bahan Kering:**\n  - **Bahan Basah / Segar (Belanja Harian/2 Harian):** Ayam, daging, ikan, sayuran hijau, santan segar, cabai. Terapkan tingkat *par stock* (batas aman harian) mengikuti rata-rata porsi terjual agar kulkas tidak penuh dengan bahan layu. - **Bahan Kering & Bumbu Tahan Lama (Belanja Mingguan/Bulanan):** Beras, minyak goreng, kecap, garam, gula, bawang kering, kemasan cup/kotak makan. - **Prinsip FIFO di Kulkas & Gudang Kering:** Bahan yang datang lebih dulu diletakkan di depan agar dimasak lebih awal; simpan bahan segar di wadah berlabel tanggal pembelian."
+      "text": "Pengelolaan stok dapur warung makan membedakan bahan segar dan bahan tahan lama:\n- **Pemisahan Bahan Basah & Bahan Kering:**\n  - **Bahan Basah / Segar (Belanja Harian/2 Harian):** Ayam, daging, ikan, sayuran hijau, santan segar, cabai. Terapkan tingkat *par stock* (batas aman harian) mengikuti rata-rata porsi terjual agar kulkas tidak penuh dengan bahan layu. - **Bahan Kering & Bumbu Tahan Lama (Belanja Mingguan/Bulanan):** Beras, minyak goreng, kecap, garam, gula, bawang kering, kemasan cup/kotak makan. - **Prinsip FIFO di Kulkas & Gudang Kering:** Bahan yang datang lebih dulu diletakkan di depan agar dimasak lebih awal, simpan bahan segar di wadah berlabel tanggal pembelian."
     },
     {
       "jenis_usaha": "warung_makan",
@@ -63,7 +63,7 @@
         "https://pos.mekari.com/blog/strategi-bisnis-kuliner"
       ],
       "chunk_index": 1,
-      "text": "datang lebih dulu diletakkan di depan agar dimasak lebih awal; simpan bahan segar di wadah berlabel tanggal pembelian.\n\n- **Pencatatan Pemasok Pasar & Grosir:** Bandingkan harga dua hingga tiga pemasok pasar/grosir secara berkala untuk protein utama dan cabai yang sangat fluktuatif, serta catat pembelian tunai pasar harian di buku kas kecil supaya tidak terlewat."
+      "text": "datang lebih dulu diletakkan di depan agar dimasak lebih awal, simpan bahan segar di wadah berlabel tanggal pembelian.\n\n- **Pencatatan Pemasok Pasar & Grosir:** Bandingkan harga dua hingga tiga pemasok pasar/grosir secara berkala untuk protein utama dan cabai yang sangat fluktuatif, serta catat pembelian tunai pasar harian di buku kas kecil supaya tidak terlewat."
     },
     {
       "jenis_usaha": "warung_makan",
@@ -125,7 +125,7 @@
         "https://oss.go.id"
       ],
       "chunk_index": 0,
-      "text": "Legalitas membantu warung makan mengikuti pengadaan makan kantor/pemerintah dan meningkatkan kepercayaan pelanggan:\n- **NIB via OSS-RBA:** Urus Nomor Induk Berusaha secara mandiri dan gratis melalui portal resmi [oss.go.id](https://oss.go.id) dengan KBLI rumah makan/warung makan/kedai makanan serta data lokasi usaha. - **Sertifikasi Halal BPJPH:** Warung makan dengan bahan baku daging ayam/sapi atau produk hewani olahan perlu memperhatikan kejelasan sumber RPH/supplier bersertifikat halal. Skema sertifikasi halal UMKM dapat diajukan melalui SiHalal (`ptsp.halal.go.id`) setelah NIB terbit (jalur *Self-Declare* berlaku jika memenuhi kriteria bahan non-kritis dan proses sederhana; penyembelihan/olahan daging hewani umumnya mengikuti persyaratan sertifikasi reguler)."
+      "text": "Legalitas membantu warung makan mengikuti pengadaan makan kantor/pemerintah dan meningkatkan kepercayaan pelanggan:\n- **NIB via OSS-RBA:** Urus Nomor Induk Berusaha secara mandiri dan gratis melalui portal resmi [oss.go.id](https://oss.go.id) dengan KBLI rumah makan/warung makan/kedai makanan serta data lokasi usaha. - **Sertifikasi Halal BPJPH:** Warung makan dengan bahan baku daging ayam/sapi atau produk hewani olahan perlu memperhatikan kejelasan sumber RPH/supplier bersertifikat halal. Skema sertifikasi halal UMKM dapat diajukan melalui SiHalal (`ptsp.halal.go.id`) setelah NIB terbit (jalur *Self-Declare* berlaku jika memenuhi kriteria bahan non-kritis dan proses sederhana, penyembelihan/olahan daging hewani umumnya mengikuti persyaratan sertifikasi reguler)."
     },
     {
       "jenis_usaha": "warung_makan",
@@ -139,7 +139,7 @@
         "https://oss.go.id"
       ],
       "chunk_index": 1,
-      "text": "dan proses sederhana; penyembelihan/olahan daging hewani umumnya mengikuti persyaratan sertifikasi reguler).\n\n- **Laik Higiene Sanitasi Jasaboga/Rumah Makan:** Untuk keperluan katering instansi atau sertifikat laik higiene dinas kesehatan setempat, **belum ada referensi terverifikasi** pada korpus panduan ini terkait rincian dokumen SLHS daerah per kabupaten/kota."
+      "text": "dan proses sederhana, penyembelihan/olahan daging hewani umumnya mengikuti persyaratan sertifikasi reguler).\n\n- **Laik Higiene Sanitasi Jasaboga/Rumah Makan:** Untuk keperluan katering instansi atau sertifikat laik higiene dinas kesehatan setempat, **belum ada referensi terverifikasi** pada korpus panduan ini terkait rincian dokumen SLHS daerah per kabupaten/kota."
     },
     {
       "jenis_usaha": "warung_makan",
